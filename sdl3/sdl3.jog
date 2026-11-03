@@ -1,0 +1,57 @@
+// Thin hand-written SDL3 bindings for the smoke app subset.
+// Expand this file as more APIs are needed. Spec shape: design/language/CInterop.md.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_Init(flags: u32): bool
+    fn SDL_Quit()
+    fn SDL_CreateWindow(title: *const c.char, w: c.int, h: c.int, flags: u64): *SDL_Window?
+    fn SDL_DestroyWindow(window: *SDL_Window)
+    fn SDL_CreateRenderer(window: *SDL_Window, name: *const c.char?): *SDL_Renderer?
+    fn SDL_DestroyRenderer(renderer: *SDL_Renderer)
+    fn SDL_SetRenderDrawColor(renderer: *SDL_Renderer, r: u8, g: u8, b: u8, a: u8): bool
+    fn SDL_RenderClear(renderer: *SDL_Renderer): bool
+    fn SDL_RenderPresent(renderer: *SDL_Renderer): bool
+    // C is const SDL_FRect *; V1 does not coerce *T to *const T?, so use *SDL_FRect.
+    fn SDL_RenderFillRect(renderer: *SDL_Renderer, rect: *SDL_FRect): bool
+    fn SDL_PollEvent(event: *SDL_Event): bool
+    fn SDL_Delay(ms: u32)
+    fn SDL_GetError(): *const c.char
+}
+
+@opaque struct SDL_Window
+@opaque struct SDL_Renderer
+
+// Layout matches the leading SDL_EventType / padding[128] union in SDL3.
+// Field is named event_type because `type` is a Jog keyword.
+struct SDL_Event {
+    event_type: u32
+    _pad: [124]u8
+}
+
+struct SDL_FRect {
+    x: f32
+    y: f32
+    w: f32
+    h: f32
+}
+
+val SDL_INIT_VIDEO: u32 = 0x00000020
+val SDL_EVENT_QUIT: u32 = 0x100
+val SDL_WINDOW_RESIZABLE: u64 = 0x0000000000000020
+
+
+fn zero_event(): SDL_Event {
+    var e: SDL_Event
+    return e
+}
+
+fn frect(x: f32, y: f32, w: f32, h: f32): SDL_FRect {
+    var r: SDL_FRect
+    r.x = x
+    r.y = y
+    r.w = w
+    r.h = h
+    return r
+}

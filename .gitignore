@@ -1,0 +1,16 @@
+# Local SDL3 install and extracted vendor tree (use scripts/fetch-sdl3.sh)
+prefix/
+vendor/SDL3-*/
+vendor/*.tar.gz
+vendor/*.tar.gz.sha256
+
+# Unpacked Fedora -devel RPMs used when system headers are missing (optional)
+.deps/
+
+# Jog build outputs
+out/
+.jog-cache/
+
+# Editor / OS
+*.swp
+.DS_Store
