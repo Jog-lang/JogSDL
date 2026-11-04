@@ -11,12 +11,26 @@ Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are
 | SDL3 pin | **3.4.18** |
 | Tarball sha256 | `9c75cf16330322c217dedd2e0609f1124f1b54b8633e763467b4684d0f4334a3` |
 
+## Two-layer model
+
+Public apps import **`jog_sdl.sdl` only**. Raw `@link("SDL3")` / `SDL_*` symbols live in unexported package **`sdl3`** and are not part of the module export list.
+
+```
+app  →  package sdl (Jog names, errors, Window/Renderer)  →  package sdl3 (extern)  →  libSDL3
+```
+
+| Package | Role |
+|---|---|
+| `sdl` | Exported. `Init` / `Quit`, `CreateWindow`, `Window` / `Renderer` methods, `poll_event`, `Delay`, `SDLError`, Jog constants (`INIT_VIDEO`, …). |
+| `sdl3` | Internal. `@link`, `@opaque`, `SDL_Event` / `SDL_FRect` layout, `zero_event` / `frect`. |
+
 ## Layout
 
 ```
 JogSDL/
-  jog.mod                 # module jog_sdl (library), export sdl3, link.linux SDL3
-  sdl3/sdl3.jog           # hand-written extern bindings
+  jog.mod                 # module jog_sdl (library), export sdl, link.linux SDL3
+  sdl/sdl.jog             # idiomatic Jog API
+  sdl3/sdl3.jog           # raw extern bindings (unexported)
   examples/window/        # window_demo executable
   scripts/fetch-sdl3.sh
   scripts/build-sdl3.sh
@@ -42,7 +56,7 @@ That installs shared `libSDL3.so` under `prefix/lib` (or `prefix/lib64`) and hea
 - Open this folder in Cursor (JogLSP already installed on this machine).
 - Compiler / build tool: `JOG=~/.local/bin/jog`, `JOG_BUILD=~/.local/bin/jog-build`.
 - Rebuild SDL only when upgrading the pin (`SDL3_VERSION` / sha256 in `scripts/fetch-sdl3.sh`).
-- Edit `sdl3/sdl3.jog` to add APIs; extend `examples/window` or add new examples.
+- Extend `sdl3/sdl3.jog` for new raw APIs; wrap them in `sdl/sdl.jog` before apps use them.
 
 ### Check the library
 
@@ -82,10 +96,10 @@ cd "$ROOT/examples/window"
 "$JOG" run --module jog_sdl="$ROOT"
 ```
 
-Needs a GUI session (`DISPLAY` or Wayland). On this machine: `DISPLAY=:0`, `WAYLAND_DISPLAY=wayland-0`. Close the window to exit cleanly.
+Needs a GUI session (`DISPLAY` or Wayland). On this machine: `DISPLAY=:0`, `WAYLAND_DISPLAY=wayland-0`. Close the window to exit cleanly (SDL3 delivers `EVENT_WINDOW_CLOSE_REQUESTED`; the smoke app also accepts `EVENT_QUIT`).
 
 Fedora build deps for SDL3 (system install when you have sudo): see [SDL README-linux](https://wiki.libsdl.org/SDL3/README-linux#build-dependencies). Without sudo, this checkout can unpack `-devel` RPMs into `.deps/` and `scripts/build-sdl3.sh` will pick that up via `PKG_CONFIG_PATH`.
 
-## Out of scope (skeleton)
+## Out of scope
 
 Full SDL3 surface, audio/gamepad, Android/iOS, bindgen, Windows CI.

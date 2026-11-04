@@ -1,5 +1,6 @@
-// Thin hand-written SDL3 bindings for the smoke app subset.
-// Expand this file as more APIs are needed. Spec shape: design/language/CInterop.md.
+// Internal raw SDL3 bindings for the smoke-app subset.
+// Not exported from jog.mod — apps use jog_sdl.sdl instead.
+// Expand as more APIs are needed. Spec shape: design/language/CInterop.md.
 import std.c
 
 @link("SDL3")
@@ -13,7 +14,7 @@ extern {
     fn SDL_SetRenderDrawColor(renderer: *SDL_Renderer, r: u8, g: u8, b: u8, a: u8): bool
     fn SDL_RenderClear(renderer: *SDL_Renderer): bool
     fn SDL_RenderPresent(renderer: *SDL_Renderer): bool
-    // C is const SDL_FRect *; V1 does not coerce *T to *const T?, so use *SDL_FRect.
+    // C is const SDL_FRect *; V1 does not coerce *T to *const T, so use *SDL_FRect.
     fn SDL_RenderFillRect(renderer: *SDL_Renderer, rect: *SDL_FRect): bool
     fn SDL_PollEvent(event: *SDL_Event): bool
     fn SDL_Delay(ms: u32)
@@ -36,11 +37,6 @@ struct SDL_FRect {
     w: f32
     h: f32
 }
-
-val SDL_INIT_VIDEO: u32 = 0x00000020
-val SDL_EVENT_QUIT: u32 = 0x100
-val SDL_WINDOW_RESIZABLE: u64 = 0x0000000000000020
-
 
 fn zero_event(): SDL_Event {
     var e: SDL_Event
