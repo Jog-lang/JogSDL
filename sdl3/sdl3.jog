@@ -14,8 +14,8 @@ extern {
     fn SDL_SetRenderDrawColor(renderer: *SDL_Renderer, r: u8, g: u8, b: u8, a: u8): bool
     fn SDL_RenderClear(renderer: *SDL_Renderer): bool
     fn SDL_RenderPresent(renderer: *SDL_Renderer): bool
-    // C is const SDL_FRect *; V1 does not coerce *T to *const T, so use *SDL_FRect.
-    fn SDL_RenderFillRect(renderer: *SDL_Renderer, rect: *SDL_FRect): bool
+    // C is const SDL_FRect *; *T coerces to *const T.
+    fn SDL_RenderFillRect(renderer: *SDL_Renderer, rect: *const SDL_FRect): bool
     fn SDL_PollEvent(event: *SDL_Event): bool
     fn SDL_Delay(ms: u32)
     fn SDL_GetError(): *const c.char
