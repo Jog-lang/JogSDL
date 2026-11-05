@@ -10,6 +10,9 @@ vendor/*.tar.gz.sha256
 # Jog build outputs
 out/
 .jog-cache/
+jog.local.mod
+examples/**/jog.local.mod
+
 
 # Editor / OS
 *.swp

@@ -55,7 +55,15 @@ cd /home/plague_doc/Documents/Projects/Jog/JogSDL
 
 ### Build and run the smoke app
 
-Linker discovery uses the repo-local prefix. On this Fedora machine the working env is:
+`jog.mod` lists portable `libdir.linux ./prefix/lib64` (and `./prefix/lib`), so **linking no longer needs `LIBRARY_PATH`**. After `scripts/build-sdl3.sh`, `jog-build` merges those paths and passes `--libdir` to `jog`.
+
+Host-only discovery (a prefix outside the tree) goes in a gitignored `jog.local.mod` next to the app, e.g. under `examples/window/`:
+
+```
+libdir.linux /home/me/JogSDL/prefix/lib64
+```
+
+Or pass `--libdir` / set `JOG_LIBDIRS`. **Runtime** still needs the loader to find `libSDL3.so` until rpath lands — keep `LD_LIBRARY_PATH` (or install SDL system-wide) for `run`:
 
 ```bash
 export JOG=~/.local/bin/jog
@@ -63,14 +71,16 @@ export JOG_BUILD=~/.local/bin/jog-build
 # ~/.local/bin/jog needs JOG_ROOT (std/ + runtime/ next to a compiler checkout)
 export JOG_ROOT=/home/plague_doc/Documents/Projects/Jog/JogCompiler
 ROOT=/home/plague_doc/Documents/Projects/Jog/JogSDL
-# On Fedora this machine, cmake installs to prefix/lib64.
 LIBDIR="$ROOT/prefix/lib64"
 [[ -d "$LIBDIR" ]] || LIBDIR="$ROOT/prefix/lib"
-export LIBRARY_PATH="$LIBDIR${LIBRARY_PATH:+:$LIBRARY_PATH}"
+# Link: no LIBRARY_PATH required when prefix/ matches jog.mod libdir.
+# Run: still need the dynamic loader path (rpath follow-up).
 export LD_LIBRARY_PATH="$LIBDIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-export CPATH="$ROOT/prefix/include${CPATH:+:$CPATH}"
 
 cd "$ROOT/examples/window"
+# Prove link without LIBRARY_PATH:
+unset LIBRARY_PATH
+"$JOG_BUILD" build -o out/window_demo
 "$JOG_BUILD" run
 ```
 
@@ -78,8 +88,8 @@ Or with the compiler directly:
 
 ```bash
 cd "$ROOT/examples/window"
-"$JOG" build --module jog_sdl="$ROOT"
-"$JOG" run --module jog_sdl="$ROOT"
+"$JOG" build --module jog_sdl="$ROOT" --libdir "$ROOT/prefix/lib64"
+"$JOG" run --module jog_sdl="$ROOT" --libdir "$ROOT/prefix/lib64"
 ```
 
 Needs a GUI session (`DISPLAY` or Wayland). On this machine: `DISPLAY=:0`, `WAYLAND_DISPLAY=wayland-0`. Close the window to exit cleanly.
