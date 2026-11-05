@@ -1,6 +1,8 @@
 // Jog-facing SDL3 API. Raw @link / SDL_* live in unexported package sdl3.
 import sdl3
 import std.c
+import std.mem
+import std.text
 
 val INIT_VIDEO: u32 = 0x00000020
 val EVENT_QUIT: u32 = 0x100
@@ -18,28 +20,14 @@ fn SDLError.message(): str {
     return self.msg
 }
 
-// Copy of the last SDL_GetError text (or fallback). Valid until the next
-// last_error call; fine for immediate checks / panic paths in the smoke app.
-var err_buf: [512]u8
-var err_len: usize
-
 private fn last_error(fallback: str): SDLError {
-    // SDL_GetError returns *const c.char (not optional); empty string means no error text.
+    // SDL_GetError returns *const c.char; copy into the error arena so the
+    // message outlives the next GetError overwrite.
     val p = sdl3.SDL_GetError()
-    val n = c.strlen(p) as usize
-    if n > 0 {
-        var copy_len = n
-        if copy_len > 511 {
-            copy_len = 511
-        }
-        c.memcpy(err_buf[..].ptr as *void, p as *const void, copy_len)
-        err_buf[copy_len] = 0
-        err_len = copy_len
-        var view = bytes()
-        view.ptr = err_buf[..].ptr
-        view.len = err_len
+    val view = c.fromCStr(p)
+    if view.len > 0 {
         var e: SDLError
-        e.msg = view
+        e.msg = c.copyCStr(p)
         return e
     }
     var e: SDLError
@@ -102,31 +90,14 @@ private fn empty_renderer(): Renderer {
     return ren
 }
 
-// NUL-terminate title into buf. Returns null if title does not fit (including NUL).
-private fn fill_cstr(title: str, buf: *u8, cap: usize): *const c.char? {
-    if title.len + 1 > cap {
-        return null
-    }
-    if title.len > 0 {
-        c.memcpy(buf as *void, title.ptr as *const void, title.len)
-    }
-    *(buf + title.len) = 0
-    return buf as *const c.char
-}
-
 /**
- * Creates a window. title is a Jog str; C conversion stays inside this package.
+ * Creates a window. title is a Jog str; C conversion uses text.cstr.
  * @return: (window, null) on success, or (zero window, error) on failure.
  */
-fn CreateWindow(title: str, w: i32, h: i32, flags: u64): (Window, SDLError?) {
-    var buf: [4096]u8
-    val ctitle = fill_cstr(title, buf[..].ptr, 4096)
-    if ctitle == null {
-        var e: SDLError
-        e.msg = "CreateWindow: title too long"
-        return empty_window(), e
-    }
-    val ptr = sdl3.SDL_CreateWindow(ctitle!!, w as c.int, h as c.int, flags)
+fn CreateWindow(title: str, w: i32, h: i32, flags: u64): (Window, SDLError?) with (a: mem.Allocator) {
+    val ctitle = title.cstr()
+    defer text.free_cstr(ctitle, title.len)
+    val ptr = sdl3.SDL_CreateWindow(ctitle, w as c.int, h as c.int, flags)
     if ptr == null {
         return empty_window(), last_error("CreateWindow failed")
     }
