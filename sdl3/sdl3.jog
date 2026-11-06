@@ -1,5 +1,5 @@
-// Thin hand-written SDL3 bindings for the smoke app subset.
-// Expand this file as more APIs are needed. Spec shape: design/language/CInterop.md.
+// Internal raw SDL3 bindings. Not exported from jog.mod — apps use jog_sdl.sdl.
+// Expand as more APIs are needed. Spec shape: design/language/CInterop.md.
 import std.c
 
 @link("SDL3")
@@ -10,24 +10,59 @@ extern {
     fn SDL_DestroyWindow(window: *SDL_Window)
     fn SDL_CreateRenderer(window: *SDL_Window, name: *const c.char?): *SDL_Renderer?
     fn SDL_DestroyRenderer(renderer: *SDL_Renderer)
+    fn SDL_CreateWindowAndRenderer(
+        title: *const c.char,
+        w: c.int,
+        h: c.int,
+        flags: u64,
+        window: **SDL_Window,
+        renderer: **SDL_Renderer
+    ): bool
     fn SDL_SetRenderDrawColor(renderer: *SDL_Renderer, r: u8, g: u8, b: u8, a: u8): bool
     fn SDL_RenderClear(renderer: *SDL_Renderer): bool
     fn SDL_RenderPresent(renderer: *SDL_Renderer): bool
-    // C is const SDL_FRect *; V1 does not coerce *T to *const T?, so use *SDL_FRect.
-    fn SDL_RenderFillRect(renderer: *SDL_Renderer, rect: *SDL_FRect): bool
+    fn SDL_RenderFillRect(renderer: *SDL_Renderer, rect: *const SDL_FRect): bool
+    fn SDL_CreateTexture(
+        renderer: *SDL_Renderer,
+        format: u32,
+        access: c.int,
+        w: c.int,
+        h: c.int
+    ): *SDL_Texture?
+    fn SDL_DestroyTexture(texture: *SDL_Texture)
+    fn SDL_UpdateTexture(
+        texture: *SDL_Texture,
+        rect: *const SDL_Rect?,
+        pixels: *const void,
+        pitch: c.int
+    ): bool
+    fn SDL_RenderTexture(
+        renderer: *SDL_Renderer,
+        texture: *SDL_Texture,
+        srcrect: *const SDL_FRect?,
+        dstrect: *const SDL_FRect?
+    ): bool
     fn SDL_PollEvent(event: *SDL_Event): bool
+    fn SDL_GetKeyboardState(numkeys: *c.int): *const u8
     fn SDL_Delay(ms: u32)
+    fn SDL_GetTicks(): u64
     fn SDL_GetError(): *const c.char
 }
 
 @opaque struct SDL_Window
 @opaque struct SDL_Renderer
+@opaque struct SDL_Texture
 
-// Layout matches the leading SDL_EventType / padding[128] union in SDL3.
-// Field is named event_type because `type` is a Jog keyword.
+// Layout matches SDL_Event (128 bytes). Leading fields align with SDL_KeyboardEvent
+// so key polls can read scancode without a separate union view.
 struct SDL_Event {
     event_type: u32
-    _pad: [124]u8
+    reserved: u32
+    timestamp: u64
+    window_id: u32
+    which: u32
+    scancode: u32
+    _pad: [100]u8
 }
 
 struct SDL_FRect {
@@ -37,10 +72,12 @@ struct SDL_FRect {
     h: f32
 }
 
-val SDL_INIT_VIDEO: u32 = 0x00000020
-val SDL_EVENT_QUIT: u32 = 0x100
-val SDL_WINDOW_RESIZABLE: u64 = 0x0000000000000020
-
+struct SDL_Rect {
+    x: c.int
+    y: c.int
+    w: c.int
+    h: c.int
+}
 
 fn zero_event(): SDL_Event {
     var e: SDL_Event

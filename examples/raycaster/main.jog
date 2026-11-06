@@ -1,0 +1,193 @@
+import jog_sdl.sdl
+import std.math
+import std.mem
+
+val SCREEN_W: i32 = 640
+val SCREEN_H: i32 = 400
+val MOVE_SPEED: f64 = 3.0
+val ROT_SPEED: f64 = 2.0
+
+fn main() {
+    with (mem.heap()) {
+        var err = sdl.Init(sdl.INIT_VIDEO)
+        if err != null {
+            panic("SDL Init failed: ${err!!.message()}")
+        }
+        defer sdl.Quit()
+
+        var (win, ren, create_err) = sdl.CreateWindowAndRenderer(
+            "JogSDL raycaster",
+            SCREEN_W,
+            SCREEN_H,
+            sdl.WINDOW_RESIZABLE
+        )
+        if create_err != null {
+            panic("CreateWindowAndRenderer failed: ${create_err!!.message()}")
+        }
+        defer win.destroy()
+        defer ren.destroy()
+
+        var (tex, tex_err) = ren.create_streaming_texture(SCREEN_W, SCREEN_H)
+        if tex_err != null {
+            panic("CreateTexture failed: ${tex_err!!.message()}")
+        }
+        defer tex.destroy()
+
+        val pixels = mem.newSlice<u32>((SCREEN_W * SCREEN_H) as usize)
+        defer mem.freeSlice(pixels)
+
+        var map = demo_map()
+        // Open cell (2,2); pillars sit around (3–4,*) and further rooms.
+        var pos_x: f64 = 2.5
+        var pos_y: f64 = 2.5
+        var dir_x: f64 = 1.0
+        var dir_y: f64 = 0.0
+        var plane_x: f64 = 0.0
+        var plane_y: f64 = 0.66
+
+        var last_ticks = sdl.GetTicks()
+        var running = true
+        for running {
+            for {
+                val (ev, ok) = sdl.PollEvent()
+                if !ok {
+                    break
+                }
+                if ev.kind == sdl.EVENT_QUIT || ev.kind == sdl.EVENT_WINDOW_CLOSE_REQUESTED {
+                    running = false
+                }
+                if ev.kind == sdl.EVENT_KEY_DOWN && ev.scancode == sdl.SCANCODE_ESCAPE {
+                    running = false
+                }
+            }
+            if !running {
+                break
+            }
+
+            val now = sdl.GetTicks()
+            var dt = (now - last_ticks) as f64 / 1000.0
+            last_ticks = now
+            if dt > 0.05 {
+                dt = 0.05
+            }
+
+            // Movement / turn from keyboard state (events already pumped).
+            if sdl.KeyboardIsDown(sdl.SCANCODE_LEFT) {
+                val rot = ROT_SPEED * dt
+                val old_dir_x = dir_x
+                dir_x = dir_x * math.cos(rot) - dir_y * math.sin(rot)
+                dir_y = old_dir_x * math.sin(rot) + dir_y * math.cos(rot)
+                val old_plane_x = plane_x
+                plane_x = plane_x * math.cos(rot) - plane_y * math.sin(rot)
+                plane_y = old_plane_x * math.sin(rot) + plane_y * math.cos(rot)
+            }
+            if sdl.KeyboardIsDown(sdl.SCANCODE_RIGHT) {
+                val rot = -ROT_SPEED * dt
+                val old_dir_x = dir_x
+                dir_x = dir_x * math.cos(rot) - dir_y * math.sin(rot)
+                dir_y = old_dir_x * math.sin(rot) + dir_y * math.cos(rot)
+                val old_plane_x = plane_x
+                plane_x = plane_x * math.cos(rot) - plane_y * math.sin(rot)
+                plane_y = old_plane_x * math.sin(rot) + plane_y * math.cos(rot)
+            }
+
+            val move = MOVE_SPEED * dt
+            if sdl.KeyboardIsDown(sdl.SCANCODE_W) {
+                val nx = pos_x + dir_x * move
+                val ny = pos_y + dir_y * move
+                if !map.solid(math.floor(nx) as i32, math.floor(pos_y) as i32) {
+                    pos_x = nx
+                }
+                if !map.solid(math.floor(pos_x) as i32, math.floor(ny) as i32) {
+                    pos_y = ny
+                }
+            }
+            if sdl.KeyboardIsDown(sdl.SCANCODE_S) {
+                val nx = pos_x - dir_x * move
+                val ny = pos_y - dir_y * move
+                if !map.solid(math.floor(nx) as i32, math.floor(pos_y) as i32) {
+                    pos_x = nx
+                }
+                if !map.solid(math.floor(pos_x) as i32, math.floor(ny) as i32) {
+                    pos_y = ny
+                }
+            }
+            if sdl.KeyboardIsDown(sdl.SCANCODE_A) {
+                val nx = pos_x - plane_x * move
+                val ny = pos_y - plane_y * move
+                if !map.solid(math.floor(nx) as i32, math.floor(pos_y) as i32) {
+                    pos_x = nx
+                }
+                if !map.solid(math.floor(pos_x) as i32, math.floor(ny) as i32) {
+                    pos_y = ny
+                }
+            }
+            if sdl.KeyboardIsDown(sdl.SCANCODE_D) {
+                val nx = pos_x + plane_x * move
+                val ny = pos_y + plane_y * move
+                if !map.solid(math.floor(nx) as i32, math.floor(pos_y) as i32) {
+                    pos_x = nx
+                }
+                if !map.solid(math.floor(pos_x) as i32, math.floor(ny) as i32) {
+                    pos_y = ny
+                }
+            }
+
+            render_frame(pixels, map, pos_x, pos_y, dir_x, dir_y, plane_x, plane_y)
+
+            _ = tex.update(pixels.ptr as *const void)
+            _ = ren.set_draw_color(0, 0, 0, 255)
+            _ = ren.clear()
+            _ = ren.draw_texture(tex)
+            _ = ren.present()
+        }
+    }
+}
+
+fn render_frame(
+    pixels: []u32,
+    map: Map,
+    pos_x: f64,
+    pos_y: f64,
+    dir_x: f64,
+    dir_y: f64,
+    plane_x: f64,
+    plane_y: f64
+) {
+    val w = SCREEN_W
+    val h = SCREEN_H
+    var x: i32 = 0
+    for x < w {
+        val camera_x = 2.0 * (x as f64) / (w as f64) - 1.0
+        val ray_dir_x = dir_x + plane_x * camera_x
+        val ray_dir_y = dir_y + plane_y * camera_x
+        val hit = map.cast(pos_x, pos_y, ray_dir_x, ray_dir_y)
+        var line_h = ((h as f64) / hit.dist) as i32
+        if line_h > h * 4 {
+            line_h = h * 4
+        }
+        var draw_start = -line_h / 2 + h / 2
+        var draw_end = line_h / 2 + h / 2
+        if draw_start < 0 {
+            draw_start = 0
+        }
+        if draw_end >= h {
+            draw_end = h - 1
+        }
+        val color = wall_color(hit.wall_id, hit.side)
+
+        var y: i32 = 0
+        for y < h {
+            val idx = (y * w + x) as usize
+            if y < draw_start {
+                pixels[idx] = CEILING_COLOR
+            } else if y > draw_end {
+                pixels[idx] = FLOOR_COLOR
+            } else {
+                pixels[idx] = color
+            }
+            y = y + 1
+        }
+        x = x + 1
+    }
+}

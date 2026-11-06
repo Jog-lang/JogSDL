@@ -1,0 +1,4 @@
+# jog.lock: written by jog-build, do not edit
+lock 1
+dep jog_sdl 0.1.0 path ../.. -
+dep.test mock_noop 0.1.0 path ./mocks/mock_noop -

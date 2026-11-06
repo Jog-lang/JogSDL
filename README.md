@@ -1,6 +1,6 @@
 # JogSDL
 
-Hand-written [SDL3](https://www.libsdl.org/) bindings for the [Jog](https://github.com/Jog-lang) language, plus a small window smoke app.
+Hand-written [SDL3](https://www.libsdl.org/) bindings for the [Jog](https://github.com/Jog-lang) language, plus a window smoke app and a Wolfenstein-style software raycaster.
 
 Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are listed in `jog.mod` for later.
 
@@ -11,13 +11,28 @@ Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are
 | SDL3 pin | **3.4.18** |
 | Tarball sha256 | `9c75cf16330322c217dedd2e0609f1124f1b54b8633e763467b4684d0f4334a3` |
 
+## Two-layer model
+
+Public apps import **`jog_sdl.sdl` only**. Raw `@link("SDL3")` / `SDL_*` symbols live in unexported package **`sdl3`** and are not part of the module export list.
+
+```
+app  →  package sdl (Jog names, errors, Window/Renderer/Texture)  →  package sdl3 (extern)  →  libSDL3
+```
+
+| Package | Role |
+|---|---|
+| `sdl` | Exported. `Init` / `Quit`, `CreateWindow` / `CreateWindowAndRenderer`, `Window` / `Renderer` / `Texture`, `PollEvent`, `KeyboardIsDown`, `GetTicks`, `Delay`, `SDLError`, Jog constants. |
+| `sdl3` | Internal. `@link`, `@opaque`, `SDL_Event` / `SDL_FRect` / `SDL_Rect` layout, `zero_event` / `frect`. |
+
 ## Layout
 
 ```
 JogSDL/
-  jog.mod                 # module jog_sdl (library), export sdl3, link.linux SDL3
-  sdl3/sdl3.jog           # hand-written extern bindings
+  jog.mod                 # module jog_sdl (library), export sdl, link.linux SDL3, libdir
+  sdl/sdl.jog             # idiomatic Jog API
+  sdl3/sdl3.jog           # raw extern bindings (unexported)
   examples/window/        # window_demo executable
+  examples/raycaster/     # Wolfenstein-style DDA software raycaster
   scripts/fetch-sdl3.sh
   scripts/build-sdl3.sh
   prefix/                 # local SDL3 install (gitignored)
@@ -42,7 +57,7 @@ That installs shared `libSDL3.so` under `prefix/lib` (or `prefix/lib64`) and hea
 - Open this folder in Cursor (JogLSP already installed on this machine).
 - Compiler / build tool: `JOG=~/.local/bin/jog`, `JOG_BUILD=~/.local/bin/jog-build`.
 - Rebuild SDL only when upgrading the pin (`SDL3_VERSION` / sha256 in `scripts/fetch-sdl3.sh`).
-- Edit `sdl3/sdl3.jog` to add APIs; extend `examples/window` or add new examples.
+- Extend `sdl3/sdl3.jog` for new raw APIs; wrap them in `sdl/sdl.jog` before apps use them.
 
 ### Check the library
 
@@ -57,45 +72,45 @@ cd /home/plague_doc/Documents/Projects/Jog/JogSDL
 
 `jog.mod` lists portable `libdir.linux ./prefix/lib64` (and `./prefix/lib`), so **linking no longer needs `LIBRARY_PATH`**. After `scripts/build-sdl3.sh`, `jog-build` merges those paths and passes `--libdir` to `jog`.
 
-Host-only discovery (a prefix outside the tree) goes in a gitignored `jog.local.mod` next to the app, e.g. under `examples/window/`:
+Host-only discovery (a prefix outside the tree) goes in a gitignored `jog.local.mod` next to the app, e.g. under `examples/window/` (see `jog.local.mod.example`).
 
-```
-libdir.linux /home/me/JogSDL/prefix/lib64
-```
-
-Or pass `--libdir` / set `JOG_LIBDIRS`. **Runtime** still needs the loader to find `libSDL3.so` until rpath lands — keep `LD_LIBRARY_PATH` (or install SDL system-wide) for `run`:
+**Runtime** still needs the loader to find `libSDL3.so` until rpath lands — keep `LD_LIBRARY_PATH` (or install SDL system-wide) for `run`:
 
 ```bash
 export JOG=~/.local/bin/jog
 export JOG_BUILD=~/.local/bin/jog-build
-# ~/.local/bin/jog needs JOG_ROOT (std/ + runtime/ next to a compiler checkout)
 export JOG_ROOT=/home/plague_doc/Documents/Projects/Jog/JogCompiler
 ROOT=/home/plague_doc/Documents/Projects/Jog/JogSDL
 LIBDIR="$ROOT/prefix/lib64"
 [[ -d "$LIBDIR" ]] || LIBDIR="$ROOT/prefix/lib"
-# Link: no LIBRARY_PATH required when prefix/ matches jog.mod libdir.
-# Run: still need the dynamic loader path (rpath follow-up).
 export LD_LIBRARY_PATH="$LIBDIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 cd "$ROOT/examples/window"
-# Prove link without LIBRARY_PATH:
 unset LIBRARY_PATH
 "$JOG_BUILD" build -o out/window_demo
 "$JOG_BUILD" run
 ```
 
-Or with the compiler directly:
+Close the window or press Escape to exit (SDL3 delivers `EVENT_WINDOW_CLOSE_REQUESTED`; the smoke app also accepts `EVENT_QUIT` / Escape).
+
+### Raycaster
+
+Wolfenstein-style v1: fixed grid map, per-column DDA, flat-colored walls (side shading), WASD + turn, software ARGB framebuffer uploaded through a streaming texture.
 
 ```bash
-cd "$ROOT/examples/window"
-"$JOG" build --module jog_sdl="$ROOT" --libdir "$ROOT/prefix/lib64"
-"$JOG" run --module jog_sdl="$ROOT" --libdir "$ROOT/prefix/lib64"
+# same JOG / JOG_BUILD / JOG_ROOT / LD_LIBRARY_PATH as above
+cd "$ROOT/examples/raycaster"
+unset LIBRARY_PATH
+"$JOG_BUILD" build -o out/raycaster
+"$JOG_BUILD" run
+# map/DDA unit tests (+ require.test mock smoke):
+"$JOG_BUILD" test
 ```
 
-Needs a GUI session (`DISPLAY` or Wayland). On this machine: `DISPLAY=:0`, `WAYLAND_DISPLAY=wayland-0`. Close the window to exit cleanly.
+Controls: **W/A/S/D** move, **Left/Right** turn, **Escape** or window close to quit.
 
 Fedora build deps for SDL3 (system install when you have sudo): see [SDL README-linux](https://wiki.libsdl.org/SDL3/README-linux#build-dependencies). Without sudo, this checkout can unpack `-devel` RPMs into `.deps/` and `scripts/build-sdl3.sh` will pick that up via `PKG_CONFIG_PATH`.
 
-## Out of scope (skeleton)
+## Out of scope
 
-Full SDL3 surface, audio/gamepad, Android/iOS, bindgen, Windows CI.
+Full SDL3 surface, textured walls/sprites/audio, bindgen, Windows CI, publishing to a registry.

@@ -1,0 +1,174 @@
+// Pure map + DDA helpers for the Wolfenstein-style raycaster (no SDL).
+import std.math
+
+val MAP_W: i32 = 16
+val MAP_H: i32 = 16
+val MAP_CELLS: i32 = 256
+
+// Hit from casting one column. wall_id 0 means no hit (should not happen in a sealed map).
+struct Hit {
+    wall_id: u8
+    dist: f64
+    side: i32 // 0 = NS (X-step), 1 = EW (Y-step) — for cheap shading
+}
+
+struct Map {
+    cells: [256]u8
+}
+
+fn empty_map(): Map {
+    var m: Map
+    return m
+}
+
+/** Border walls (id 1) plus a few interior blocks (ids 2–4). */
+fn demo_map(): Map {
+    var m = empty_map()
+    var y: i32 = 0
+    for y < MAP_H {
+        var x: i32 = 0
+        for x < MAP_W {
+            val i = (y * MAP_W + x) as usize
+            if x == 0 || y == 0 || x == MAP_W - 1 || y == MAP_H - 1 {
+                m.cells[i] = 1
+            }
+            x = x + 1
+        }
+        y = y + 1
+    }
+    // Interior pillars / rooms
+    m.cells[(3 * MAP_W + 3) as usize] = 2
+    m.cells[(3 * MAP_W + 4) as usize] = 2
+    m.cells[(4 * MAP_W + 3) as usize] = 2
+    m.cells[(8 * MAP_W + 8) as usize] = 3
+    m.cells[(8 * MAP_W + 9) as usize] = 3
+    m.cells[(9 * MAP_W + 8) as usize] = 3
+    m.cells[(5 * MAP_W + 11) as usize] = 4
+    m.cells[(6 * MAP_W + 11) as usize] = 4
+    m.cells[(7 * MAP_W + 11) as usize] = 4
+    m.cells[(11 * MAP_W + 4) as usize] = 2
+    m.cells[(11 * MAP_W + 5) as usize] = 2
+    m.cells[(12 * MAP_W + 5) as usize] = 4
+    return m
+}
+
+fn Map.cell(x: i32, y: i32): u8 {
+    if x < 0 || y < 0 || x >= MAP_W || y >= MAP_H {
+        return 1
+    }
+    return self.cells[(y * MAP_W + x) as usize]
+}
+
+fn Map.solid(x: i32, y: i32): bool {
+    return self.cell(x, y) != 0
+}
+
+/**
+ * DDA column cast from (pos_x, pos_y) along (ray_dir_x, ray_dir_y).
+ * Returns distance to the wall in world units (perpendicular-corrected by caller via ray dirs).
+ */
+fn Map.cast(pos_x: f64, pos_y: f64, ray_dir_x: f64, ray_dir_y: f64): Hit {
+    var map_x = math.floor(pos_x) as i32
+    var map_y = math.floor(pos_y) as i32
+
+    var delta_dist_x: f64
+    var delta_dist_y: f64
+    if ray_dir_x == 0.0 {
+        delta_dist_x = 1.0e30
+    } else {
+        delta_dist_x = (1.0 / ray_dir_x).abs()
+    }
+    if ray_dir_y == 0.0 {
+        delta_dist_y = 1.0e30
+    } else {
+        delta_dist_y = (1.0 / ray_dir_y).abs()
+    }
+
+    var step_x: i32
+    var step_y: i32
+    var side_dist_x: f64
+    var side_dist_y: f64
+
+    if ray_dir_x < 0.0 {
+        step_x = -1
+        side_dist_x = (pos_x - (map_x as f64)) * delta_dist_x
+    } else {
+        step_x = 1
+        side_dist_x = ((map_x as f64) + 1.0 - pos_x) * delta_dist_x
+    }
+    if ray_dir_y < 0.0 {
+        step_y = -1
+        side_dist_y = (pos_y - (map_y as f64)) * delta_dist_y
+    } else {
+        step_y = 1
+        side_dist_y = ((map_y as f64) + 1.0 - pos_y) * delta_dist_y
+    }
+
+    var hit: Hit
+    var side: i32 = 0
+    var guard: i32 = 0
+    for guard < 64 {
+        if side_dist_x < side_dist_y {
+            side_dist_x = side_dist_x + delta_dist_x
+            map_x = map_x + step_x
+            side = 0
+        } else {
+            side_dist_y = side_dist_y + delta_dist_y
+            map_y = map_y + step_y
+            side = 1
+        }
+        val id = self.cell(map_x, map_y)
+        if id != 0 {
+            hit.wall_id = id
+            hit.side = side
+            if side == 0 {
+                hit.dist = side_dist_x - delta_dist_x
+            } else {
+                hit.dist = side_dist_y - delta_dist_y
+            }
+            if hit.dist < 0.0001 {
+                hit.dist = 0.0001
+            }
+            return hit
+        }
+        guard = guard + 1
+    }
+    hit.wall_id = 1
+    hit.dist = 64.0
+    hit.side = side
+    return hit
+}
+
+/** Palette for wall ids 1..4 (ARGB). */
+fn wall_color(id: u8, side: i32): u32 {
+    var r: u32 = 180
+    var g: u32 = 180
+    var b: u32 = 180
+    if id == 1 {
+        r = 160
+        g = 40
+        b = 40
+    } else if id == 2 {
+        r = 40
+        g = 140
+        b = 60
+    } else if id == 3 {
+        r = 40
+        g = 80
+        b = 180
+    } else if id == 4 {
+        r = 180
+        g = 140
+        b = 40
+    }
+    // Cheap N/S vs E/W shading
+    if side == 1 {
+        r = r / 2
+        g = g / 2
+        b = b / 2
+    }
+    return (255 as u32) << 24 | r << 16 | g << 8 | b
+}
+
+val CEILING_COLOR: u32 = 0xFF203040
+val FLOOR_COLOR: u32 = 0xFF303028
