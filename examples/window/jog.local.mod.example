@@ -1,0 +1,9 @@
+# Copy to jog.local.mod (gitignored) for host-only SDL search paths.
+# Prefer portable libdir lines in the library's jog.mod when prefix/ is
+# next to that module; use this overlay when the install lives elsewhere.
+#
+# After scripts/build-sdl3.sh on Fedora:
+#   libdir.linux ../../prefix/lib64
+#
+# Absolute form also works:
+#   libdir /home/plague_doc/Documents/Projects/Jog/JogSDL/prefix/lib64
