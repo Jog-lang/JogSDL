@@ -1,0 +1,197 @@
+// Jog-facing SDL3 API. Raw @link / SDL_* live in unexported package sdl3.
+import sdl3
+import std.c
+import std.mem
+import std.text
+
+val INIT_VIDEO: u32 = 0x00000020
+val EVENT_QUIT: u32 = 0x100
+// SDL3: window-manager close is WINDOW_CLOSE_REQUESTED (0x210); QUIT follows after destroy.
+val EVENT_WINDOW_CLOSE_REQUESTED: u32 = 0x210
+val WINDOW_RESIZABLE: u64 = 0x0000000000000020
+
+// Concrete error with a message. Callers use if err != null and err!!.message().
+// msg is the field; message() is the error-interface method.
+struct SDLError {
+    msg: str
+}
+
+fn SDLError.message(): str {
+    return self.msg
+}
+
+private fn last_error(fallback: str): SDLError {
+    // SDL_GetError returns *const c.char; copy into the error arena so the
+    // message outlives the next GetError overwrite.
+    val p = sdl3.SDL_GetError()
+    val view = c.fromCStr(p)
+    if view.len > 0 {
+        var e: SDLError
+        e.msg = c.copyCStr(p)
+        return e
+    }
+    var e: SDLError
+    e.msg = fallback
+    return e
+}
+
+/**
+ * Initializes the SDL library.
+ * @param flags: Init flags such as INIT_VIDEO.
+ * @return: An error if initialization failed.
+ */
+fn Init(flags: u32): SDLError? {
+    if !sdl3.SDL_Init(flags) {
+        return last_error("Init failed")
+    }
+    return null
+}
+
+fn Quit() {
+    sdl3.SDL_Quit()
+}
+
+// ptr is optional so a failed create can return a zero Window (Errors.md).
+struct Window {
+    ptr: *sdl3.SDL_Window?
+}
+
+struct Renderer {
+    ptr: *sdl3.SDL_Renderer?
+}
+
+struct Event {
+    kind: u32
+}
+
+struct FRect {
+    x: f32
+    y: f32
+    w: f32
+    h: f32
+}
+
+fn frect(x: f32, y: f32, w: f32, h: f32): FRect {
+    var r: FRect
+    r.x = x
+    r.y = y
+    r.w = w
+    r.h = h
+    return r
+}
+
+private fn empty_window(): Window {
+    var win: Window
+    return win
+}
+
+private fn empty_renderer(): Renderer {
+    var ren: Renderer
+    return ren
+}
+
+/**
+ * Creates a window. title is a Jog str; C conversion uses text.cstr.
+ * @return: (window, null) on success, or (zero window, error) on failure.
+ */
+fn CreateWindow(title: str, w: i32, h: i32, flags: u64): (Window, SDLError?) with (a: mem.Allocator) {
+    val ctitle = title.cstr()
+    defer text.free_cstr(ctitle, title.len)
+    val ptr = sdl3.SDL_CreateWindow(ctitle, w as c.int, h as c.int, flags)
+    if ptr == null {
+        return empty_window(), last_error("CreateWindow failed")
+    }
+    var win: Window
+    win.ptr = ptr
+    return win, null
+}
+
+fn Window.destroy() {
+    if self.ptr != null {
+        sdl3.SDL_DestroyWindow(self.ptr!!)
+    }
+}
+
+/**
+ * Creates a default renderer for this window (SDL driver name null).
+ */
+fn Window.create_renderer(): (Renderer, SDLError?) {
+    if self.ptr == null {
+        var e: SDLError
+        e.msg = "CreateRenderer: null window"
+        return empty_renderer(), e
+    }
+    val ptr = sdl3.SDL_CreateRenderer(self.ptr!!, null)
+    if ptr == null {
+        return empty_renderer(), last_error("CreateRenderer failed")
+    }
+    var ren: Renderer
+    ren.ptr = ptr
+    return ren, null
+}
+
+fn Renderer.destroy() {
+    if self.ptr != null {
+        sdl3.SDL_DestroyRenderer(self.ptr!!)
+    }
+}
+
+fn Renderer.set_draw_color(r: u8, g: u8, b: u8, a: u8): SDLError? {
+    if self.ptr == null {
+        return last_error("SetRenderDrawColor: null renderer")
+    }
+    if !sdl3.SDL_SetRenderDrawColor(self.ptr!!, r, g, b, a) {
+        return last_error("SetRenderDrawColor failed")
+    }
+    return null
+}
+
+fn Renderer.clear(): SDLError? {
+    if self.ptr == null {
+        return last_error("RenderClear: null renderer")
+    }
+    if !sdl3.SDL_RenderClear(self.ptr!!) {
+        return last_error("RenderClear failed")
+    }
+    return null
+}
+
+fn Renderer.fill_rect(rect: FRect): SDLError? {
+    if self.ptr == null {
+        return last_error("RenderFillRect: null renderer")
+    }
+    var box = sdl3.frect(rect.x, rect.y, rect.w, rect.h)
+    if !sdl3.SDL_RenderFillRect(self.ptr!!, &box) {
+        return last_error("RenderFillRect failed")
+    }
+    return null
+}
+
+fn Renderer.present(): SDLError? {
+    if self.ptr == null {
+        return last_error("RenderPresent: null renderer")
+    }
+    if !sdl3.SDL_RenderPresent(self.ptr!!) {
+        return last_error("RenderPresent failed")
+    }
+    return null
+}
+
+/**
+ * Polls one event. Returns (event, true) when an event was available.
+ * EVENT_QUIT is exposed as Event.kind; the padded C SDL_Event stays in sdl3.
+ */
+fn poll_event(): (Event, bool) {
+    var raw = sdl3.zero_event()
+    if !sdl3.SDL_PollEvent(&raw) {
+        var empty: Event
+        return empty, false
+    }
+    var ev: Event
+    ev.kind = raw.event_type
+    return ev, true
+}
+
+fn Delay(ms: u32) {
+    sdl3.SDL_Delay(ms)
+}
