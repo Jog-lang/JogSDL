@@ -212,8 +212,7 @@ fn Renderer.fill_rect(rect: FRect): SDLError? {
     if self.ptr == null {
         return last_error("RenderFillRect: null renderer")
     }
-    var box = sdl3.frect(rect.x, rect.y, rect.w, rect.h)
-    if !sdl3.SDL_RenderFillRect(self.ptr!!, &box) {
+    if !sdl3.SDL_RenderFillRect(self.ptr!!, &rect as *const sdl3.SDL_FRect) {
         return last_error("RenderFillRect failed")
     }
     return null
