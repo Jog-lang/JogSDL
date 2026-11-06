@@ -1,0 +1,32 @@
+import std.testing
+import mock_noop
+
+@test
+fn demoMapBorderIsSolid() with (t: testing.Testing) {
+    t.expect(mock_noop.ready())
+    val m = demo_map()
+    t.expect(m.solid(0, 0))
+    t.expect(m.solid(MAP_W - 1, 5))
+    t.expect(!m.solid(3, 5))
+    t.expect(m.cell(3, 3) == 2)
+}
+
+@test
+fn castHitsForwardWall() with (t: testing.Testing) {
+    val m = demo_map()
+    // Facing -X from (2.5, 2.5); border at x=0 should be hit.
+    val hit = m.cast(2.5, 2.5, -1.0, 0.0)
+    t.expect(hit.wall_id != 0)
+    t.expect(hit.dist > 1.0)
+    t.expect(hit.dist < 3.0)
+    t.expect(hit.side == 0)
+}
+
+@test
+fn castHitsNearbyPillar() with (t: testing.Testing) {
+    val m = demo_map()
+    // Pillar at (3,3)/(3,4)/(4,3); cast +X from (2.5, 3.5) should hit quickly.
+    val hit = m.cast(2.5, 3.5, 1.0, 0.0)
+    t.expect(hit.wall_id == 2)
+    t.expect(hit.dist < 1.5)
+}
