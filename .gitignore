@@ -1,5 +1,6 @@
 # Local SDL3 install and extracted vendor tree (use scripts/fetch-sdl3.sh)
 prefix/
+prefix-emscripten/
 vendor/SDL3-*/
 vendor/*.tar.gz
 vendor/*.tar.gz.sha256
