@@ -7,8 +7,7 @@ val SCREEN_H: i32 = 400
 val MOVE_SPEED: f64 = 3.0
 val ROT_SPEED: f64 = 2.0
 
-// Frame state lives at package scope so @export jog_app_iterate can see it
-// (Jog cannot pass a nested fn as extern () -> i32 yet — Friction).
+// Frame state at package scope so the @export tick can see it.
 var g_running: bool = false
 var g_win: sdl.Window
 var g_ren: sdl.Renderer
@@ -24,14 +23,14 @@ var g_plane_y: f64 = 0.66
 var g_last_ticks: u64 = 0
 
 extern {
-    fn jog_host_run_loop()
+    fn jog_host_run_loop(tick: extern () -> i32)
 }
 
 /**
  * One frame for desktop and Emscripten. Return 0 to stop the host loop.
  */
 @export
-fn jog_app_iterate(): i32 {
+fn tick_frame(): i32 {
     for {
         val (ev, ok) = sdl.PollEvent()
         if !ok {
@@ -157,7 +156,7 @@ fn main() {
         g_running = true
 
         // Desktop: while-iterate. Emscripten: requestAnimationFrame via emcc.
-        jog_host_run_loop()
+        jog_host_run_loop(tick_frame)
 
         mem.freeSlice(g_pixels)
         g_tex.destroy()
