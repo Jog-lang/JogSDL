@@ -6,11 +6,11 @@ var g_win: sdl.Window
 var g_ren: sdl.Renderer
 
 extern {
-    fn jog_host_run_loop()
+    fn jog_host_run_loop(tick: extern () -> i32)
 }
 
 @export
-fn jog_app_iterate(): i32 {
+fn tick_frame(): i32 {
     for {
         val (ev, ok) = sdl.PollEvent()
         if !ok {
@@ -60,7 +60,7 @@ fn main() {
         g_ren = ren
         g_running = true
 
-        jog_host_run_loop()
+        jog_host_run_loop(tick_frame)
 
         g_ren.destroy()
         g_win.destroy()
