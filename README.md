@@ -35,7 +35,9 @@ JogSDL/
   examples/raycaster/     # Wolfenstein-style DDA software raycaster
   scripts/fetch-sdl3.sh
   scripts/build-sdl3.sh
+  scripts/build-sdl3-emscripten.sh
   prefix/                 # local SDL3 install (gitignored)
+  prefix-emscripten/      # Emscripten static SDL3 (gitignored)
   vendor/SDL3-3.4.18/     # extracted source (gitignored)
 ```
 
@@ -110,6 +112,28 @@ unset LIBRARY_PATH
 Controls: **W/A/S/D** move, **Left/Right** turn, **Escape** or window close to quit.
 
 Fedora build deps for SDL3 (system install when you have sudo): see [SDL README-linux](https://wiki.libsdl.org/SDL3/README-linux#build-dependencies). Without sudo, this checkout can unpack `-devel` RPMs into `.deps/` and `scripts/build-sdl3.sh` will pick that up via `PKG_CONFIG_PATH`.
+
+
+## Browser (Emscripten)
+
+Requires [emsdk](https://emscripten.org/) (`emcc` / `emcmake` on `PATH`) and a compiler that accepts `--target wasm32-emscripten`.
+
+```bash
+source ~/emsdk/emsdk_env.sh   # or your emsdk path
+cd /home/plague_doc/Documents/Projects/Jog/JogSDL
+./scripts/fetch-sdl3.sh
+./scripts/build-sdl3-emscripten.sh   # → prefix-emscripten/lib/libSDL3.a
+
+export JOG=/path/to/jog   # seed or develop with wasm32-emscripten
+export JOG_BUILD=/path/to/jog-build
+export JOG_ROOT=/home/plague_doc/Documents/Projects/Jog/JogCompiler-seed   # or develop
+
+cd examples/raycaster
+"$JOG_BUILD" build --target wasm32-emscripten -o out/raycaster.html
+# Serve out/ (emcc shell) over HTTP and open raycaster.html
+```
+
+`jog.mod` carries `link.emscripten SDL3` and `libdir.emscripten ./prefix-emscripten/lib`. The demos use `@export jog_app_iterate` + `jog_host_run_loop()` so one source works on desktop and in the browser.
 
 ## Out of scope
 

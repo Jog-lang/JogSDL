@@ -1,51 +1,69 @@
 import jog_sdl.sdl
 import std.mem
 
+var g_running: bool = false
+var g_win: sdl.Window
+var g_ren: sdl.Renderer
+
+extern {
+    fn jog_host_run_loop()
+}
+
+@export
+fn jog_app_iterate(): i32 {
+    for {
+        val (ev, ok) = sdl.PollEvent()
+        if !ok {
+            break
+        }
+        // SDL3: close button is WINDOW_CLOSE_REQUESTED; QUIT may also arrive.
+        if ev.kind == sdl.EVENT_QUIT || ev.kind == sdl.EVENT_WINDOW_CLOSE_REQUESTED {
+            g_running = false
+        }
+        if ev.kind == sdl.EVENT_KEY_DOWN && ev.scancode == sdl.SCANCODE_ESCAPE {
+            g_running = false
+        }
+    }
+    if !g_running {
+        return 0
+    }
+
+    // Dark teal clear + a simple filled rect.
+    _ = g_ren.set_draw_color(12, 48, 64, 255)
+    _ = g_ren.clear()
+
+    _ = g_ren.set_draw_color(80, 200, 180, 255)
+    _ = g_ren.fill_rect(sdl.frect(220.0, 160.0, 200.0, 160.0))
+
+    _ = g_ren.present()
+    sdl.Delay(16)
+    return 1
+}
+
 fn main() {
     with (mem.heap()) {
         var err = sdl.Init(sdl.INIT_VIDEO)
         if err != null {
             panic("SDL Init failed: ${err!!.message()}")
         }
-        defer sdl.Quit()
 
         var (win, win_err) = sdl.CreateWindow("JogSDL", 640, 480, sdl.WINDOW_RESIZABLE)
         if win_err != null {
             panic("SDL CreateWindow failed: ${win_err!!.message()}")
         }
-        defer win.destroy()
+        g_win = win
 
-        var (ren, ren_err) = win.create_renderer()
+        var (ren, ren_err) = g_win.create_renderer()
         if ren_err != null {
             panic("SDL CreateRenderer failed: ${ren_err!!.message()}")
         }
-        defer ren.destroy()
+        g_ren = ren
+        g_running = true
 
-        var running = true
-        for running {
-            for {
-                val (ev, ok) = sdl.PollEvent()
-                if !ok {
-                    break
-                }
-                // SDL3: close button is WINDOW_CLOSE_REQUESTED; QUIT may also arrive.
-                if ev.kind == sdl.EVENT_QUIT || ev.kind == sdl.EVENT_WINDOW_CLOSE_REQUESTED {
-                    running = false
-                }
-                if ev.kind == sdl.EVENT_KEY_DOWN && ev.scancode == sdl.SCANCODE_ESCAPE {
-                    running = false
-                }
-            }
+        jog_host_run_loop()
 
-            // Dark teal clear + a simple filled rect.
-            _ = ren.set_draw_color(12, 48, 64, 255)
-            _ = ren.clear()
-
-            _ = ren.set_draw_color(80, 200, 180, 255)
-            _ = ren.fill_rect(sdl.frect(220.0, 160.0, 200.0, 160.0))
-
-            _ = ren.present()
-            sdl.Delay(16)
-        }
+        g_ren.destroy()
+        g_win.destroy()
+        sdl.Quit()
     }
 }
