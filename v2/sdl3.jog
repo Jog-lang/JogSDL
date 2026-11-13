@@ -1,0 +1,33 @@
+// Internal raw SDL3 bindings for Jog v2 (unexported from apps' jog.mod).
+// C layouts that need exact offsets (SDL_Event) are handled via alloc + raw loads.
+
+@link("SDL3")
+extern {
+    fn SDL_Init(flags: u32): i32
+    fn SDL_Quit()
+    fn SDL_CreateWindow(title: *byte, w: i32, h: i32, flags: u64): *byte
+    fn SDL_DestroyWindow(window: *byte)
+    fn SDL_CreateRenderer(window: *byte, name: *byte): *byte
+    fn SDL_DestroyRenderer(renderer: *byte)
+    fn SDL_CreateWindowAndRenderer(
+        title: *byte,
+        w: i32,
+        h: i32,
+        flags: u64,
+        window: **byte,
+        renderer: **byte
+    ): i32
+    fn SDL_SetRenderDrawColor(renderer: *byte, r: u8, g: u8, b: u8, a: u8): i32
+    fn SDL_RenderClear(renderer: *byte): i32
+    fn SDL_RenderPresent(renderer: *byte): i32
+    fn SDL_RenderFillRect(renderer: *byte, rect: *byte): i32
+    fn SDL_CreateTexture(renderer: *byte, format: u32, access: i32, w: i32, h: i32): *byte
+    fn SDL_DestroyTexture(texture: *byte)
+    fn SDL_UpdateTexture(texture: *byte, rect: *byte, pixels: *byte, pitch: i32): i32
+    fn SDL_RenderTexture(renderer: *byte, texture: *byte, srcrect: *byte, dstrect: *byte): i32
+    fn SDL_PollEvent(event: *byte): i32
+    fn SDL_GetKeyboardState(numkeys: *i32): *byte
+    fn SDL_Delay(ms: u32)
+    fn SDL_GetTicks(): u64
+    fn SDL_GetError(): *byte
+}

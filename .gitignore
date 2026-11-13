@@ -1,20 +1,18 @@
+
+.deps/
+.DS_Store
+# Editor / OS
+examples/**/jog.local.mod
+# Jog build outputs
+.jog-cache/
+jog.local.mod
 # Local SDL3 install and extracted vendor tree (use scripts/fetch-sdl3.sh)
+out/
 prefix/
 prefix-emscripten/
+*.swp
+# Unpacked Fedora -devel RPMs used when system headers are missing (optional)
+v2/examples/*/out/
 vendor/SDL3-*/
 vendor/*.tar.gz
 vendor/*.tar.gz.sha256
-
-# Unpacked Fedora -devel RPMs used when system headers are missing (optional)
-.deps/
-
-# Jog build outputs
-out/
-.jog-cache/
-jog.local.mod
-examples/**/jog.local.mod
-
-
-# Editor / OS
-*.swp
-.DS_Store
