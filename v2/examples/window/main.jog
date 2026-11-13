@@ -1,7 +1,8 @@
 // Window smoke for Jog v2 + local SDL3 prefix (libdir → -L + rpath).
 // Package vals for SDL constants (JOG-89). Platform while-loop keeps the
 // demo robust; jog_host_run_loop works for scalar tick state (see compiler
-// examples/host_run_loop.jog) — SDL handle globals + tick still flaky here.
+// examples/host_run_loop.jog) — SDL handle globals + tick still flaky here
+// (F16). Emscripten uses examples/window-emscripten/ (JOG-90).
 
 val LIMIT_MS: u64 = 1500
 

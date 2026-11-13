@@ -1,25 +1,28 @@
 # JogSDL for JogCompiler v2
 
-Native Linux x86-64 bindings and demos for **`jog-v2` / `jog-build`** (JOG-89 surfaces on `jog 0.2.6-v2`+).
+Native Linux x86-64 and **wasm32-emscripten** bindings/demos for **`jog-v2` / `jog-build`** (`jog 0.2.7-v2`+; JOG-89 + JOG-90).
 
-Root `sdl/` + `examples/` stay on develop/`jogc`. This tree is the v2 port (JOG-64 + JOG-89).
+Root `sdl/` + `examples/` stay on develop/`jogc`. This tree is the v2 port (JOG-64 + JOG-89 + JOG-90).
 
 ## Layout
 
 ```
 v2/
-  sdl3.jog              # @link("SDL3") raw externs
-  sdl.jog               # Window / Renderer / Texture / FRect (f32); package vals
-  examples/window/      # smoke (~1.5s auto-exit)
-  examples/raycaster/   # Q16 raycaster, 160×100 FB in 640×400 window (120 frames)
+  sdl3.jog                      # @link("SDL3") raw externs
+  sdl.jog                       # Window / Renderer / Texture / FRect (f32); package vals
+  examples/window/              # native smoke (~1.5s auto-exit, while-loop)
+  examples/raycaster/           # native Q16 raycaster, 160×100 FB (120 frames)
+  examples/window-emscripten/   # browser window via jog_host_run_loop (JOG-90)
+  examples/raycaster-emscripten/# browser raycaster (JOG-90)
 ```
 
 ## Prerequisites
 
-- `jog-v2` + `jog-build` on `PATH` (or `JOG` / `JOG_BUILD`) — needs **0.2.6-v2** (JOG-89)
-- SDL3 in `../prefix` via repo `scripts/build-sdl3.sh`
+- `jog-v2` + `jog-build` on `PATH` (or `JOG` / `JOG_BUILD`) — needs **0.2.7-v2** (JOG-90 emscripten)
+- Native SDL3 in `../prefix` via repo `scripts/build-sdl3.sh`
+- Browser: emsdk (`source ~/emsdk/emsdk_env.sh`) + `scripts/build-sdl3-emscripten.sh` → `../prefix-emscripten/`
 
-## Build & run (rpath — no `LD_LIBRARY_PATH`)
+## Build & run (native, rpath — no `LD_LIBRARY_PATH`)
 
 ```bash
 export JOG=~/.local/bin/jog-v2   # or JogCompiler-v2/zig-out/bin/jog
@@ -32,14 +35,36 @@ cd ../raycaster
 "$JOG_BUILD" build -o out/raycaster && ./out/raycaster
 ```
 
-## JOG-89 surfaces now used
+## Build & run (Emscripten / browser)
 
-- Package-level `val` constants (no zero-arg const fns)
-- `jogrt_alloc` 4 MiB heap for the framebuffer (no libc `malloc`)
-- Float extern ABI fixed upstream (libm); raycaster keeps Q16 DDA by choice
-- `jog_host_run_loop` available upstream; window smoke still uses a platform `while` (SDL+tick still flaky)
+```bash
+source ~/emsdk/emsdk_env.sh
+# once: ../scripts/build-sdl3-emscripten.sh
+
+export JOG=/path/to/JogCompiler-v2/zig-out/bin/jog
+
+cd examples/window-emscripten
+"$JOG" build . --target wasm32-emscripten -o out/window.html
+python3 -m http.server -d out 8000
+# open http://127.0.0.1:8000/window.html
+
+cd ../raycaster-emscripten
+"$JOG" build . --target wasm32-emscripten -o out/raycaster.html
+python3 -m http.server -d out 8000
+# open http://127.0.0.1:8000/raycaster.html
+```
+
+`jog-build build --target wasm32-emscripten` also works once `JOG` points at a JOG-90 compiler (JogBuild already forwards the target).
+
+## JOG-89 / JOG-90 surfaces
+
+- Package-level `val` constants; `jogrt_alloc` 4 MiB heap; float extern ABI (native)
+- Emscripten: IR→C→emcc; `link.emscripten` / `libdir.emscripten`; returning `jog_host_run_loop(tick)`
+- Native SDL demos keep platform `while` (F16: host_run_loop + SDL present still flaky on native)
+- Wasm demos use scalar pointer globals only (F17: no multi-field struct package globals)
 
 ## Limits
 
-- No Emscripten/`wasm32-emscripten` on JogCompiler v2 yet (JOG-90).
-- Struct package globals and `host_run_loop` + SDL present still need care; see project friction log.
+- Freestanding `wasm32` (no emcc) is not on v2; browser+SDL is `wasm32-emscripten` only.
+- FRect layout vs `SDL_FRect` packing is still coarse (8-byte field slots); demos still smoke-present.
+- Coroutines/`go` abort under emscripten (no stack switch).

@@ -1,0 +1,220 @@
+// Emscripten raycaster (JOG-90): returning jog_host_run_loop + scalar globals.
+// Same Q16 DDA / 160×100 FB as the native demo; soft-capped frames.
+
+val WIN_W: i32 = 640
+val WIN_H: i32 = 400
+val FB_W: i64 = 160
+val FB_H: i64 = 100
+val FB_W32: i32 = 160
+val FB_H32: i32 = 100
+val FB_BYTES: u64 = 64000
+val CEILING_COLOR: i64 = 4281545523
+val FLOOR_COLOR: i64 = 4281549618
+val MAX_FRAMES: i64 = 120
+
+var g_win_ptr: *byte = null
+var g_ren_ptr: *byte = null
+var g_tex_ptr: *byte = null
+var g_pixels: *byte = null
+var g_map: *byte = null
+var g_evbuf: *byte = null
+var g_running: i64 = 0
+var g_frames: i64 = 0
+var g_pos_x: i64 = 0
+var g_pos_y: i64 = 0
+var g_angle: i64 = 0
+var g_key_w: i64 = 0
+var g_key_s: i64 = 0
+var g_key_a: i64 = 0
+var g_key_d: i64 = 0
+var g_key_left: i64 = 0
+var g_key_right: i64 = 0
+
+@export
+fn tick(): i32 {
+    while (PollEventHas(g_evbuf) != 0) {
+        val kind = *g_evbuf
+        if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
+            g_running = 0
+        }
+        if (kind == EVENT_KEY_DOWN || kind == EVENT_KEY_UP) {
+            val sc = *(g_evbuf + 24)
+            var down = 0
+            if (kind == EVENT_KEY_DOWN) {
+                down = 1
+            }
+            if (sc == SCANCODE_ESCAPE) {
+                g_running = 0
+            }
+            if (sc == SCANCODE_W) { g_key_w = down }
+            if (sc == SCANCODE_S) { g_key_s = down }
+            if (sc == SCANCODE_A) { g_key_a = down }
+            if (sc == SCANCODE_D) { g_key_d = down }
+            if (sc == SCANCODE_LEFT) { g_key_left = down }
+            if (sc == SCANCODE_RIGHT) { g_key_right = down }
+        }
+    }
+    if (g_running == 0) {
+        return 0
+    }
+    if (g_frames >= MAX_FRAMES) {
+        return 0
+    }
+
+    val dt: i64 = 16
+    val rot = dt * 80
+    if (g_key_left != 0) {
+        g_angle = g_angle + rot
+    }
+    if (g_key_right != 0) {
+        g_angle = g_angle - rot
+    }
+    val dir_x = fp_cos(g_angle)
+    val dir_y = fp_sin(g_angle)
+    val plane_x = 0 - fp_mul(dir_y, 43253)
+    val plane_y = fp_mul(dir_x, 43253)
+    val move = dt * 120
+    if (g_key_w != 0) {
+        val m = try_move(g_pos_x, g_pos_y, g_map, fp_mul(dir_x, move), fp_mul(dir_y, move))
+        g_pos_x = m.wall_id
+        g_pos_y = m.dist
+    }
+    if (g_key_s != 0) {
+        val m = try_move(g_pos_x, g_pos_y, g_map, 0 - fp_mul(dir_x, move), 0 - fp_mul(dir_y, move))
+        g_pos_x = m.wall_id
+        g_pos_y = m.dist
+    }
+    if (g_key_a != 0) {
+        val m = try_move(g_pos_x, g_pos_y, g_map, 0 - fp_mul(plane_x, move), 0 - fp_mul(plane_y, move))
+        g_pos_x = m.wall_id
+        g_pos_y = m.dist
+    }
+    if (g_key_d != 0) {
+        val m = try_move(g_pos_x, g_pos_y, g_map, fp_mul(plane_x, move), fp_mul(plane_y, move))
+        g_pos_x = m.wall_id
+        g_pos_y = m.dist
+    }
+
+    render_frame(g_pixels, g_map, g_pos_x, g_pos_y, dir_x, dir_y, plane_x, plane_y)
+
+    var tex = Texture(ptr: g_tex_ptr, w: FB_W32, h: FB_H32)
+    tex.update(g_pixels)
+    var ren = Renderer(ptr: g_ren_ptr)
+    ren.set_draw_color(0, 0, 0, 255)
+    ren.clear()
+    ren.draw_texture(tex)
+    ren.present()
+    g_frames = g_frames + 1
+    return 1
+}
+
+fn main() {
+    if (Init(INIT_VIDEO) == 0) {
+        panic("SDL Init failed\n")
+    }
+
+    var win = CreateWindow(c"JogSDL raycaster wasm", WIN_W, WIN_H, WINDOW_RESIZABLE)
+    if (win.ptr == null) {
+        panic("CreateWindow failed\n")
+    }
+    g_win_ptr = win.ptr
+
+    var ren = win.create_renderer()
+    if (ren.ptr == null) {
+        panic("CreateRenderer failed\n")
+    }
+    g_ren_ptr = ren.ptr
+
+    var tex = ren.create_streaming_texture(FB_W32, FB_H32)
+    if (tex.ptr == null) {
+        panic("CreateTexture failed\n")
+    }
+    g_tex_ptr = tex.ptr
+
+    g_pixels = alloc(FB_BYTES)
+    if (g_pixels == null) {
+        panic("alloc framebuffer failed\n")
+    }
+    g_map = demo_map()
+    g_evbuf = alloc(128)
+    g_pos_x = FP_ONE * 2 + FP_HALF
+    g_pos_y = FP_ONE * 2 + FP_HALF
+    g_angle = 0
+    g_running = 1
+    g_frames = 0
+
+    jog_host_run_loop(tick)
+
+    tex.destroy()
+    ren.destroy()
+    win.destroy()
+    Quit()
+    print("raycaster emscripten exit\n")
+}
+
+fn try_move(pos_x: i64, pos_y: i64, map: *byte, dx: i64, dy: i64): Hit {
+    val nx = pos_x + dx
+    val ny = pos_y + dy
+    var out_x = pos_x
+    var out_y = pos_y
+    val cy = pos_y / FP_ONE
+    val nx_cell = nx / FP_ONE
+    val ny_cell = ny / FP_ONE
+    if (map_solid(map, nx_cell, cy) == 0) {
+        out_x = nx
+    }
+    if (map_solid(map, out_x / FP_ONE, ny_cell) == 0) {
+        out_y = ny
+    }
+    return Hit(wall_id: out_x, dist: out_y, side: 0)
+}
+
+fn render_frame(
+    pixels: *byte,
+    map: *byte,
+    pos_x: i64,
+    pos_y: i64,
+    dir_x: i64,
+    dir_y: i64,
+    plane_x: i64,
+    plane_y: i64
+) {
+    val w = FB_W
+    val h = FB_H
+    var x: i64 = 0
+    while (x < w) {
+        val camera_x = fp_div(x * 2 * FP_ONE, w) - FP_ONE
+        val ray_dir_x = dir_x + fp_mul(plane_x, camera_x)
+        val ray_dir_y = dir_y + fp_mul(plane_y, camera_x)
+        val hit = map_cast(map, pos_x, pos_y, ray_dir_x, ray_dir_y)
+        var line_h = fp_div(h * FP_ONE, hit.dist)
+        line_h = line_h / FP_ONE
+        if (line_h > h * 4) {
+            line_h = h * 4
+        }
+        var draw_start = 0 - line_h / 2 + h / 2
+        var draw_end = line_h / 2 + h / 2
+        if (draw_start < 0) {
+            draw_start = 0
+        }
+        if (draw_end >= h) {
+            draw_end = h - 1
+        }
+        val color = wall_color(hit.wall_id, hit.side)
+        var y: i64 = 0
+        while (y < h) {
+            val idx = (y * w + x) * 4
+            var pix = FLOOR_COLOR
+            if (y < draw_start) {
+                pix = CEILING_COLOR
+            } else {
+                if (y <= draw_end) {
+                    pix = color
+                }
+            }
+            poke32(pixels, idx, pix)
+            y = y + 1
+        }
+        x = x + 1
+    }
+}
