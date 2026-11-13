@@ -4,6 +4,8 @@ Hand-written [SDL3](https://www.libsdl.org/) bindings for the [Jog](https://gith
 
 Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are listed in `jog.mod` for later.
 
+**JogCompiler v2:** see [`v2/`](v2/) — `jog-v2` / `jog-build` demos with `libdir` → rpath (no `LD_LIBRARY_PATH`). Root `sdl/` + `examples/` remain the develop/`jogc` layout.
+
 | | |
 |---|---|
 | Repo | https://github.com/Jog-lang/JogSDL |

@@ -1,0 +1,175 @@
+fn poke32(p: *byte, off: i64, v: i64) {
+    p[off] = v & 255
+    p[off + 1] = (v >> 8) & 255
+    p[off + 2] = (v >> 16) & 255
+    p[off + 3] = (v >> 24) & 255
+}
+
+fn MAP_W(): i64 { return 16 }
+fn MAP_H(): i64 { return 16 }
+fn FP_ONE(): i64 { return 65536 }
+fn FP_HALF(): i64 { return 32768 }
+
+struct Hit {
+    wall_id: i64
+    dist: i64
+    side: i64
+}
+
+fn alloc_map(): *byte {
+    val cells = alloc(256)
+    var i = 0
+    while (i < 256) {
+        cells[i] = 0
+        i = i + 1
+    }
+    return cells
+}
+
+fn set_cell(cells: *byte, x: i64, y: i64, id: i64) {
+    cells[y * 16 + x] = id & 255
+}
+
+fn map_cell(cells: *byte, x: i64, y: i64): i64 {
+    if (x < 0 || y < 0 || x >= 16 || y >= 16) {
+        return 1
+    }
+    return cells[y * 16 + x]
+}
+
+fn map_solid(cells: *byte, x: i64, y: i64): i64 {
+    if (map_cell(cells, x, y) != 0) {
+        return 1
+    }
+    return 0
+}
+
+fn demo_map(): *byte {
+    val cells = alloc_map()
+    var y = 0
+    while (y < 16) {
+        var x = 0
+        while (x < 16) {
+            if (x == 0 || y == 0 || x == 15 || y == 15) {
+                set_cell(cells, x, y, 1)
+            }
+            x = x + 1
+        }
+        y = y + 1
+    }
+    set_cell(cells, 3, 3, 2)
+    set_cell(cells, 3, 4, 2)
+    set_cell(cells, 4, 3, 2)
+    set_cell(cells, 8, 8, 3)
+    set_cell(cells, 8, 9, 3)
+    set_cell(cells, 9, 8, 3)
+    set_cell(cells, 5, 11, 4)
+    set_cell(cells, 6, 11, 4)
+    set_cell(cells, 7, 11, 4)
+    set_cell(cells, 11, 4, 2)
+    set_cell(cells, 11, 5, 2)
+    set_cell(cells, 12, 5, 4)
+    return cells
+}
+
+fn abs_i(v: i64): i64 {
+    if (v < 0) { return 0 - v }
+    return v
+}
+
+fn fp_mul(a: i64, b: i64): i64 {
+    return (a * b) / FP_ONE()
+}
+
+fn fp_div(a: i64, b: i64): i64 {
+    if (b == 0) { return FP_ONE() * 1000 }
+    return (a * FP_ONE()) / b
+}
+
+fn cos_tab(sector: i64): i64 {
+    var s = sector % 8
+    if (s < 0) { s = s + 8 }
+    if (s == 0) { return FP_ONE() }
+    if (s == 1) { return 46340 }
+    if (s == 2) { return 0 }
+    if (s == 3) { return 0 - 46340 }
+    if (s == 4) { return 0 - FP_ONE() }
+    if (s == 5) { return 0 - 46340 }
+    if (s == 6) { return 0 }
+    if (s == 7) { return 46340 }
+    return FP_ONE()
+}
+
+fn fp_cos(angle: i64): i64 {
+    var a = angle % (FP_ONE() * 2)
+    if (a < 0) { a = a + FP_ONE() * 2 }
+    val sector = a / 16384
+    val local = a % 16384
+    val c0 = cos_tab(sector)
+    val c1 = cos_tab(sector + 1)
+    return c0 + fp_mul(c1 - c0, fp_div(local, 16384))
+}
+
+fn fp_sin(angle: i64): i64 {
+    return fp_cos(angle - 16384)
+}
+
+fn map_cast(cells: *byte, pos_x: i64, pos_y: i64, ray_dir_x: i64, ray_dir_y: i64): Hit {
+    var map_x = pos_x / FP_ONE()
+    var map_y = pos_y / FP_ONE()
+    var delta_dist_x = FP_ONE() * 1000
+    var delta_dist_y = FP_ONE() * 1000
+    if (ray_dir_x != 0) { delta_dist_x = abs_i(fp_div(FP_ONE(), ray_dir_x)) }
+    if (ray_dir_y != 0) { delta_dist_y = abs_i(fp_div(FP_ONE(), ray_dir_y)) }
+    var step_x = 0
+    var step_y = 0
+    var side_dist_x = 0
+    var side_dist_y = 0
+    if (ray_dir_x < 0) {
+        step_x = 0 - 1
+        side_dist_x = fp_mul(pos_x - map_x * FP_ONE(), delta_dist_x)
+    } else {
+        step_x = 1
+        side_dist_x = fp_mul((map_x + 1) * FP_ONE() - pos_x, delta_dist_x)
+    }
+    if (ray_dir_y < 0) {
+        step_y = 0 - 1
+        side_dist_y = fp_mul(pos_y - map_y * FP_ONE(), delta_dist_y)
+    } else {
+        step_y = 1
+        side_dist_y = fp_mul((map_y + 1) * FP_ONE() - pos_y, delta_dist_y)
+    }
+    var hit = 0
+    var side = 0
+    var wall_id = map_cell(cells, map_x, map_y)
+    var guard = 0
+    while (hit == 0 && guard < 64) {
+        if (side_dist_x < side_dist_y) {
+            side_dist_x = side_dist_x + delta_dist_x
+            map_x = map_x + step_x
+            side = 0
+        } else {
+            side_dist_y = side_dist_y + delta_dist_y
+            map_y = map_y + step_y
+            side = 1
+        }
+        wall_id = map_cell(cells, map_x, map_y)
+        if (wall_id != 0) { hit = 1 }
+        guard = guard + 1
+    }
+    var dist = FP_ONE()
+    if (side == 0) { dist = side_dist_x - delta_dist_x }
+    else { dist = side_dist_y - delta_dist_y }
+    if (dist < FP_ONE() / 64) { dist = FP_ONE() / 64 }
+    return Hit(wall_id: wall_id, dist: dist, side: side)
+}
+
+fn wall_color(wall_id: i64, side: i64): i64 {
+    var c = 4281545523
+    if (wall_id == 1) { c = 4281545523 }
+    if (wall_id == 2) { c = 4288256409 }
+    if (wall_id == 3) { c = 4283867007 }
+    if (wall_id == 4) { c = 4294929254 }
+    if (side != 0) { c = c - 2105376 }
+    return c
+}

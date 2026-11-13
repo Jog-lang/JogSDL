@@ -1,0 +1,204 @@
+// Wolfenstein-style software raycaster on Jog v2 (fixed-point Q16).
+// 128×80 software FB presented in a 640×400 window (F13: heavier frames /
+// longer SDL present loops currently fault). libc malloc for pixels (F12).
+
+@link("c")
+extern {
+    fn malloc(n: u64): *byte
+    fn free(p: *byte)
+}
+
+fn WIN_W(): i32 { return 640 }
+fn WIN_H(): i32 { return 400 }
+fn FB_W(): i64 { return 128 }
+fn FB_H(): i64 { return 80 }
+fn FB_W32(): i32 { return 128 }
+fn FB_H32(): i32 { return 80 }
+fn FB_BYTES(): u64 { return 40960 }
+fn CEILING_COLOR(): i64 { return 4281545523 }
+fn FLOOR_COLOR(): i64 { return 4281549618 }
+fn MAX_FRAMES(): i64 { return 20 }
+
+fn main() {
+    if (Init(INIT_VIDEO()) == 0) {
+        panic("SDL Init failed\n")
+    }
+
+    var win = CreateWindow(c"JogSDL raycaster v2", WIN_W(), WIN_H(), WINDOW_RESIZABLE())
+    if (win.ptr == null) {
+        panic("CreateWindow failed\n")
+    }
+    var ren = win.create_renderer()
+    if (ren.ptr == null) {
+        panic("CreateRenderer failed\n")
+    }
+    var tex = ren.create_streaming_texture(FB_W32(), FB_H32())
+    if (tex.ptr == null) {
+        panic("CreateTexture failed\n")
+    }
+
+    val pixels = malloc(FB_BYTES())
+    if (pixels == null) {
+        panic("malloc framebuffer failed\n")
+    }
+    val map = demo_map()
+    var pos_x = FP_ONE() * 2 + FP_HALF()
+    var pos_y = FP_ONE() * 2 + FP_HALF()
+    var angle = 0
+    var key_w = 0
+    var key_s = 0
+    var key_a = 0
+    var key_d = 0
+    var key_left = 0
+    var key_right = 0
+    val evbuf = alloc(128)
+    var running = 1
+    var frames = 0
+    val dt: i64 = 16
+
+    while (running != 0) {
+        while (PollEventHas(evbuf) != 0) {
+            val kind = *evbuf
+            if (kind == EVENT_QUIT() || kind == EVENT_WINDOW_CLOSE_REQUESTED()) {
+                running = 0
+            }
+            if (kind == EVENT_KEY_DOWN() || kind == EVENT_KEY_UP()) {
+                val sc = *(evbuf + 24)
+                var down = 0
+                if (kind == EVENT_KEY_DOWN()) {
+                    down = 1
+                }
+                if (sc == SCANCODE_ESCAPE()) {
+                    running = 0
+                }
+                if (sc == SCANCODE_W()) { key_w = down }
+                if (sc == SCANCODE_S()) { key_s = down }
+                if (sc == SCANCODE_A()) { key_a = down }
+                if (sc == SCANCODE_D()) { key_d = down }
+                if (sc == SCANCODE_LEFT()) { key_left = down }
+                if (sc == SCANCODE_RIGHT()) { key_right = down }
+            }
+        }
+        if (running == 0) {
+            break
+        }
+        if (frames >= MAX_FRAMES()) {
+            break
+        }
+
+        val rot = dt * 80
+        if (key_left != 0) {
+            angle = angle + rot
+        }
+        if (key_right != 0) {
+            angle = angle - rot
+        }
+        val dir_x = fp_cos(angle)
+        val dir_y = fp_sin(angle)
+        val plane_x = 0 - fp_mul(dir_y, 43253)
+        val plane_y = fp_mul(dir_x, 43253)
+        val move = dt * 120
+        if (key_w != 0) {
+            val m = try_move(pos_x, pos_y, map, fp_mul(dir_x, move), fp_mul(dir_y, move))
+            pos_x = m.wall_id
+            pos_y = m.dist
+        }
+        if (key_s != 0) {
+            val m = try_move(pos_x, pos_y, map, 0 - fp_mul(dir_x, move), 0 - fp_mul(dir_y, move))
+            pos_x = m.wall_id
+            pos_y = m.dist
+        }
+        if (key_a != 0) {
+            val m = try_move(pos_x, pos_y, map, 0 - fp_mul(plane_x, move), 0 - fp_mul(plane_y, move))
+            pos_x = m.wall_id
+            pos_y = m.dist
+        }
+        if (key_d != 0) {
+            val m = try_move(pos_x, pos_y, map, fp_mul(plane_x, move), fp_mul(plane_y, move))
+            pos_x = m.wall_id
+            pos_y = m.dist
+        }
+
+        render_frame(pixels, map, pos_x, pos_y, dir_x, dir_y, plane_x, plane_y)
+        tex.update(pixels)
+        ren.set_draw_color(0, 0, 0, 255)
+        ren.clear()
+        ren.draw_texture(tex)
+        ren.present()
+        frames = frames + 1
+    }
+
+    free(pixels)
+    tex.destroy()
+    ren.destroy()
+    win.destroy()
+    Quit()
+    print("raycaster exit\n")
+}
+
+fn try_move(pos_x: i64, pos_y: i64, map: *byte, dx: i64, dy: i64): Hit {
+    val nx = pos_x + dx
+    val ny = pos_y + dy
+    var out_x = pos_x
+    var out_y = pos_y
+    val cy = pos_y / FP_ONE()
+    val nx_cell = nx / FP_ONE()
+    val ny_cell = ny / FP_ONE()
+    if (map_solid(map, nx_cell, cy) == 0) {
+        out_x = nx
+    }
+    if (map_solid(map, out_x / FP_ONE(), ny_cell) == 0) {
+        out_y = ny
+    }
+    return Hit(wall_id: out_x, dist: out_y, side: 0)
+}
+
+fn render_frame(
+    pixels: *byte,
+    map: *byte,
+    pos_x: i64,
+    pos_y: i64,
+    dir_x: i64,
+    dir_y: i64,
+    plane_x: i64,
+    plane_y: i64
+) {
+    val w = FB_W()
+    val h = FB_H()
+    var x: i64 = 0
+    while (x < w) {
+        val camera_x = fp_div(x * 2 * FP_ONE(), w) - FP_ONE()
+        val ray_dir_x = dir_x + fp_mul(plane_x, camera_x)
+        val ray_dir_y = dir_y + fp_mul(plane_y, camera_x)
+        val hit = map_cast(map, pos_x, pos_y, ray_dir_x, ray_dir_y)
+        var line_h = fp_div(h * FP_ONE(), hit.dist)
+        line_h = line_h / FP_ONE()
+        if (line_h > h * 4) {
+            line_h = h * 4
+        }
+        var draw_start = 0 - line_h / 2 + h / 2
+        var draw_end = line_h / 2 + h / 2
+        if (draw_start < 0) {
+            draw_start = 0
+        }
+        if (draw_end >= h) {
+            draw_end = h - 1
+        }
+        val color = wall_color(hit.wall_id, hit.side)
+        var y: i64 = 0
+        while (y < h) {
+            val idx = (y * w + x) * 4
+            var pix = FLOOR_COLOR()
+            if (y < draw_start) {
+                pix = CEILING_COLOR()
+            } else {
+                if (y <= draw_end) {
+                    pix = color
+                }
+            }
+            poke32(pixels, idx, pix)
+            y = y + 1
+        }
+        x = x + 1
+    }
+}
