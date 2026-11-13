@@ -1,4 +1,4 @@
-# Jog v2 Wolfenstein-style software raycaster (Q16; libm float FFI broken on v2).
+# Jog v2 Wolfenstein-style software raycaster (Q16 DDA; float extern ABI fixed upstream (JOG-89)).
 module raycaster
 version 0.1.0
 root main.jog
