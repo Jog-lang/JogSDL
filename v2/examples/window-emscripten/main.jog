@@ -1,0 +1,73 @@
+// Emscripten window smoke (JOG-90). Must return each frame via
+// jog_host_run_loop(tick); a blocking while does not present under emcc.
+// Auto-exits after LIMIT_MS so headless/browser smoke can finish.
+
+val LIMIT_MS: u64 = 1500
+
+var g_win_ptr: *byte = null
+var g_ren_ptr: *byte = null
+var g_running: i64 = 0
+var g_start: u64 = 0
+var g_evbuf: *byte = null
+
+@export
+fn tick(): i32 {
+    while (PollEventHas(g_evbuf) != 0) {
+        val kind = *g_evbuf
+        if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
+            g_running = 0
+        }
+        if (kind == EVENT_KEY_DOWN) {
+            val sc = *(g_evbuf + 24)
+            if (sc == SCANCODE_ESCAPE) {
+                g_running = 0
+            }
+        }
+    }
+    if (g_running == 0) {
+        return 0
+    }
+    if (GetTicks() - g_start >= LIMIT_MS) {
+        return 0
+    }
+
+    var ren = Renderer(ptr: g_ren_ptr)
+    ren.set_draw_color(12, 48, 64, 255)
+    ren.clear()
+    ren.set_draw_color(80, 200, 180, 255)
+    var rect = frect(220.0 as f32, 160.0 as f32, 200.0 as f32, 160.0 as f32)
+    ren.fill_rect(&rect)
+    ren.present()
+    Delay(16)
+    return 1
+}
+
+fn main() {
+    if (Init(INIT_VIDEO) == 0) {
+        panic("SDL Init failed\n")
+    }
+
+    var win = CreateWindow(c"JogSDL v2 wasm", 640, 480, WINDOW_RESIZABLE)
+    if (win.ptr == null) {
+        panic("SDL CreateWindow failed\n")
+    }
+    g_win_ptr = win.ptr
+
+    var ren = win.create_renderer()
+    if (ren.ptr == null) {
+        panic("SDL CreateRenderer failed\n")
+    }
+    g_ren_ptr = ren.ptr
+
+    g_evbuf = alloc(128)
+    g_start = GetTicks()
+    g_running = 1
+
+    jog_host_run_loop(tick)
+
+    // Reached after emscripten_cancel_main_loop (or native while exit).
+    ren.destroy()
+    win.destroy()
+    Quit()
+    print("window emscripten exit\n")
+}
