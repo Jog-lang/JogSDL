@@ -1,13 +1,16 @@
 // Window smoke for Jog v2 + local SDL3 prefix (libdir → -L + rpath).
-// Host while-loop on the platform thread (no jog_host_run_loop on v2; F4).
-// Avoid with(dispatcher_io) around SDL — keep the default pool unblocked.
+// Package vals for SDL constants (JOG-89). Platform while-loop keeps the
+// demo robust; jog_host_run_loop works for scalar tick state (see compiler
+// examples/host_run_loop.jog) — SDL handle globals + tick still flaky here.
+
+val LIMIT_MS: u64 = 1500
 
 fn main() {
-    if (Init(INIT_VIDEO()) == 0) {
+    if (Init(INIT_VIDEO) == 0) {
         panic("SDL Init failed\n")
     }
 
-    var win = CreateWindow(c"JogSDL v2", 640, 480, WINDOW_RESIZABLE())
+    var win = CreateWindow(c"JogSDL v2", 640, 480, WINDOW_RESIZABLE)
     if (win.ptr == null) {
         panic("SDL CreateWindow failed\n")
     }
@@ -21,18 +24,16 @@ fn main() {
     var running = 1
     var rect = frect(220.0 as f32, 160.0 as f32, 200.0 as f32, 160.0 as f32)
     val start = GetTicks()
-    // Auto-exit after ~1.5s so agents/CI can prove a run without input.
-    val limit_ms: u64 = 1500
 
     while (running != 0) {
         while (PollEventHas(evbuf) != 0) {
             val kind = *evbuf
-            if (kind == EVENT_QUIT() || kind == EVENT_WINDOW_CLOSE_REQUESTED()) {
+            if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
                 running = 0
             }
-            if (kind == EVENT_KEY_DOWN()) {
+            if (kind == EVENT_KEY_DOWN) {
                 val sc = *(evbuf + 24)
-                if (sc == SCANCODE_ESCAPE()) {
+                if (sc == SCANCODE_ESCAPE) {
                     running = 0
                 }
             }
@@ -41,7 +42,7 @@ fn main() {
         if (running == 0) {
             break
         }
-        if (GetTicks() - start >= limit_ms) {
+        if (GetTicks() - start >= LIMIT_MS) {
             break
         }
 
