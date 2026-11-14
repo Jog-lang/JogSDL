@@ -33,6 +33,8 @@ cd examples/window
 
 cd ../raycaster
 "$JOG_BUILD" build -o out/raycaster && ./out/raycaster
+# agent/CI soft-exit after ~180 frames:
+JOGSDL_RAYCASTER_SMOKE=1 ./out/raycaster
 ```
 
 ## Build & run (Emscripten / browser)
@@ -70,7 +72,8 @@ python3 -m http.server -d out 8000
 - **W/A/S/D** — move / strafe along view basis
 - **Left/Right** or **mouse X** (relative mode) — yaw (rotates both basis columns)
 - **E** or **Space** — toggle door cell ahead
-- **Escape** / window close — quit (native also soft-exits after 180 frames)
+- **Escape** / window close — quit
+- Native default stays open for play; set `JOGSDL_RAYCASTER_SMOKE=1` for the ~180-frame agent/CI soft exit
 
 ## Limits
 

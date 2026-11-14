@@ -1,6 +1,13 @@
 // Proto-3D software raycaster on Jog v2 (float Vec2 + view basis).
 // WASD move/strafe, arrows or mouse-x look, E/Space toggle door ahead.
-// Soft-capped frames for agent/CI smoke (native while-loop; F16 still open).
+// Default: interactive until Escape / window close (native while-loop; F16 open).
+// Soft frame cap: JOGSDL_RAYCASTER_SMOKE=1 (or true) for agent/CI.
+// (std.os argv is not usable on jog 0.2.11-v2 — os.jog uses !!.)
+
+extern {
+    fn getenv(name: *byte): *byte
+    fn strcmp(a: *byte, b: *byte): i32
+}
 
 val WIN_W: i32 = 640
 val WIN_H: i32 = 400
@@ -9,10 +16,26 @@ val FB_H: i64 = 100
 val FB_W32: i32 = 160
 val FB_H32: i32 = 100
 val FB_BYTES: u64 = 64000
-val MAX_FRAMES: i64 = 180
+val SMOKE_FRAMES: i64 = 180
 val PLANE_LEN: f64 = 0.66
 
+fn wants_smoke(): i64 {
+    val p = getenv(c"JOGSDL_RAYCASTER_SMOKE")
+    if (p == null) {
+        return 0
+    }
+    if (strcmp(p, c"1") == 0) {
+        return 1
+    }
+    if (strcmp(p, c"true") == 0) {
+        return 1
+    }
+    return 0
+}
+
 fn main() {
+    val smoke = wants_smoke()
+
     if (Init(INIT_VIDEO) == 0) {
         panic("SDL Init failed\n")
     }
@@ -80,7 +103,8 @@ fn main() {
         if (running == 0) {
             break
         }
-        if (frames >= MAX_FRAMES) {
+        // Soft cap only when JOGSDL_RAYCASTER_SMOKE is set (default stays open).
+        if (smoke != 0 && frames >= SMOKE_FRAMES) {
             break
         }
 
@@ -122,6 +146,7 @@ fn main() {
         ren.clear()
         ren.draw_texture(tex)
         ren.present()
+        Delay(16)
         frames = frames + 1
     }
 
