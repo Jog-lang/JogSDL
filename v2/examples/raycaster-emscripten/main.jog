@@ -9,7 +9,6 @@ val FB_H: i64 = 100
 val FB_W32: i32 = 160
 val FB_H32: i32 = 100
 val FB_BYTES: u64 = 64000
-val MAX_FRAMES: i64 = 180
 val PLANE_LEN: f64 = 0.66
 
 // JOG-96 object singleton — multi-field package state without F17 scalar split.
@@ -81,9 +80,6 @@ fn tick(): i32 {
         }
     }
     if (App.running == 0) {
-        return 0
-    }
-    if (App.frames >= MAX_FRAMES) {
         return 0
     }
 
