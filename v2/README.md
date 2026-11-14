@@ -91,3 +91,4 @@ python3 -m http.server -d out 8000
 - FRect layout vs `SDL_FRect` packing is still coarse (8-byte field slots); demos still smoke-present (F18).
 - Coroutines/`go` abort under emscripten (no stack switch).
 - Still a 2.5D column caster — not a full 3D transform pipeline / textured world.
+- **jog 0.2.11-v2 hot-path workarounds (raycaster):** `as` between `f64`/`i64` is a bitcast (use `lround` + IEEE `i_to_f`); bare `f64*f64` / `f64+f64` on package/field loads can lower to integer `imul`/`add` (force `a * 1.0 * b`); struct returns bump-alloc with no free (keep camera/DDA as package scalars). See JogDocs Friction.

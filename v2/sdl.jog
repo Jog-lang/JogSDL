@@ -163,6 +163,33 @@ fn GetRelativeMouseDelta(): MouseDelta {
     return MouseDelta(x: x, y: y)
 }
 
+// Prefer this on hot loops: no MouseDelta struct return (bump alloc).
+fn ReadRelativeMouse(out_x: *f32, out_y: *f32): u32 {
+    return SDL_GetRelativeMouseState(out_x, out_y)
+}
+
+// Raw present helpers for loops that already hold opaque SDL pointers
+// (avoids per-frame Texture / Renderer struct returns).
+fn UpdateTextureRaw(tex: *byte, pixels: *byte, pitch: i32): i32 {
+    return SDL_UpdateTexture(tex, null, pixels, pitch)
+}
+
+fn DrawTextureRaw(ren: *byte, tex: *byte): i32 {
+    return SDL_RenderTexture(ren, tex, null, null)
+}
+
+fn SetDrawColorRaw(ren: *byte, r: u8, g: u8, b: u8, a: u8): i32 {
+    return SDL_SetRenderDrawColor(ren, r, g, b, a)
+}
+
+fn ClearRaw(ren: *byte): i32 {
+    return SDL_RenderClear(ren)
+}
+
+fn PresentRaw(ren: *byte): i32 {
+    return SDL_RenderPresent(ren)
+}
+
 fn Delay(ms: u32) {
     SDL_Delay(ms)
 }

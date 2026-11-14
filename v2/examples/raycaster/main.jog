@@ -1,8 +1,8 @@
-// Proto-3D software raycaster on Jog v2 (float Vec2 + view basis).
+// Proto-3D software raycaster on Jog v2 (float camera basis).
 // WASD move/strafe, arrows or mouse-x look, E/Space toggle door ahead.
 // Default: interactive until Escape / window close (native while-loop; F16 open).
 // Soft frame cap: JOGSDL_RAYCASTER_SMOKE=1 (or true) for agent/CI.
-// (std.os argv is not usable on jog 0.2.11-v2 — os.jog uses !!.)
+// Camera lives in package scalars (world.jog) — no per-frame struct bump allocs.
 
 extern {
     fn getenv(name: *byte): *byte
@@ -62,7 +62,7 @@ fn main() {
     }
     val map = demo_map()
     // Spawn facing +x toward the interactive door at (5,2).
-    var cam = camera_at(vec2(2.5, 2.5), vec2(1.0, 0.0), vec2(0.0, PLANE_LEN))
+    set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
     var key_w = 0
     var key_s = 0
     var key_a = 0
@@ -72,6 +72,8 @@ fn main() {
     var key_use = 0
     var key_use_prev = 0
     val evbuf = alloc(128)
+    var mx: f32 = 0.0 as f32
+    var my: f32 = 0.0 as f32
     var running = 1
     var frames = 0
     val dt: f64 = 0.016
@@ -110,37 +112,37 @@ fn main() {
 
         var yaw = 0.0
         if (key_left != 0) {
-            yaw = yaw + dt * 2.5
+            yaw = yaw * 1.0 + dt * 2.5
         }
         if (key_right != 0) {
-            yaw = yaw - dt * 2.5
+            yaw = yaw * 1.0 - dt * 2.5
         }
         // Mouse X look (relative mode); scale is radians per pixel.
-        val md = GetRelativeMouseDelta()
-        yaw = yaw - (md.x as f64) * 0.003
+        ReadRelativeMouse(&mx, &my)
+        yaw = yaw * 1.0 - (mx as f64) * 0.003
         if (yaw != 0.0) {
-            cam.rotate(yaw)
+            rotate_cam_yaw(yaw)
         }
 
         val move = dt * 3.0
         if (key_w != 0) {
-            cam = try_move_cam(cam, map, cam.basis.dir.scale(move))
+            try_move(map, cam_dir_x * 1.0 * move, cam_dir_y * 1.0 * move)
         }
         if (key_s != 0) {
-            cam = try_move_cam(cam, map, cam.basis.dir.scale(0.0 - move))
+            try_move(map, cam_dir_x * 1.0 * (0.0 - move), cam_dir_y * 1.0 * (0.0 - move))
         }
         if (key_a != 0) {
-            cam = try_move_cam(cam, map, cam.basis.plane.scale(0.0 - move))
+            try_move(map, cam_plane_x * 1.0 * (0.0 - move), cam_plane_y * 1.0 * (0.0 - move))
         }
         if (key_d != 0) {
-            cam = try_move_cam(cam, map, cam.basis.plane.scale(move))
+            try_move(map, cam_plane_x * 1.0 * move, cam_plane_y * 1.0 * move)
         }
         if (key_use != 0 && key_use_prev == 0) {
-            try_use_door(cam, map)
+            try_use_door(map)
         }
         key_use_prev = key_use
 
-        render_frame(pixels, map, cam, FB_W, FB_H)
+        render_frame(pixels, map, FB_W, FB_H)
         tex.update(pixels)
         ren.set_draw_color(0, 0, 0, 255)
         ren.clear()
