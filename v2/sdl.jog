@@ -6,13 +6,17 @@ val EVENT_QUIT: u32 = 0x100
 val EVENT_WINDOW_CLOSE_REQUESTED: u32 = 0x210
 val EVENT_KEY_DOWN: u32 = 0x300
 val EVENT_KEY_UP: u32 = 0x301
+val EVENT_MOUSE_MOTION: u32 = 0x400
 val WINDOW_RESIZABLE: u64 = 0x0000000000000020
 
 val SCANCODE_A: u32 = 4
 val SCANCODE_D: u32 = 7
+val SCANCODE_E: u32 = 8
+val SCANCODE_Q: u32 = 20
 val SCANCODE_S: u32 = 22
 val SCANCODE_W: u32 = 26
 val SCANCODE_ESCAPE: u32 = 41
+val SCANCODE_SPACE: u32 = 44
 val SCANCODE_RIGHT: u32 = 79
 val SCANCODE_LEFT: u32 = 80
 
@@ -45,6 +49,11 @@ struct FRect {
     h: f32
 }
 
+struct MouseDelta {
+    x: f32
+    y: f32
+}
+
 fn frect(x: f32, y: f32, w: f32, h: f32): FRect {
     return FRect(x: x, y: y, w: w, h: h)
 }
@@ -67,6 +76,13 @@ fn Window.destroy() {
     if (self.ptr != null) {
         SDL_DestroyWindow(self.ptr)
     }
+}
+
+fn Window.set_relative_mouse(enabled: i32): i32 {
+    if (self.ptr == null) {
+        return 0
+    }
+    return SDL_SetWindowRelativeMouseMode(self.ptr, enabled)
 }
 
 fn Window.create_renderer(): Renderer {
@@ -123,6 +139,28 @@ fn Texture.update(pixels: *byte): i32 {
 
 fn PollEventHas(buf: *byte): i32 {
     return SDL_PollEvent(buf)
+}
+
+fn KeyboardIsDown(scancode: u32): i32 {
+    var n: i32 = 0
+    val state = SDL_GetKeyboardState(&n)
+    if (state == null) {
+        return 0
+    }
+    if ((scancode as i32) < 0 || (scancode as i32) >= n) {
+        return 0
+    }
+    if (state[scancode] != 0) {
+        return 1
+    }
+    return 0
+}
+
+fn GetRelativeMouseDelta(): MouseDelta {
+    var x: f32 = 0.0 as f32
+    var y: f32 = 0.0 as f32
+    SDL_GetRelativeMouseState(&x, &y)
+    return MouseDelta(x: x, y: y)
 }
 
 fn Delay(ms: u32) {

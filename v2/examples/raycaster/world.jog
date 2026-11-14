@@ -1,3 +1,6 @@
+// Map + float DDA cast for the proto-3D raycaster.
+import std.math
+
 fn poke32(p: *byte, off: i64, v: i64) {
     p[off] = v & 255
     p[off + 1] = (v >> 8) & 255
@@ -7,12 +10,17 @@ fn poke32(p: *byte, off: i64, v: i64) {
 
 val MAP_W: i64 = 16
 val MAP_H: i64 = 16
-val FP_ONE: i64 = 65536
-val FP_HALF: i64 = 32768
+val CELL_EMPTY: i64 = 0
+val CELL_WALL: i64 = 1
+val CELL_PILLAR: i64 = 2
+val CELL_BLUE: i64 = 3
+val CELL_ORANGE: i64 = 4
+val CELL_DOOR_CLOSED: i64 = 5
+val CELL_DOOR_OPEN: i64 = 6
 
 struct Hit {
     wall_id: i64
-    dist: i64
+    dist: f64
     side: i64
 }
 
@@ -32,16 +40,17 @@ fn set_cell(cells: *byte, x: i64, y: i64, id: i64) {
 
 fn map_cell(cells: *byte, x: i64, y: i64): i64 {
     if (x < 0 || y < 0 || x >= 16 || y >= 16) {
-        return 1
+        return CELL_WALL
     }
     return cells[y * 16 + x]
 }
 
 fn map_solid(cells: *byte, x: i64, y: i64): i64 {
-    if (map_cell(cells, x, y) != 0) {
-        return 1
+    val id = map_cell(cells, x, y)
+    if (id == CELL_EMPTY || id == CELL_DOOR_OPEN) {
+        return 0
     }
-    return 0
+    return 1
 }
 
 fn demo_map(): *byte {
@@ -51,96 +60,100 @@ fn demo_map(): *byte {
         var x = 0
         while (x < 16) {
             if (x == 0 || y == 0 || x == 15 || y == 15) {
-                set_cell(cells, x, y, 1)
+                set_cell(cells, x, y, CELL_WALL)
             }
             x = x + 1
         }
         y = y + 1
     }
-    set_cell(cells, 3, 3, 2)
-    set_cell(cells, 3, 4, 2)
-    set_cell(cells, 4, 3, 2)
-    set_cell(cells, 8, 8, 3)
-    set_cell(cells, 8, 9, 3)
-    set_cell(cells, 9, 8, 3)
-    set_cell(cells, 5, 11, 4)
-    set_cell(cells, 6, 11, 4)
-    set_cell(cells, 7, 11, 4)
-    set_cell(cells, 11, 4, 2)
-    set_cell(cells, 11, 5, 2)
-    set_cell(cells, 12, 5, 4)
+    set_cell(cells, 3, 3, CELL_PILLAR)
+    set_cell(cells, 3, 4, CELL_PILLAR)
+    set_cell(cells, 4, 3, CELL_PILLAR)
+    set_cell(cells, 8, 8, CELL_BLUE)
+    set_cell(cells, 8, 9, CELL_BLUE)
+    set_cell(cells, 9, 8, CELL_BLUE)
+    set_cell(cells, 5, 11, CELL_ORANGE)
+    set_cell(cells, 6, 11, CELL_ORANGE)
+    set_cell(cells, 7, 11, CELL_ORANGE)
+    set_cell(cells, 11, 4, CELL_PILLAR)
+    set_cell(cells, 11, 5, CELL_PILLAR)
+    set_cell(cells, 12, 5, CELL_ORANGE)
+    // Interactive door ahead of spawn (2.5, 2.5) looking +x.
+    set_cell(cells, 5, 2, CELL_DOOR_CLOSED)
+    set_cell(cells, 6, 1, CELL_WALL)
+    set_cell(cells, 6, 3, CELL_WALL)
     return cells
 }
 
-fn abs_i(v: i64): i64 {
-    if (v < 0) { return 0 - v }
-    return v
+fn abs_f(v: f64): f64 {
+    return fabs(v)
 }
 
-fn fp_mul(a: i64, b: i64): i64 {
-    return (a * b) / FP_ONE
+fn try_move_cam(cam: Camera, map: *byte, delta: Vec2): Camera {
+    val nx = cam.pos.x + delta.x
+    val ny = cam.pos.y + delta.y
+    var out = cam
+    val cy = floor(cam.pos.y) as i64
+    val nx_cell = floor(nx) as i64
+    val ny_cell = floor(ny) as i64
+    if (map_solid(map, nx_cell, cy) == 0) {
+        out.pos.x = nx
+    }
+    if (map_solid(map, floor(out.pos.x) as i64, ny_cell) == 0) {
+        out.pos.y = ny
+    }
+    return out
 }
 
-fn fp_div(a: i64, b: i64): i64 {
-    if (b == 0) { return FP_ONE * 1000 }
-    return (a * FP_ONE) / b
+// Toggle door in the cell ahead of the camera (E / Space).
+fn try_use_door(cam: Camera, map: *byte): i64 {
+    val ahead = cam.pos.add(cam.basis.dir.scale(0.7))
+    val cx = floor(ahead.x) as i64
+    val cy = floor(ahead.y) as i64
+    val id = map_cell(map, cx, cy)
+    if (id == CELL_DOOR_CLOSED) {
+        set_cell(map, cx, cy, CELL_DOOR_OPEN)
+        return 1
+    }
+    if (id == CELL_DOOR_OPEN) {
+        set_cell(map, cx, cy, CELL_DOOR_CLOSED)
+        return 1
+    }
+    return 0
 }
 
-fn cos_tab(sector: i64): i64 {
-    var s = sector % 8
-    if (s < 0) { s = s + 8 }
-    if (s == 0) { return FP_ONE }
-    if (s == 1) { return 46340 }
-    if (s == 2) { return 0 }
-    if (s == 3) { return 0 - 46340 }
-    if (s == 4) { return 0 - FP_ONE }
-    if (s == 5) { return 0 - 46340 }
-    if (s == 6) { return 0 }
-    if (s == 7) { return 46340 }
-    return FP_ONE
-}
-
-fn fp_cos(angle: i64): i64 {
-    var a = angle % (FP_ONE * 2)
-    if (a < 0) { a = a + FP_ONE * 2 }
-    val sector = a / 16384
-    val local = a % 16384
-    val c0 = cos_tab(sector)
-    val c1 = cos_tab(sector + 1)
-    return c0 + fp_mul(c1 - c0, fp_div(local, 16384))
-}
-
-fn fp_sin(angle: i64): i64 {
-    return fp_cos(angle - 16384)
-}
-
-fn map_cast(cells: *byte, pos_x: i64, pos_y: i64, ray_dir_x: i64, ray_dir_y: i64): Hit {
-    var map_x = pos_x / FP_ONE
-    var map_y = pos_y / FP_ONE
-    var delta_dist_x = FP_ONE * 1000
-    var delta_dist_y = FP_ONE * 1000
-    if (ray_dir_x != 0) { delta_dist_x = abs_i(fp_div(FP_ONE, ray_dir_x)) }
-    if (ray_dir_y != 0) { delta_dist_y = abs_i(fp_div(FP_ONE, ray_dir_y)) }
-    var step_x = 0
-    var step_y = 0
-    var side_dist_x = 0
-    var side_dist_y = 0
-    if (ray_dir_x < 0) {
+fn map_cast(cells: *byte, pos: Vec2, ray_dir: Vec2): Hit {
+    var map_x = floor(pos.x) as i64
+    var map_y = floor(pos.y) as i64
+    // Large stand-in when a ray axis is zero (no scientific literals in Jog yet).
+    var delta_dist_x = 1000000000.0
+    var delta_dist_y = 1000000000.0
+    if (ray_dir.x != 0.0) {
+        delta_dist_x = abs_f(1.0 / ray_dir.x)
+    }
+    if (ray_dir.y != 0.0) {
+        delta_dist_y = abs_f(1.0 / ray_dir.y)
+    }
+    var step_x: i64 = 0
+    var step_y: i64 = 0
+    var side_dist_x = 0.0
+    var side_dist_y = 0.0
+    if (ray_dir.x < 0.0) {
         step_x = 0 - 1
-        side_dist_x = fp_mul(pos_x - map_x * FP_ONE, delta_dist_x)
+        side_dist_x = (pos.x - (map_x as f64)) * delta_dist_x
     } else {
         step_x = 1
-        side_dist_x = fp_mul((map_x + 1) * FP_ONE - pos_x, delta_dist_x)
+        side_dist_x = ((map_x as f64) + 1.0 - pos.x) * delta_dist_x
     }
-    if (ray_dir_y < 0) {
+    if (ray_dir.y < 0.0) {
         step_y = 0 - 1
-        side_dist_y = fp_mul(pos_y - map_y * FP_ONE, delta_dist_y)
+        side_dist_y = (pos.y - (map_y as f64)) * delta_dist_y
     } else {
         step_y = 1
-        side_dist_y = fp_mul((map_y + 1) * FP_ONE - pos_y, delta_dist_y)
+        side_dist_y = ((map_y as f64) + 1.0 - pos.y) * delta_dist_y
     }
     var hit = 0
-    var side = 0
+    var side: i64 = 0
     var wall_id = map_cell(cells, map_x, map_y)
     var guard = 0
     while (hit == 0 && guard < 64) {
@@ -154,22 +167,71 @@ fn map_cast(cells: *byte, pos_x: i64, pos_y: i64, ray_dir_x: i64, ray_dir_y: i64
             side = 1
         }
         wall_id = map_cell(cells, map_x, map_y)
-        if (wall_id != 0) { hit = 1 }
+        if (map_solid(cells, map_x, map_y) != 0) {
+            hit = 1
+        }
         guard = guard + 1
     }
-    var dist = FP_ONE
-    if (side == 0) { dist = side_dist_x - delta_dist_x }
-    else { dist = side_dist_y - delta_dist_y }
-    if (dist < FP_ONE / 64) { dist = FP_ONE / 64 }
+    var dist = 1.0
+    if (side == 0) {
+        dist = side_dist_x - delta_dist_x
+    } else {
+        dist = side_dist_y - delta_dist_y
+    }
+    if (dist < 0.015625) {
+        dist = 0.015625
+    }
     return Hit(wall_id: wall_id, dist: dist, side: side)
 }
 
 fn wall_color(wall_id: i64, side: i64): i64 {
     var c = 4281545523
-    if (wall_id == 1) { c = 4281545523 }
-    if (wall_id == 2) { c = 4288256409 }
-    if (wall_id == 3) { c = 4283867007 }
-    if (wall_id == 4) { c = 4294929254 }
+    if (wall_id == CELL_WALL) { c = 4281545523 }
+    if (wall_id == CELL_PILLAR) { c = 4288256409 }
+    if (wall_id == CELL_BLUE) { c = 4283867007 }
+    if (wall_id == CELL_ORANGE) { c = 4294929254 }
+    if (wall_id == CELL_DOOR_CLOSED) { c = 4286611584 }
+    if (wall_id == CELL_DOOR_OPEN) { c = 4286611584 }
     if (side != 0) { c = c - 2105376 }
     return c
+}
+
+val CEILING_COLOR: i64 = 4281545523
+val FLOOR_COLOR: i64 = 4281549618
+
+fn render_frame(pixels: *byte, map: *byte, cam: Camera, fb_w: i64, fb_h: i64) {
+    var x: i64 = 0
+    while (x < fb_w) {
+        val camera_x = (x as f64) * 2.0 / (fb_w as f64) - 1.0
+        val ray = cam.basis.ray(camera_x)
+        val hit = map_cast(map, cam.pos, ray)
+        var line_h = (fb_h as f64) / hit.dist
+        if (line_h > (fb_h as f64) * 4.0) {
+            line_h = (fb_h as f64) * 4.0
+        }
+        var draw_start = (0.0 - line_h / 2.0 + (fb_h as f64) / 2.0) as i64
+        var draw_end = (line_h / 2.0 + (fb_h as f64) / 2.0) as i64
+        if (draw_start < 0) {
+            draw_start = 0
+        }
+        if (draw_end >= fb_h) {
+            draw_end = fb_h - 1
+        }
+        val color = wall_color(hit.wall_id, hit.side)
+        var y: i64 = 0
+        while (y < fb_h) {
+            val idx = (y * fb_w + x) * 4
+            var pix = FLOOR_COLOR
+            if (y < draw_start) {
+                pix = CEILING_COLOR
+            } else {
+                if (y <= draw_end) {
+                    pix = color
+                }
+            }
+            poke32(pixels, idx, pix)
+            y = y + 1
+        }
+        x = x + 1
+    }
 }

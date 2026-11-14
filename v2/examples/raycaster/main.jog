@@ -1,6 +1,6 @@
-// Wolfenstein-style software raycaster on Jog v2 (fixed-point Q16).
-// Float extern ABI works (libm xmm); DDA stays Q16 for stable integer math.
-// Framebuffer via jogrt_alloc (4 MiB heap — JOG-89); no libc malloc.
+// Proto-3D software raycaster on Jog v2 (float Vec2 + view basis).
+// WASD move/strafe, arrows or mouse-x look, E/Space toggle door ahead.
+// Soft-capped frames for agent/CI smoke (native while-loop; F16 still open).
 
 val WIN_W: i32 = 640
 val WIN_H: i32 = 400
@@ -9,20 +9,21 @@ val FB_H: i64 = 100
 val FB_W32: i32 = 160
 val FB_H32: i32 = 100
 val FB_BYTES: u64 = 64000
-val CEILING_COLOR: i64 = 4281545523
-val FLOOR_COLOR: i64 = 4281549618
-// Soft cap for agent/CI smoke; raise further once long present loops are proven stable.
-val MAX_FRAMES: i64 = 120
+val MAX_FRAMES: i64 = 180
+val PLANE_LEN: f64 = 0.66
 
 fn main() {
     if (Init(INIT_VIDEO) == 0) {
         panic("SDL Init failed\n")
     }
 
-    var win = CreateWindow(c"JogSDL raycaster v2", WIN_W, WIN_H, WINDOW_RESIZABLE)
+    var win = CreateWindow(c"JogSDL raycaster proto-3D", WIN_W, WIN_H, WINDOW_RESIZABLE)
     if (win.ptr == null) {
         panic("CreateWindow failed\n")
     }
+    // Relative mouse for look; ignore failure (headless / no grab).
+    win.set_relative_mouse(1)
+
     var ren = win.create_renderer()
     if (ren.ptr == null) {
         panic("CreateRenderer failed\n")
@@ -37,19 +38,20 @@ fn main() {
         panic("alloc framebuffer failed\n")
     }
     val map = demo_map()
-    var pos_x = FP_ONE * 2 + FP_HALF
-    var pos_y = FP_ONE * 2 + FP_HALF
-    var angle = 0
+    // Spawn facing +x toward the interactive door at (5,2).
+    var cam = camera_at(vec2(2.5, 2.5), vec2(1.0, 0.0), vec2(0.0, PLANE_LEN))
     var key_w = 0
     var key_s = 0
     var key_a = 0
     var key_d = 0
     var key_left = 0
     var key_right = 0
+    var key_use = 0
+    var key_use_prev = 0
     val evbuf = alloc(128)
     var running = 1
     var frames = 0
-    val dt: i64 = 16
+    val dt: f64 = 0.016
 
     while (running != 0) {
         while (PollEventHas(evbuf) != 0) {
@@ -72,6 +74,7 @@ fn main() {
                 if (sc == SCANCODE_D) { key_d = down }
                 if (sc == SCANCODE_LEFT) { key_left = down }
                 if (sc == SCANCODE_RIGHT) { key_right = down }
+                if (sc == SCANCODE_E || sc == SCANCODE_SPACE) { key_use = down }
             }
         }
         if (running == 0) {
@@ -81,40 +84,39 @@ fn main() {
             break
         }
 
-        val rot = dt * 80
+        var yaw = 0.0
         if (key_left != 0) {
-            angle = angle + rot
+            yaw = yaw + dt * 2.5
         }
         if (key_right != 0) {
-            angle = angle - rot
+            yaw = yaw - dt * 2.5
         }
-        val dir_x = fp_cos(angle)
-        val dir_y = fp_sin(angle)
-        val plane_x = 0 - fp_mul(dir_y, 43253)
-        val plane_y = fp_mul(dir_x, 43253)
-        val move = dt * 120
-        if (key_w != 0) {
-            val m = try_move(pos_x, pos_y, map, fp_mul(dir_x, move), fp_mul(dir_y, move))
-            pos_x = m.wall_id
-            pos_y = m.dist
-        }
-        if (key_s != 0) {
-            val m = try_move(pos_x, pos_y, map, 0 - fp_mul(dir_x, move), 0 - fp_mul(dir_y, move))
-            pos_x = m.wall_id
-            pos_y = m.dist
-        }
-        if (key_a != 0) {
-            val m = try_move(pos_x, pos_y, map, 0 - fp_mul(plane_x, move), 0 - fp_mul(plane_y, move))
-            pos_x = m.wall_id
-            pos_y = m.dist
-        }
-        if (key_d != 0) {
-            val m = try_move(pos_x, pos_y, map, fp_mul(plane_x, move), fp_mul(plane_y, move))
-            pos_x = m.wall_id
-            pos_y = m.dist
+        // Mouse X look (relative mode); scale is radians per pixel.
+        val md = GetRelativeMouseDelta()
+        yaw = yaw - (md.x as f64) * 0.003
+        if (yaw != 0.0) {
+            cam.rotate(yaw)
         }
 
-        render_frame(pixels, map, pos_x, pos_y, dir_x, dir_y, plane_x, plane_y)
+        val move = dt * 3.0
+        if (key_w != 0) {
+            cam = try_move_cam(cam, map, cam.basis.dir.scale(move))
+        }
+        if (key_s != 0) {
+            cam = try_move_cam(cam, map, cam.basis.dir.scale(0.0 - move))
+        }
+        if (key_a != 0) {
+            cam = try_move_cam(cam, map, cam.basis.plane.scale(0.0 - move))
+        }
+        if (key_d != 0) {
+            cam = try_move_cam(cam, map, cam.basis.plane.scale(move))
+        }
+        if (key_use != 0 && key_use_prev == 0) {
+            try_use_door(cam, map)
+        }
+        key_use_prev = key_use
+
+        render_frame(pixels, map, cam, FB_W, FB_H)
         tex.update(pixels)
         ren.set_draw_color(0, 0, 0, 255)
         ren.clear()
@@ -123,76 +125,10 @@ fn main() {
         frames = frames + 1
     }
 
+    win.set_relative_mouse(0)
     tex.destroy()
     ren.destroy()
     win.destroy()
     Quit()
     print("raycaster exit\n")
-}
-
-fn try_move(pos_x: i64, pos_y: i64, map: *byte, dx: i64, dy: i64): Hit {
-    val nx = pos_x + dx
-    val ny = pos_y + dy
-    var out_x = pos_x
-    var out_y = pos_y
-    val cy = pos_y / FP_ONE
-    val nx_cell = nx / FP_ONE
-    val ny_cell = ny / FP_ONE
-    if (map_solid(map, nx_cell, cy) == 0) {
-        out_x = nx
-    }
-    if (map_solid(map, out_x / FP_ONE, ny_cell) == 0) {
-        out_y = ny
-    }
-    return Hit(wall_id: out_x, dist: out_y, side: 0)
-}
-
-fn render_frame(
-    pixels: *byte,
-    map: *byte,
-    pos_x: i64,
-    pos_y: i64,
-    dir_x: i64,
-    dir_y: i64,
-    plane_x: i64,
-    plane_y: i64
-) {
-    val w = FB_W
-    val h = FB_H
-    var x: i64 = 0
-    while (x < w) {
-        val camera_x = fp_div(x * 2 * FP_ONE, w) - FP_ONE
-        val ray_dir_x = dir_x + fp_mul(plane_x, camera_x)
-        val ray_dir_y = dir_y + fp_mul(plane_y, camera_x)
-        val hit = map_cast(map, pos_x, pos_y, ray_dir_x, ray_dir_y)
-        var line_h = fp_div(h * FP_ONE, hit.dist)
-        line_h = line_h / FP_ONE
-        if (line_h > h * 4) {
-            line_h = h * 4
-        }
-        var draw_start = 0 - line_h / 2 + h / 2
-        var draw_end = line_h / 2 + h / 2
-        if (draw_start < 0) {
-            draw_start = 0
-        }
-        if (draw_end >= h) {
-            draw_end = h - 1
-        }
-        val color = wall_color(hit.wall_id, hit.side)
-        var y: i64 = 0
-        while (y < h) {
-            val idx = (y * w + x) * 4
-            var pix = FLOOR_COLOR
-            if (y < draw_start) {
-                pix = CEILING_COLOR
-            } else {
-                if (y <= draw_end) {
-                    pix = color
-                }
-            }
-            poke32(pixels, idx, pix)
-            y = y + 1
-        }
-        x = x + 1
-    }
 }

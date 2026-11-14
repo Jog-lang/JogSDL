@@ -1,8 +1,9 @@
-# Jog v2 Wolfenstein-style software raycaster (Q16 DDA; float extern ABI fixed upstream (JOG-89)).
+# Proto-3D raycaster: float Vec2 + view basis, doors, mouse look (JOG-105).
 # Browser build: see ../raycaster-emscripten (JOG-90).
 module raycaster
 version 0.1.0
 root main.jog
+source math2d.jog
 source world.jog
 source ../../sdl.jog
 source ../../sdl3.jog

@@ -27,6 +27,8 @@ extern {
     fn SDL_RenderTexture(renderer: *byte, texture: *byte, srcrect: *byte, dstrect: *byte): i32
     fn SDL_PollEvent(event: *byte): i32
     fn SDL_GetKeyboardState(numkeys: *i32): *byte
+    fn SDL_SetWindowRelativeMouseMode(window: *byte, enabled: i32): i32
+    fn SDL_GetRelativeMouseState(x: *f32, y: *f32): u32
     fn SDL_Delay(ms: u32)
     fn SDL_GetTicks(): u64
     fn SDL_GetError(): *byte
