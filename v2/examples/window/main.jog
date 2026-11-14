@@ -28,12 +28,12 @@ fn main() {
 
     while (running != 0) {
         while (PollEventHas(evbuf) != 0) {
-            val kind = *evbuf
+            val kind = EventType(evbuf)
             if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
                 running = 0
             }
             if (kind == EVENT_KEY_DOWN) {
-                val sc = *(evbuf + 24)
+                val sc = EventScancode(evbuf)
                 if (sc == SCANCODE_ESCAPE) {
                     running = 0
                 }
