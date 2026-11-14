@@ -1,5 +1,32 @@
 // Map + float DDA cast for the proto-3D raycaster.
+// Hot path is scalar (pos/dir/plane + package hit_*) so jogrt bump heap is not
+// drained by per-column Hit / Vec2 struct returns.
 import std.math
+
+// jog 0.2.11-v2: `as` between f64/i64 is a bitcast, not a numeric convert.
+@link("m")
+extern {
+    fn lround(x: f64): i64
+}
+
+// 2^52 — IEEE trick for signed i64→f64 without cvtsi2sd.
+val F52: i64 = 4841369599423283200
+
+fn i_to_f(n: i64): f64 {
+    if (n < 0) {
+        return 0.0 - i_to_f(0 - n)
+    }
+    val bits = F52 + n
+    return (bits as f64) * 1.0 - (F52 as f64) * 1.0
+}
+
+fn cell_coord(v: f64): i64 {
+    return lround(floor(v))
+}
+
+fn f_to_i(v: f64): i64 {
+    return lround(v)
+}
 
 fn poke32(p: *byte, off: i64, v: i64) {
     p[off] = v & 255
@@ -17,12 +44,6 @@ val CELL_BLUE: i64 = 3
 val CELL_ORANGE: i64 = 4
 val CELL_DOOR_CLOSED: i64 = 5
 val CELL_DOOR_OPEN: i64 = 6
-
-struct Hit {
-    wall_id: i64
-    dist: f64
-    side: i64
-}
 
 fn alloc_map(): *byte {
     val cells = alloc(256)
@@ -89,27 +110,27 @@ fn abs_f(v: f64): f64 {
     return fabs(v)
 }
 
-fn try_move_cam(cam: Camera, map: *byte, delta: Vec2): Camera {
-    val nx = cam.pos.x + delta.x
-    val ny = cam.pos.y + delta.y
-    var out = cam
-    val cy = floor(cam.pos.y) as i64
-    val nx_cell = floor(nx) as i64
-    val ny_cell = floor(ny) as i64
+// Axis-separated move into empty / open-door cells (mutates cam_pos_*).
+fn try_move(map: *byte, dx: f64, dy: f64) {
+    val nx = cam_pos_x * 1.0 + dx * 1.0
+    val ny = cam_pos_y * 1.0 + dy * 1.0
+    val cy = cell_coord(cam_pos_y)
+    val nx_cell = cell_coord(nx)
+    val ny_cell = cell_coord(ny)
     if (map_solid(map, nx_cell, cy) == 0) {
-        out.pos.x = nx
+        cam_pos_x = nx
     }
-    if (map_solid(map, floor(out.pos.x) as i64, ny_cell) == 0) {
-        out.pos.y = ny
+    if (map_solid(map, cell_coord(cam_pos_x), ny_cell) == 0) {
+        cam_pos_y = ny
     }
-    return out
 }
 
 // Toggle door in the cell ahead of the camera (E / Space).
-fn try_use_door(cam: Camera, map: *byte): i64 {
-    val ahead = cam.pos.add(cam.basis.dir.scale(0.7))
-    val cx = floor(ahead.x) as i64
-    val cy = floor(ahead.y) as i64
+fn try_use_door(map: *byte): i64 {
+    val ahead_x = cam_pos_x * 1.0 + cam_dir_x * 0.7
+    val ahead_y = cam_pos_y * 1.0 + cam_dir_y * 0.7
+    val cx = cell_coord(ahead_x)
+    val cy = cell_coord(ahead_y)
     val id = map_cell(map, cx, cy)
     if (id == CELL_DOOR_CLOSED) {
         set_cell(map, cx, cy, CELL_DOOR_OPEN)
@@ -122,35 +143,39 @@ fn try_use_door(cam: Camera, map: *byte): i64 {
     return 0
 }
 
-fn map_cast(cells: *byte, pos: Vec2, ray_dir: Vec2): Hit {
-    var map_x = floor(pos.x) as i64
-    var map_y = floor(pos.y) as i64
-    // Large stand-in when a ray axis is zero (no scientific literals in Jog yet).
+// DDA writes package hit_* (no Hit struct return; keeps arity ≤ 6).
+var hit_wall: i64 = 0
+var hit_dist: f64 = 1.0
+var hit_side: i64 = 0
+
+fn map_cast(cells: *byte, pos_x: f64, pos_y: f64, ray_x: f64, ray_y: f64) {
+    var map_x = cell_coord(pos_x)
+    var map_y = cell_coord(pos_y)
     var delta_dist_x = 1000000000.0
     var delta_dist_y = 1000000000.0
-    if (ray_dir.x != 0.0) {
-        delta_dist_x = abs_f(1.0 / ray_dir.x)
+    if (ray_x != 0.0) {
+        delta_dist_x = abs_f(1.0 / ray_x)
     }
-    if (ray_dir.y != 0.0) {
-        delta_dist_y = abs_f(1.0 / ray_dir.y)
+    if (ray_y != 0.0) {
+        delta_dist_y = abs_f(1.0 / ray_y)
     }
     var step_x: i64 = 0
     var step_y: i64 = 0
     var side_dist_x = 0.0
     var side_dist_y = 0.0
-    if (ray_dir.x < 0.0) {
+    if (ray_x < 0.0) {
         step_x = 0 - 1
-        side_dist_x = (pos.x - (map_x as f64)) * delta_dist_x
+        side_dist_x = (pos_x - i_to_f(map_x)) * 1.0 * delta_dist_x
     } else {
         step_x = 1
-        side_dist_x = ((map_x as f64) + 1.0 - pos.x) * delta_dist_x
+        side_dist_x = (i_to_f(map_x) + 1.0 - pos_x) * 1.0 * delta_dist_x
     }
-    if (ray_dir.y < 0.0) {
+    if (ray_y < 0.0) {
         step_y = 0 - 1
-        side_dist_y = (pos.y - (map_y as f64)) * delta_dist_y
+        side_dist_y = (pos_y - i_to_f(map_y)) * 1.0 * delta_dist_y
     } else {
         step_y = 1
-        side_dist_y = ((map_y as f64) + 1.0 - pos.y) * delta_dist_y
+        side_dist_y = (i_to_f(map_y) + 1.0 - pos_y) * 1.0 * delta_dist_y
     }
     var hit = 0
     var side: i64 = 0
@@ -158,11 +183,11 @@ fn map_cast(cells: *byte, pos: Vec2, ray_dir: Vec2): Hit {
     var guard = 0
     while (hit == 0 && guard < 64) {
         if (side_dist_x < side_dist_y) {
-            side_dist_x = side_dist_x + delta_dist_x
+            side_dist_x = side_dist_x * 1.0 + delta_dist_x
             map_x = map_x + step_x
             side = 0
         } else {
-            side_dist_y = side_dist_y + delta_dist_y
+            side_dist_y = side_dist_y * 1.0 + delta_dist_y
             map_y = map_y + step_y
             side = 1
         }
@@ -174,50 +199,87 @@ fn map_cast(cells: *byte, pos: Vec2, ray_dir: Vec2): Hit {
     }
     var dist = 1.0
     if (side == 0) {
-        dist = side_dist_x - delta_dist_x
+        dist = side_dist_x * 1.0 - delta_dist_x
     } else {
-        dist = side_dist_y - delta_dist_y
+        dist = side_dist_y * 1.0 - delta_dist_y
     }
     if (dist < 0.015625) {
         dist = 0.015625
     }
-    return Hit(wall_id: wall_id, dist: dist, side: side)
+    hit_wall = wall_id
+    hit_dist = dist
+    hit_side = side
 }
 
+// Distinct from ceiling/floor so a broken cast is obvious (was same gray as ceiling).
 fn wall_color(wall_id: i64, side: i64): i64 {
-    var c = 4281545523
-    if (wall_id == CELL_WALL) { c = 4281545523 }
-    if (wall_id == CELL_PILLAR) { c = 4288256409 }
+    var c = 4288256409
+    if (wall_id == CELL_WALL) { c = 4288256409 }
+    if (wall_id == CELL_PILLAR) { c = 4294951115 }
     if (wall_id == CELL_BLUE) { c = 4283867007 }
     if (wall_id == CELL_ORANGE) { c = 4294929254 }
-    if (wall_id == CELL_DOOR_CLOSED) { c = 4286611584 }
+    if (wall_id == CELL_DOOR_CLOSED) { c = 4291624704 }
     if (wall_id == CELL_DOOR_OPEN) { c = 4286611584 }
     if (side != 0) { c = c - 2105376 }
     return c
 }
 
-val CEILING_COLOR: i64 = 4281545523
+val CEILING_COLOR: i64 = 4279834905
 val FLOOR_COLOR: i64 = 4281549618
 
-fn render_frame(pixels: *byte, map: *byte, cam: Camera, fb_w: i64, fb_h: i64) {
+// Package scalars: IR call arity max is 8; camera cannot ride as extra args.
+var cam_pos_x: f64 = 2.5
+var cam_pos_y: f64 = 2.5
+var cam_dir_x: f64 = 1.0
+var cam_dir_y: f64 = 0.0
+var cam_plane_x: f64 = 0.0
+var cam_plane_y: f64 = 0.66
+
+fn set_camera(pos_x: f64, pos_y: f64, dir_x: f64, dir_y: f64, plane_x: f64, plane_y: f64) {
+    cam_pos_x = pos_x
+    cam_pos_y = pos_y
+    cam_dir_x = dir_x
+    cam_dir_y = dir_y
+    cam_plane_x = plane_x
+    cam_plane_y = plane_y
+}
+
+fn rotate_cam_yaw(radians: f64) {
+    val c = cos(radians)
+    val s = sin(radians)
+    val dx = cam_dir_x
+    val dy = cam_dir_y
+    val px = cam_plane_x
+    val py = cam_plane_y
+    cam_dir_x = dx * c - dy * s
+    cam_dir_y = dx * s + dy * c
+    cam_plane_x = px * c - py * s
+    cam_plane_y = px * s + py * c
+}
+
+fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
+    val fb_wf = i_to_f(fb_w)
+    val fb_hf = i_to_f(fb_h)
     var x: i64 = 0
     while (x < fb_w) {
-        val camera_x = (x as f64) * 2.0 / (fb_w as f64) - 1.0
-        val ray = cam.basis.ray(camera_x)
-        val hit = map_cast(map, cam.pos, ray)
-        var line_h = (fb_h as f64) / hit.dist
-        if (line_h > (fb_h as f64) * 4.0) {
-            line_h = (fb_h as f64) * 4.0
+        // `a * 1.0 * b` keeps f64 mulsd; bare `a * b` or `t * b` after a temp lowers to imul.
+        val camera_x = i_to_f(x) * 2.0 / fb_wf - 1.0
+        val ray_x = cam_dir_x * 1.0 + cam_plane_x * 1.0 * camera_x
+        val ray_y = cam_dir_y * 1.0 + cam_plane_y * 1.0 * camera_x
+        map_cast(map, cam_pos_x, cam_pos_y, ray_x, ray_y)
+        var line_h = fb_hf / hit_dist
+        if (line_h > fb_hf * 4.0) {
+            line_h = fb_hf * 4.0
         }
-        var draw_start = (0.0 - line_h / 2.0 + (fb_h as f64) / 2.0) as i64
-        var draw_end = (line_h / 2.0 + (fb_h as f64) / 2.0) as i64
+        var draw_start = f_to_i(0.0 - line_h / 2.0 + fb_hf / 2.0)
+        var draw_end = f_to_i(line_h / 2.0 + fb_hf / 2.0)
         if (draw_start < 0) {
             draw_start = 0
         }
         if (draw_end >= fb_h) {
             draw_end = fb_h - 1
         }
-        val color = wall_color(hit.wall_id, hit.side)
+        val color = wall_color(hit_wall, hit_side)
         var y: i64 = 0
         while (y < fb_h) {
             val idx = (y * fb_w + x) * 4

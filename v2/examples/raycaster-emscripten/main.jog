@@ -1,6 +1,6 @@
 // Emscripten proto-3D raycaster (JOG-90 + JOG-105).
-// Returning jog_host_run_loop; App object holds handles (JOG-96 / F17 path).
-// Same float Vec2 + view basis / doors as the native demo.
+// Returning jog_host_run_loop; App object holds SDL handles (JOG-96 / F17 path).
+// Camera/DDA use package scalars in world.jog (heap-safe hot path).
 
 val WIN_W: i32 = 640
 val WIN_H: i32 = 400
@@ -11,7 +11,7 @@ val FB_H32: i32 = 100
 val FB_BYTES: u64 = 64000
 val PLANE_LEN: f64 = 0.66
 
-// JOG-96 object singleton — multi-field package state without F17 scalar split.
+// JOG-96 object singleton — SDL handles + input (camera is package cam_*).
 object App {
     win_ptr: *byte
     ren_ptr: *byte
@@ -21,12 +21,6 @@ object App {
     evbuf: *byte
     running: i64
     frames: i64
-    pos_x: f64
-    pos_y: f64
-    dir_x: f64
-    dir_y: f64
-    plane_x: f64
-    plane_y: f64
     key_w: i64
     key_s: i64
     key_a: i64
@@ -35,23 +29,6 @@ object App {
     key_right: i64
     key_use: i64
     key_use_prev: i64
-}
-
-fn app_camera(): Camera {
-    return camera_at(
-        vec2(App.pos_x, App.pos_y),
-        vec2(App.dir_x, App.dir_y),
-        vec2(App.plane_x, App.plane_y)
-    )
-}
-
-fn app_store_camera(cam: Camera) {
-    App.pos_x = cam.pos.x
-    App.pos_y = cam.pos.y
-    App.dir_x = cam.basis.dir.x
-    App.dir_y = cam.basis.dir.y
-    App.plane_x = cam.basis.plane.x
-    App.plane_y = cam.basis.plane.y
 }
 
 @export
@@ -83,49 +60,47 @@ fn tick(): i32 {
         return 0
     }
 
-    var cam = app_camera()
     val dt: f64 = 0.016
     var yaw = 0.0
     if (App.key_left != 0) {
-        yaw = yaw + dt * 2.5
+        yaw = yaw * 1.0 + dt * 2.5
     }
     if (App.key_right != 0) {
-        yaw = yaw - dt * 2.5
+        yaw = yaw * 1.0 - dt * 2.5
     }
-    val md = GetRelativeMouseDelta()
-    yaw = yaw - (md.x as f64) * 0.003
+    var mx: f32 = 0.0 as f32
+    var my: f32 = 0.0 as f32
+    ReadRelativeMouse(&mx, &my)
+    yaw = yaw * 1.0 - (mx as f64) * 0.003
     if (yaw != 0.0) {
-        cam.rotate(yaw)
+        rotate_cam_yaw(yaw)
     }
 
     val move = dt * 3.0
     if (App.key_w != 0) {
-        cam = try_move_cam(cam, App.map, cam.basis.dir.scale(move))
+        try_move(App.map, cam_dir_x * 1.0 * move, cam_dir_y * 1.0 * move)
     }
     if (App.key_s != 0) {
-        cam = try_move_cam(cam, App.map, cam.basis.dir.scale(0.0 - move))
+        try_move(App.map, cam_dir_x * 1.0 * (0.0 - move), cam_dir_y * 1.0 * (0.0 - move))
     }
     if (App.key_a != 0) {
-        cam = try_move_cam(cam, App.map, cam.basis.plane.scale(0.0 - move))
+        try_move(App.map, cam_plane_x * 1.0 * (0.0 - move), cam_plane_y * 1.0 * (0.0 - move))
     }
     if (App.key_d != 0) {
-        cam = try_move_cam(cam, App.map, cam.basis.plane.scale(move))
+        try_move(App.map, cam_plane_x * 1.0 * move, cam_plane_y * 1.0 * move)
     }
     if (App.key_use != 0 && App.key_use_prev == 0) {
-        try_use_door(cam, App.map)
+        try_use_door(App.map)
     }
     App.key_use_prev = App.key_use
-    app_store_camera(cam)
 
-    render_frame(App.pixels, App.map, cam, FB_W, FB_H)
+    render_frame(App.pixels, App.map, FB_W, FB_H)
 
-    var tex = Texture(ptr: App.tex_ptr, w: FB_W32, h: FB_H32)
-    tex.update(App.pixels)
-    var ren = Renderer(ptr: App.ren_ptr)
-    ren.set_draw_color(0, 0, 0, 255)
-    ren.clear()
-    ren.draw_texture(tex)
-    ren.present()
+    UpdateTextureRaw(App.tex_ptr, App.pixels, FB_W32 * 4)
+    SetDrawColorRaw(App.ren_ptr, 0, 0, 0, 255)
+    ClearRaw(App.ren_ptr)
+    DrawTextureRaw(App.ren_ptr, App.tex_ptr)
+    PresentRaw(App.ren_ptr)
     App.frames = App.frames + 1
     return 1
 }
@@ -160,12 +135,7 @@ fn main() {
     }
     App.map = demo_map()
     App.evbuf = alloc(128)
-    App.pos_x = 2.5
-    App.pos_y = 2.5
-    App.dir_x = 1.0
-    App.dir_y = 0.0
-    App.plane_x = 0.0
-    App.plane_y = PLANE_LEN
+    set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
     App.running = 1
     App.frames = 0
     App.key_use = 0
