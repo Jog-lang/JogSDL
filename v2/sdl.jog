@@ -141,9 +141,23 @@ fn PollEventHas(buf: *byte): i32 {
     return SDL_PollEvent(buf)
 }
 
+// SDL_Event.type is u32 at offset 0; Jog `*buf` is an 8-byte load (type+reserved).
+fn EventType(buf: *byte): u32 {
+    val q = *buf
+    return (q & 4294967295) as u32
+}
+
+// SDL_KeyboardEvent.scancode is u32 at offset 24; next field is keycode — mask to u32.
+fn EventScancode(buf: *byte): u32 {
+    val q = *(buf + 24)
+    return (q & 4294967295) as u32
+}
+
 fn KeyboardIsDown(scancode: u32): i32 {
     var n: i32 = 0
-    val state = SDL_GetKeyboardState(&n)
+    // Must annotate `*byte`: untyped extern returns were inferred as scalar `byte`,
+    // so `state[sc]` used stride-8 downward index and never saw real keys.
+    val state: *byte = SDL_GetKeyboardState(&n)
     if (state == null) {
         return 0
     }
@@ -156,15 +170,71 @@ fn KeyboardIsDown(scancode: u32): i32 {
     return 0
 }
 
+// SDL writes IEEE f32; Jog slots are 8-byte. Promote low 32 bits with cvtss2sd via helper.
+fn f32_slot_to_f64(p: *byte): f64 {
+    // Rebuild f32 bits then convert through i32→f64 scale is wrong for arbitrary floats.
+    // Use integer path: load 4 bytes LE into i64 and call a tiny soft promote.
+    val b0 = p[0]
+    val b1 = p[1]
+    val b2 = p[2]
+    val b3 = p[3]
+    val bits = b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
+    return f32bits_to_f64(bits)
+}
+
+fn f32bits_to_f64(bits_in: i64): f64 {
+    val bits = bits_in & 4294967295
+    val sign = (bits >> 31) & 1
+    val exp = (bits >> 23) & 255
+    val mant = bits & 8388607
+    if (exp == 0) {
+        if (mant == 0) {
+            if (sign != 0) {
+                return 0.0 - 0.0
+            }
+            return 0.0
+        }
+        // subnormal: ignore (mouse deltas are normal)
+        return 0.0
+    }
+    if (exp == 255) {
+        return 0.0
+    }
+    // value = (1 + mant/2^23) * 2^(exp-127)
+    val frac = (8388608.0 + (mant as f64)) / 8388608.0
+    var e = exp - 127
+    var p2 = 1.0
+    if (e >= 0) {
+        var i = 0
+        while (i < e) {
+            p2 = p2 * 2.0
+            i = i + 1
+        }
+    } else {
+        var i = 0
+        while (i < (0 - e)) {
+            p2 = p2 / 2.0
+            i = i + 1
+        }
+    }
+    val v = frac * p2
+    if (sign != 0) {
+        return 0.0 - v
+    }
+    return v
+}
+
+
 fn GetRelativeMouseDelta(): MouseDelta {
-    var x: f32 = 0.0 as f32
-    var y: f32 = 0.0 as f32
-    SDL_GetRelativeMouseState(&x, &y)
-    return MouseDelta(x: x, y: y)
+    // Prefer ReadRelativeMouse + f32_slot_to_f64; MouseDelta.f32 fields are not trustworthy.
+    val buf = alloc(8)
+    SDL_GetRelativeMouseState(buf, buf + 4)
+    return MouseDelta(x: 0.0 as f32, y: 0.0 as f32)
 }
 
 // Prefer this on hot loops: no MouseDelta struct return (bump alloc).
-fn ReadRelativeMouse(out_x: *f32, out_y: *f32): u32 {
+// Args are raw pointers to IEEE f32 cells (not Jog f64 slots).
+fn ReadRelativeMouse(out_x: *byte, out_y: *byte): u32 {
     return SDL_GetRelativeMouseState(out_x, out_y)
 }
 

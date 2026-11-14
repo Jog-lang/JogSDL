@@ -66,20 +66,22 @@ fn main() {
     var key_use = 0
     var key_use_prev = 0
     val evbuf = alloc(128)
-    var mx: f32 = 0.0 as f32
-    var my: f32 = 0.0 as f32
+    // SDL writes f32 into these 4-byte cells; promote with f32_slot_to_f64 (not `as f64`).
+    val mouse_f32 = alloc(8)
     var running = 1
     var frames = 0
     val dt: f64 = 0.016
+    var input_keys_seen = 0
+    var input_mouse_seen = 0
 
     while (running != 0) {
         while (PollEventHas(evbuf) != 0) {
-            val kind = *evbuf
+            val kind = EventType(evbuf)
             if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
                 running = 0
             }
             if (kind == EVENT_KEY_DOWN || kind == EVENT_KEY_UP) {
-                val sc = *(evbuf + 24)
+                val sc = EventScancode(evbuf)
                 var down = 0
                 if (kind == EVENT_KEY_DOWN) {
                     down = 1
@@ -106,6 +108,9 @@ fn main() {
         val key_d = KeyboardIsDown(SCANCODE_D)
         val key_left = KeyboardIsDown(SCANCODE_LEFT)
         val key_right = KeyboardIsDown(SCANCODE_RIGHT)
+        if (key_w + key_s + key_a + key_d + key_left + key_right != 0) {
+            input_keys_seen = 1
+        }
 
         var yaw = 0.0
         if (key_left != 0) {
@@ -115,8 +120,13 @@ fn main() {
             yaw = yaw - dt * 2.5
         }
         // Mouse X look (relative mode); scale is radians per pixel.
-        ReadRelativeMouse(&mx, &my)
-        yaw = yaw - (mx as f64) * 0.003
+        ReadRelativeMouse(mouse_f32, mouse_f32 + 4)
+        val mx = f32_slot_to_f64(mouse_f32)
+        val my = f32_slot_to_f64(mouse_f32 + 4)
+        if (mx != 0.0 || my != 0.0) {
+            input_mouse_seen = 1
+        }
+        yaw = yaw - mx * 0.003
         if (yaw != 0.0) {
             rotate_cam_yaw(yaw)
         }
@@ -163,5 +173,16 @@ fn main() {
     ren.destroy()
     win.destroy()
     Quit()
-    print("raycaster exit\n")
+    if (smoke != 0) {
+        // Smoke cannot prove live keys; JOGSDL_INPUT_SELFTEST does (see input_selftest).
+        print("raycaster exit\n")
+    } else {
+        if (input_keys_seen != 0) {
+            print("input keys seen\n")
+        }
+        if (input_mouse_seen != 0) {
+            print("input mouse seen\n")
+        }
+        print("raycaster exit\n")
+    }
 }
