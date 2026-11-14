@@ -1,10 +1,6 @@
 // Proto-3D camera math: float Vec2 + 2x2 view basis (dir | plane).
 // Rotation applies the same Mat2 to both basis vectors (view matrix columns).
-//
-// Friction (jog 0.2.11-v2): `f64 +` / `-` on bare field loads lowers to integer
-// add/sub on IEEE bits. Force a float op (`* 1.0`) before add/sub so codegen
-// emits addsd/subsd. Prefer scalar locals on the frame hot path (no struct
-// returns — those bump-alloc with no free and OOM after a few seconds).
+// Frame hot path in world.jog uses package scalars (no Vec2 returns — bump OOM).
 import std.math
 
 struct Vec2 {
@@ -17,21 +13,19 @@ fn vec2(x: f64, y: f64): Vec2 {
 }
 
 fn Vec2.add(o: Vec2): Vec2 {
-    // * 1.0 keeps operands in f64 XMM path (bare field + is integer add).
-    return vec2(self.x * 1.0 + o.x * 1.0, self.y * 1.0 + o.y * 1.0)
+    return vec2(self.x + o.x, self.y + o.y)
 }
 
 fn Vec2.sub(o: Vec2): Vec2 {
-    return vec2(self.x * 1.0 - o.x * 1.0, self.y * 1.0 - o.y * 1.0)
+    return vec2(self.x - o.x, self.y - o.y)
 }
 
 fn Vec2.scale(s: f64): Vec2 {
-    // `field * 1.0 * s` — chained literal keeps mulsd (bare field*s can be imul).
-    return vec2(self.x * 1.0 * s, self.y * 1.0 * s)
+    return vec2(self.x * s, self.y * s)
 }
 
 fn Vec2.dot(o: Vec2): f64 {
-    return self.x * 1.0 * o.x + self.y * 1.0 * o.y
+    return self.x * o.x + self.y * o.y
 }
 
 // 2x2 column-major basis: columns are forward (dir) and right (plane).

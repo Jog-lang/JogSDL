@@ -1,31 +1,18 @@
 // Map + float DDA cast for the proto-3D raycaster.
 // Hot path is scalar (pos/dir/plane + package hit_*) so jogrt bump heap is not
 // drained by per-column Hit / Vec2 struct returns.
+//
+// After JogCompiler #30, numeric `as` is sitofp/fptosi — do NOT use the old
+// IEEE 2^52 bitcast "i_to_f" trick (it becomes sitofp of F52+n and produces
+// garbage → every column paints door lime 0xffccff00 = solid green).
 import std.math
 
-// jog 0.2.11-v2: `as` between f64/i64 is a bitcast, not a numeric convert.
-@link("m")
-extern {
-    fn lround(x: f64): i64
-}
-
-// 2^52 — IEEE trick for signed i64→f64 without cvtsi2sd.
-val F52: i64 = 4841369599423283200
-
-fn i_to_f(n: i64): f64 {
-    if (n < 0) {
-        return 0.0 - i_to_f(0 - n)
-    }
-    val bits = F52 + n
-    return (bits as f64) * 1.0 - (F52 as f64) * 1.0
-}
-
 fn cell_coord(v: f64): i64 {
-    return lround(floor(v))
+    return floor(v) as i64
 }
 
 fn f_to_i(v: f64): i64 {
-    return lround(v)
+    return v as i64
 }
 
 fn poke32(p: *byte, off: i64, v: i64) {
@@ -33,6 +20,37 @@ fn poke32(p: *byte, off: i64, v: i64) {
     p[off + 1] = (v >> 8) & 255
     p[off + 2] = (v >> 16) & 255
     p[off + 3] = (v >> 24) & 255
+}
+
+extern {
+    fn fopen(path: *byte, mode: *byte): *byte
+    fn fwrite(ptr: *byte, size: u64, nmemb: u64, stream: *byte): u64
+    fn fclose(stream: *byte): i32
+}
+
+// Smoke evidence: write /tmp/jogsdl_raycaster_fb.ppm (RGB from ARGB8888 LE).
+fn dump_fb_ppm(pixels: *byte, fb_w: i64, fb_h: i64) {
+    val f = fopen(c"/tmp/jogsdl_raycaster_fb.ppm", c"wb")
+    if (f == null) {
+        print("dump_fb_ppm: fopen failed\n")
+        return
+    }
+    val rgb = alloc(3)
+    // P6 header for 160x100
+    fwrite(c"P6\n160 100\n255\n", 1, 15, f)
+    var i = 0
+    val n = fb_w * fb_h
+    while (i < n) {
+        val off = i * 4
+        // ARGB8888 little-endian in memory: B,G,R,A
+        rgb[0] = pixels[off + 2]
+        rgb[1] = pixels[off + 1]
+        rgb[2] = pixels[off]
+        fwrite(rgb, 1, 3, f)
+        i = i + 1
+    }
+    fclose(f)
+    print("wrote /tmp/jogsdl_raycaster_fb.ppm\n")
 }
 
 val MAP_W: i64 = 16
@@ -112,8 +130,8 @@ fn abs_f(v: f64): f64 {
 
 // Axis-separated move into empty / open-door cells (mutates cam_pos_*).
 fn try_move(map: *byte, dx: f64, dy: f64) {
-    val nx = cam_pos_x * 1.0 + dx * 1.0
-    val ny = cam_pos_y * 1.0 + dy * 1.0
+    val nx = cam_pos_x + dx
+    val ny = cam_pos_y + dy
     val cy = cell_coord(cam_pos_y)
     val nx_cell = cell_coord(nx)
     val ny_cell = cell_coord(ny)
@@ -127,8 +145,8 @@ fn try_move(map: *byte, dx: f64, dy: f64) {
 
 // Toggle door in the cell ahead of the camera (E / Space).
 fn try_use_door(map: *byte): i64 {
-    val ahead_x = cam_pos_x * 1.0 + cam_dir_x * 0.7
-    val ahead_y = cam_pos_y * 1.0 + cam_dir_y * 0.7
+    val ahead_x = cam_pos_x + cam_dir_x * 0.7
+    val ahead_y = cam_pos_y + cam_dir_y * 0.7
     val cx = cell_coord(ahead_x)
     val cy = cell_coord(ahead_y)
     val id = map_cell(map, cx, cy)
@@ -165,17 +183,17 @@ fn map_cast(cells: *byte, pos_x: f64, pos_y: f64, ray_x: f64, ray_y: f64) {
     var side_dist_y = 0.0
     if (ray_x < 0.0) {
         step_x = 0 - 1
-        side_dist_x = (pos_x - i_to_f(map_x)) * 1.0 * delta_dist_x
+        side_dist_x = (pos_x - (map_x as f64)) * delta_dist_x
     } else {
         step_x = 1
-        side_dist_x = (i_to_f(map_x) + 1.0 - pos_x) * 1.0 * delta_dist_x
+        side_dist_x = ((map_x as f64) + 1.0 - pos_x) * delta_dist_x
     }
     if (ray_y < 0.0) {
         step_y = 0 - 1
-        side_dist_y = (pos_y - i_to_f(map_y)) * 1.0 * delta_dist_y
+        side_dist_y = (pos_y - (map_y as f64)) * delta_dist_y
     } else {
         step_y = 1
-        side_dist_y = (i_to_f(map_y) + 1.0 - pos_y) * 1.0 * delta_dist_y
+        side_dist_y = ((map_y as f64) + 1.0 - pos_y) * delta_dist_y
     }
     var hit = 0
     var side: i64 = 0
@@ -183,11 +201,11 @@ fn map_cast(cells: *byte, pos_x: f64, pos_y: f64, ray_x: f64, ray_y: f64) {
     var guard = 0
     while (hit == 0 && guard < 64) {
         if (side_dist_x < side_dist_y) {
-            side_dist_x = side_dist_x * 1.0 + delta_dist_x
+            side_dist_x = side_dist_x + delta_dist_x
             map_x = map_x + step_x
             side = 0
         } else {
-            side_dist_y = side_dist_y * 1.0 + delta_dist_y
+            side_dist_y = side_dist_y + delta_dist_y
             map_y = map_y + step_y
             side = 1
         }
@@ -199,9 +217,9 @@ fn map_cast(cells: *byte, pos_x: f64, pos_y: f64, ray_x: f64, ray_y: f64) {
     }
     var dist = 1.0
     if (side == 0) {
-        dist = side_dist_x * 1.0 - delta_dist_x
+        dist = side_dist_x - delta_dist_x
     } else {
-        dist = side_dist_y * 1.0 - delta_dist_y
+        dist = side_dist_y - delta_dist_y
     }
     if (dist < 0.015625) {
         dist = 0.015625
@@ -212,13 +230,14 @@ fn map_cast(cells: *byte, pos_x: f64, pos_y: f64, ray_x: f64, ray_y: f64) {
 }
 
 // Distinct from ceiling/floor so a broken cast is obvious (was same gray as ceiling).
+// Door closed is amber (not lime) so a full-frame hit is not mistaken for "SDL green".
 fn wall_color(wall_id: i64, side: i64): i64 {
     var c = 4288256409
     if (wall_id == CELL_WALL) { c = 4288256409 }
     if (wall_id == CELL_PILLAR) { c = 4294951115 }
     if (wall_id == CELL_BLUE) { c = 4283867007 }
     if (wall_id == CELL_ORANGE) { c = 4294929254 }
-    if (wall_id == CELL_DOOR_CLOSED) { c = 4291624704 }
+    if (wall_id == CELL_DOOR_CLOSED) { c = 4294927360 }
     if (wall_id == CELL_DOOR_OPEN) { c = 4286611584 }
     if (side != 0) { c = c - 2105376 }
     return c
@@ -258,14 +277,13 @@ fn rotate_cam_yaw(radians: f64) {
 }
 
 fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
-    val fb_wf = i_to_f(fb_w)
-    val fb_hf = i_to_f(fb_h)
+    val fb_wf = fb_w as f64
+    val fb_hf = fb_h as f64
     var x: i64 = 0
     while (x < fb_w) {
-        // `a * 1.0 * b` keeps f64 mulsd; bare `a * b` or `t * b` after a temp lowers to imul.
-        val camera_x = i_to_f(x) * 2.0 / fb_wf - 1.0
-        val ray_x = cam_dir_x * 1.0 + cam_plane_x * 1.0 * camera_x
-        val ray_y = cam_dir_y * 1.0 + cam_plane_y * 1.0 * camera_x
+        val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
+        val ray_x = cam_dir_x + cam_plane_x * camera_x
+        val ray_y = cam_dir_y + cam_plane_y * camera_x
         map_cast(map, cam_pos_x, cam_pos_y, ray_x, ray_y)
         var line_h = fb_hf / hit_dist
         if (line_h > fb_hf * 4.0) {
