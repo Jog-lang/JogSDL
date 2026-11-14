@@ -35,5 +35,11 @@ cmake -S "$SRC" -B "$BUILD" -G Ninja \
 cmake --build "$BUILD"
 cmake --install "$BUILD"
 
+# Fedora (and some other Linux) installs into lib64. jog.mod lists both
+# prefix/lib64 and prefix/lib; without a lib dir, jog-build warns (F15).
+if [[ -d "$PREFIX/lib64" && ! -e "$PREFIX/lib" ]]; then
+  ln -s lib64 "$PREFIX/lib"
+fi
+
 echo "Installed SDL3 ${SDL3_VERSION} to $PREFIX"
 ls -la "$PREFIX/lib"/libSDL3.so* 2>/dev/null || ls -la "$PREFIX/lib64"/libSDL3.so* 2>/dev/null || true

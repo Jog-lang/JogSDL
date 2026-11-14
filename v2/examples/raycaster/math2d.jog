@@ -1,0 +1,68 @@
+// Proto-3D camera math: float Vec2 + 2x2 view basis (dir | plane).
+// Rotation applies the same Mat2 to both basis vectors (view matrix columns).
+import std.math
+
+struct Vec2 {
+    x: f64
+    y: f64
+}
+
+fn vec2(x: f64, y: f64): Vec2 {
+    return Vec2(x: x, y: y)
+}
+
+fn Vec2.add(o: Vec2): Vec2 {
+    return vec2(self.x + o.x, self.y + o.y)
+}
+
+fn Vec2.sub(o: Vec2): Vec2 {
+    return vec2(self.x - o.x, self.y - o.y)
+}
+
+fn Vec2.scale(s: f64): Vec2 {
+    return vec2(self.x * s, self.y * s)
+}
+
+fn Vec2.dot(o: Vec2): f64 {
+    return self.x * o.x + self.y * o.y
+}
+
+// 2x2 column-major basis: columns are forward (dir) and right (plane).
+struct ViewBasis {
+    dir: Vec2
+    plane: Vec2
+}
+
+fn view_basis(dir: Vec2, plane: Vec2): ViewBasis {
+    return ViewBasis(dir: dir, plane: plane)
+}
+
+// Rotate both basis columns by radians (shared view-matrix rotation).
+fn ViewBasis.rotate(radians: f64): ViewBasis {
+    val c = cos(radians)
+    val s = sin(radians)
+    val nd = vec2(self.dir.x * c - self.dir.y * s, self.dir.x * s + self.dir.y * c)
+    val np = vec2(self.plane.x * c - self.plane.y * s, self.plane.x * s + self.plane.y * c)
+    return view_basis(nd, np)
+}
+
+fn ViewBasis.ray(camera_x: f64): Vec2 {
+    return self.dir.add(self.plane.scale(camera_x))
+}
+
+struct Camera {
+    pos: Vec2
+    basis: ViewBasis
+}
+
+fn camera_at(pos: Vec2, dir: Vec2, plane: Vec2): Camera {
+    return Camera(pos: pos, basis: view_basis(dir, plane))
+}
+
+fn Camera.rotate(radians: f64) {
+    self.basis = self.basis.rotate(radians)
+}
+
+fn Camera.move(delta: Vec2) {
+    self.pos = self.pos.add(delta)
+}
