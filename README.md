@@ -4,7 +4,7 @@ Hand-written [SDL3](https://www.libsdl.org/) bindings for the [Jog](https://gith
 
 Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are listed in `jog.mod` for later.
 
-**JogCompiler v2:** see [`v2/`](v2/) — `jog-v2` / `jog-build` demos with `libdir` → rpath (no `LD_LIBRARY_PATH`). The v2 raycaster is a proto-3D float camera (`Vec2` + view basis), doors, and mouse look (`std.math` + `object` on wasm). Root `sdl/` + `examples/` remain the develop/`jogc` layout.
+**JogCompiler v2:** see [`v2/`](v2/) — use `jog-v2` (set `JOG=~/.local/bin/jog-v2`; do not leave `$JOG` on seed). `jog-build` + `libdir` → rpath (no `LD_LIBRARY_PATH`). The v2 raycaster is a proto-3D float camera (`Vec2` + view basis), doors, and mouse look (`std.math` + `object` on wasm). Root `sdl/` + `examples/` remain the develop/`jogc` layout.
 
 | | |
 |---|---|

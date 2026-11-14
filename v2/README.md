@@ -22,13 +22,17 @@ v2/
 - Native SDL3 in `../prefix` via repo `scripts/build-sdl3.sh` (creates `prefix/lib` → `lib64` symlink on Fedora)
 - Browser: emsdk (`source ~/emsdk/emsdk_env.sh`) + `scripts/build-sdl3-emscripten.sh` → `../prefix-emscripten/`
 
+**Stale `JOG`:** `jog-build` (0.2.5-v2+) always prefers `$JOG` first. If your shell still exports a seed/pre-v2 `jog` (e.g. from `~/.bashrc`), bare `jog-build build …` will parse this v2 `jog.mod` with the old compiler and fail with `unknown declaration 'root'` / `'source' is reserved` / `unknown target 'emscripten'`. Fix: `export JOG=~/.local/bin/jog-v2` (or `unset JOG` when `jog-v2` is on `PATH`). Check with `echo "$JOG"` and `jog-v2 --version` (expect `0.2.11-v2`).
+
 ## Build & run (native, rpath — no `LD_LIBRARY_PATH`)
 
+From the JogSDL repo root (Fedora / Linux x86-64). Output binary is `out/raycaster` (not `raycater`).
+
 ```bash
-export JOG=~/.local/bin/jog-v2   # or JogCompiler-v2/zig-out/bin/jog
+export JOG=~/.local/bin/jog-v2   # required if $JOG still points at seed
 export JOG_BUILD=~/.local/bin/jog-build
 
-cd examples/window
+cd v2/examples/window
 "$JOG_BUILD" build -o out/window_demo && ./out/window_demo
 
 cd ../raycaster
@@ -37,15 +41,21 @@ cd ../raycaster
 JOGSDL_RAYCASTER_SMOKE=1 ./out/raycaster
 ```
 
+One-liner from `v2/examples/raycaster/`:
+
+```bash
+JOG=~/.local/bin/jog-v2 jog-build build -o out/raycaster && ./out/raycaster
+```
+
 ## Build & run (Emscripten / browser)
 
 ```bash
 source ~/emsdk/emsdk_env.sh
-# once: ../scripts/build-sdl3-emscripten.sh
+# once from repo root: ./scripts/build-sdl3-emscripten.sh
 
-export JOG=/path/to/JogCompiler-v2/zig-out/bin/jog
+export JOG=~/.local/bin/jog-v2   # or JogCompiler-v2/zig-out/bin/jog
 
-cd examples/window-emscripten
+cd v2/examples/window-emscripten
 "$JOG" build . --target wasm32-emscripten -o out/window.html
 python3 -m http.server -d out 8000
 # open http://127.0.0.1:8000/window.html
