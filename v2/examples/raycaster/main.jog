@@ -63,12 +63,6 @@ fn main() {
     val map = demo_map()
     // Spawn facing +x toward the interactive door at (5,2).
     set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
-    var key_w = 0
-    var key_s = 0
-    var key_a = 0
-    var key_d = 0
-    var key_left = 0
-    var key_right = 0
     var key_use = 0
     var key_use_prev = 0
     val evbuf = alloc(128)
@@ -93,12 +87,7 @@ fn main() {
                 if (sc == SCANCODE_ESCAPE) {
                     running = 0
                 }
-                if (sc == SCANCODE_W) { key_w = down }
-                if (sc == SCANCODE_S) { key_s = down }
-                if (sc == SCANCODE_A) { key_a = down }
-                if (sc == SCANCODE_D) { key_d = down }
-                if (sc == SCANCODE_LEFT) { key_left = down }
-                if (sc == SCANCODE_RIGHT) { key_right = down }
+                // E/Space edge-trigger still from events; movement uses keyboard state.
                 if (sc == SCANCODE_E || sc == SCANCODE_SPACE) { key_use = down }
             }
         }
@@ -110,32 +99,40 @@ fn main() {
             break
         }
 
+        // Keyboard state (not only KEY_DOWN edges) so held keys work after focus return.
+        val key_w = KeyboardIsDown(SCANCODE_W)
+        val key_s = KeyboardIsDown(SCANCODE_S)
+        val key_a = KeyboardIsDown(SCANCODE_A)
+        val key_d = KeyboardIsDown(SCANCODE_D)
+        val key_left = KeyboardIsDown(SCANCODE_LEFT)
+        val key_right = KeyboardIsDown(SCANCODE_RIGHT)
+
         var yaw = 0.0
         if (key_left != 0) {
-            yaw = yaw * 1.0 + dt * 2.5
+            yaw = yaw + dt * 2.5
         }
         if (key_right != 0) {
-            yaw = yaw * 1.0 - dt * 2.5
+            yaw = yaw - dt * 2.5
         }
         // Mouse X look (relative mode); scale is radians per pixel.
         ReadRelativeMouse(&mx, &my)
-        yaw = yaw * 1.0 - (mx as f64) * 0.003
+        yaw = yaw - (mx as f64) * 0.003
         if (yaw != 0.0) {
             rotate_cam_yaw(yaw)
         }
 
         val move = dt * 3.0
         if (key_w != 0) {
-            try_move(map, cam_dir_x * 1.0 * move, cam_dir_y * 1.0 * move)
+            try_move(map, cam_dir_x * move, cam_dir_y * move)
         }
         if (key_s != 0) {
-            try_move(map, cam_dir_x * 1.0 * (0.0 - move), cam_dir_y * 1.0 * (0.0 - move))
+            try_move(map, cam_dir_x * (0.0 - move), cam_dir_y * (0.0 - move))
         }
         if (key_a != 0) {
-            try_move(map, cam_plane_x * 1.0 * (0.0 - move), cam_plane_y * 1.0 * (0.0 - move))
+            try_move(map, cam_plane_x * (0.0 - move), cam_plane_y * (0.0 - move))
         }
         if (key_d != 0) {
-            try_move(map, cam_plane_x * 1.0 * move, cam_plane_y * 1.0 * move)
+            try_move(map, cam_plane_x * move, cam_plane_y * move)
         }
         if (key_use != 0 && key_use_prev == 0) {
             try_use_door(map)
@@ -143,6 +140,15 @@ fn main() {
         key_use_prev = key_use
 
         render_frame(pixels, map, FB_W, FB_H)
+        if (frames == 0 && smoke != 0) {
+            map_cast(map, cam_pos_x, cam_pos_y, cam_dir_x, cam_dir_y)
+            if (hit_dist == 2.5 && hit_wall == 5) {
+                print("map_cast door ahead ok\n")
+            } else {
+                print("map_cast door ahead BAD\n")
+            }
+            dump_fb_ppm(pixels, FB_W, FB_H)
+        }
         tex.update(pixels)
         ren.set_draw_color(0, 0, 0, 255)
         ren.clear()
