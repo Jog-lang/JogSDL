@@ -22,10 +22,11 @@ fn tex_poke32(p: *byte, off: i64, v: i64) {
 }
 
 fn tex_peek32(p: *byte, off: i64): i64 {
-    val b0 = p[off]
-    val b1 = p[off + 1]
-    val b2 = p[off + 2]
-    val b3 = p[off + 3]
+    // Mask — Jog byte loads may be sign-extended into i64.
+    val b0 = p[off] & 255
+    val b1 = p[off + 1] & 255
+    val b2 = p[off + 2] & 255
+    val b3 = p[off + 3] & 255
     return b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
 }
 
