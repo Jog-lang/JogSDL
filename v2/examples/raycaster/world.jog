@@ -296,11 +296,93 @@ fn rotate_cam_yaw(radians: f64) {
     cam_plane_y = px * s + py * c
 }
 
+// Optional per-column depth (i32 fixed-point dist*DEPTH_SCALE), size fb_w.
+// Classic raycaster Z: one wall distance per column. Null = walls-only (wasm).
+var depth_buf: *byte = null
+var depth_fb_w: i64 = 0
+val DEPTH_SCALE: f64 = 1024.0
+val DEPTH_FAR: i64 = 1000000
+
+fn depth_bind(buf: *byte, fb_w: i64) {
+    depth_buf = buf
+    depth_fb_w = fb_w
+}
+
+fn depth_init(fb_w: i64): i64 {
+    // Assign alloc directly into the package ptr (local→package *byte copy is flaky).
+    depth_fb_w = fb_w
+    depth_buf = alloc(fb_w * 4)
+    if (depth_buf == null) {
+        return 0
+    }
+    depth_clear()
+    return 1
+}
+
+fn depth_from_dist(d: f64): i64 {
+    var v = f_to_i(d * DEPTH_SCALE)
+    if (v < 1) {
+        v = 1
+    }
+    if (v > DEPTH_FAR) {
+        v = DEPTH_FAR
+    }
+    return v
+}
+
+fn depth_put_col(x: i64, d: i64) {
+    // Index depth_buf directly — copying package *byte to a local is unreliable.
+    if (depth_buf == null) {
+        return
+    }
+    if (x < 0 || x >= depth_fb_w) {
+        return
+    }
+    val off = x * 4
+    depth_buf[off] = d & 255
+    depth_buf[off + 1] = (d >> 8) & 255
+    depth_buf[off + 2] = (d >> 16) & 255
+    depth_buf[off + 3] = (d >> 24) & 255
+}
+
+fn depth_get_col(x: i64): i64 {
+    if (depth_buf == null) {
+        return DEPTH_FAR
+    }
+    if (x < 0 || x >= depth_fb_w) {
+        return DEPTH_FAR
+    }
+    val off = x * 4
+    val b0 = depth_buf[off] & 255
+    val b1 = depth_buf[off + 1] & 255
+    val b2 = depth_buf[off + 2] & 255
+    val b3 = depth_buf[off + 3] & 255
+    return b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
+}
+
+fn depth_clear() {
+    if (depth_buf == null) {
+        return
+    }
+    // Skip clear when width unset; otherwise fill FAR.
+    var i: i64 = 0
+    while (i < depth_fb_w) {
+        val off = i * 4
+        // FAR = 1000000 = 0x000F4240
+        depth_buf[off] = 64
+        depth_buf[off + 1] = 66
+        depth_buf[off + 2] = 15
+        depth_buf[off + 3] = 0
+        i = i + 1
+    }
+}
+
 fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
     val fb_wf = fb_w as f64
     val fb_hf = fb_h as f64
     // Horizon follows pitch; ceiling/floor split is y < draw_start / y > draw_end.
     val horizon = fb_hf / 2.0 + cam_pitch
+    depth_clear()
     var x: i64 = 0
     while (x < fb_w) {
         val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
@@ -320,6 +402,9 @@ fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
             draw_end = fb_h - 1
         }
         val color = wall_color(hit_wall, hit_side)
+        // Store hit_dist into a parallel f64 column buffer via fixed-point bytes.
+        // Defer depth writes until after the frame — in-loop package ptr
+        // stores were not observable via depth_get_col (Jog codegen).
         var y: i64 = 0
         while (y < fb_h) {
             val idx = (y * fb_w + x) * 4
@@ -335,5 +420,23 @@ fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
             y = y + 1
         }
         x = x + 1
+    }
+    // Second pass: DDA depths only. Separate from the FB poke loop — Jog codegen
+    // did not persist package-ptr stores when interleaved with poke32(pixels,…).
+    if (depth_buf != null) {
+        x = 0
+        while (x < fb_w) {
+            val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
+            val ray_x = cam_dir_x + cam_plane_x * camera_x
+            val ray_y = cam_dir_y + cam_plane_y * camera_x
+            map_cast(map, cam_pos_x, cam_pos_y, ray_x, ray_y)
+            val zd = depth_from_dist(hit_dist)
+            val zoff = x * 4
+            depth_buf[zoff] = zd & 255
+            depth_buf[zoff + 1] = (zd >> 8) & 255
+            depth_buf[zoff + 2] = (zd >> 16) & 255
+            depth_buf[zoff + 3] = (zd >> 24) & 255
+            x = x + 1
+        }
     }
 }
