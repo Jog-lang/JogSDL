@@ -1,2 +1,23 @@
-// Idiomatic sdl.error — expand wrappers over sdl3.error as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.error.
+// Idiomatic wrappers over sdl3.error.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.error as raw
+import sdl
+import std.c
+
+fn OutOfMemory(): sdl.SDLError? {
+    if !raw.SDL_OutOfMemory() {
+        return sdl.last_error("OutOfMemory failed")
+    }
+    return null
+}
+
+fn GetError(): *const c.char {
+    return raw.SDL_GetError()
+}
+
+fn ClearError(): sdl.SDLError? {
+    if !raw.SDL_ClearError() {
+        return sdl.last_error("ClearError failed")
+    }
+    return null
+}

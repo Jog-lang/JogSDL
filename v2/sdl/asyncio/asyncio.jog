@@ -1,0 +1,47 @@
+// Idiomatic v2 wrappers for SDL asyncio (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn AsyncIOFromFile(file: *byte, mode: *byte): *byte {
+    return SDL_AsyncIOFromFile(file, mode)
+}
+
+fn GetAsyncIOSize(asyncio: *byte): i64 {
+    return SDL_GetAsyncIOSize(asyncio)
+}
+
+fn ReadAsyncIO(asyncio: *byte, ptr: *byte, offset: u64, size: u64, queue: *byte, userdata: *byte): i32 {
+    return SDL_ReadAsyncIO(asyncio, ptr, offset, size, queue, userdata)
+}
+
+fn WriteAsyncIO(asyncio: *byte, ptr: *byte, offset: u64, size: u64, queue: *byte, userdata: *byte): i32 {
+    return SDL_WriteAsyncIO(asyncio, ptr, offset, size, queue, userdata)
+}
+
+fn CloseAsyncIO(asyncio: *byte, flush: i32, queue: *byte, userdata: *byte): i32 {
+    return SDL_CloseAsyncIO(asyncio, flush, queue, userdata)
+}
+
+fn CreateAsyncIOQueue(): *byte {
+    return SDL_CreateAsyncIOQueue()
+}
+
+fn DestroyAsyncIOQueue(queue: *byte) {
+    SDL_DestroyAsyncIOQueue(queue)
+}
+
+fn GetAsyncIOResult(queue: *byte, outcome: *byte): i32 {
+    return SDL_GetAsyncIOResult(queue, outcome)
+}
+
+fn WaitAsyncIOResult(queue: *byte, outcome: *byte, timeoutMS: i32): i32 {
+    return SDL_WaitAsyncIOResult(queue, outcome, timeoutMS)
+}
+
+fn SignalAsyncIOQueue(queue: *byte) {
+    SDL_SignalAsyncIOQueue(queue)
+}
+
+fn LoadFileAsync(file: *byte, queue: *byte, userdata: *byte): i32 {
+    return SDL_LoadFileAsync(file, queue, userdata)
+}
+

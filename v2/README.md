@@ -10,7 +10,7 @@ Root `sdl/` + `examples/` stay on develop/`jogc`. This tree is the v2 port (JOG-
 v2/
   jog.mod                       # library jog_sdl; examples require jog_sdl ../..
   sdl/sdl.jog                   # Init/Quit facade + constants
-  sdl/<category>/               # idiomatic helpers (window, render, events, input, timer, …)
+  sdl/<category>/               # idiomatic helpers (hand-written demos + generated short-name wrappers)
   sdl3/<category>/              # raw @link("SDL3") — synced with root via check-sdl3-sync.sh
   examples/window/              # native smoke (~1.5s auto-exit, while-loop)
   examples/raycaster/           # proto-3D: pitch, textures, cube, parallel bands
@@ -30,6 +30,7 @@ v2/
 |---|---|
 | 0 — split + `require jog_sdl` | done |
 | A–K — full non-test 3.4.18 raw `SDL_*` in `sdl3.*` | done (~1100 symbols; `../scripts/check-sdl3-sync.sh`) |
+| Idiomatic `sdl.*` wrappers over raw | done (~980 short names; skip variadics, macro-only `CreateThread*`, and calls with >8 args — jog-v2 IR `TooManyArgs`; `../scripts/check-idiomatic-sdl.sh`) |
 
 ## Prerequisites
 

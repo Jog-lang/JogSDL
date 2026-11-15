@@ -1,2 +1,25 @@
-// Idiomatic sdl.metal — expand wrappers over sdl3.metal as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.metal.
+// Idiomatic wrappers over sdl3.metal.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.metal as raw
+import sdl3.video
+
+struct MetalView {
+    ptr: *raw.SDL_MetalView?
+}
+
+fn empty_metalview(): MetalView {
+    var h: MetalView
+    return h
+}
+
+fn Metal_CreateView(window: *video.SDL_Window): raw.SDL_MetalView {
+    return raw.SDL_Metal_CreateView(window)
+}
+
+fn Metal_DestroyView(view: raw.SDL_MetalView) {
+    raw.SDL_Metal_DestroyView(view)
+}
+
+fn Metal_GetLayer(view: raw.SDL_MetalView): *void {
+    return raw.SDL_Metal_GetLayer(view)
+}

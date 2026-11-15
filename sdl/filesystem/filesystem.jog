@@ -1,2 +1,63 @@
-// Idiomatic sdl.filesystem — expand wrappers over sdl3.filesystem as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.filesystem.
+// Idiomatic wrappers over sdl3.filesystem.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.filesystem as raw
+import sdl
+import std.c
+
+fn GetBasePath(): *const c.char {
+    return raw.SDL_GetBasePath()
+}
+
+fn GetPrefPath(org: *const c.char, app: *const c.char): *c.char {
+    return raw.SDL_GetPrefPath(org, app)
+}
+
+fn GetUserFolder(folder: u32): *const c.char {
+    return raw.SDL_GetUserFolder(folder)
+}
+
+fn CreateDirectory(path: *const c.char): sdl.SDLError? {
+    if !raw.SDL_CreateDirectory(path) {
+        return sdl.last_error("CreateDirectory failed")
+    }
+    return null
+}
+
+fn EnumerateDirectory(path: *const c.char, callback: *void, userdata: *void): sdl.SDLError? {
+    if !raw.SDL_EnumerateDirectory(path, callback, userdata) {
+        return sdl.last_error("EnumerateDirectory failed")
+    }
+    return null
+}
+
+fn RemovePath(path: *const c.char): sdl.SDLError? {
+    if !raw.SDL_RemovePath(path) {
+        return sdl.last_error("RemovePath failed")
+    }
+    return null
+}
+
+fn RenamePath(oldpath: *const c.char, newpath: *const c.char): sdl.SDLError? {
+    if !raw.SDL_RenamePath(oldpath, newpath) {
+        return sdl.last_error("RenamePath failed")
+    }
+    return null
+}
+
+fn CopyFile(oldpath: *const c.char, newpath: *const c.char): sdl.SDLError? {
+    if !raw.SDL_CopyFile(oldpath, newpath) {
+        return sdl.last_error("CopyFile failed")
+    }
+    return null
+}
+
+fn GetPathInfo(path: *const c.char, info: *void): sdl.SDLError? {
+    if !raw.SDL_GetPathInfo(path, info) {
+        return sdl.last_error("GetPathInfo failed")
+    }
+    return null
+}
+
+fn GetCurrentDirectory(): *c.char {
+    return raw.SDL_GetCurrentDirectory()
+}

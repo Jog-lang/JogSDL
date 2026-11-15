@@ -1,2 +1,8 @@
-// Idiomatic sdl.locale — expand wrappers over sdl3.locale as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.locale.
+// Idiomatic wrappers over sdl3.locale.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.locale as raw
+import std.c
+
+fn GetPreferredLocales(count: *c.int): **void {
+    return raw.SDL_GetPreferredLocales(count)
+}

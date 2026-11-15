@@ -24,8 +24,8 @@ app  →  sdl / sdl.* (Jog names, errors, handles)  →  sdl3.* (extern)  →  l
 | Package | Role |
 |---|---|
 | `sdl` | Facade: `Init` / `Quit`, `SDLError`, shared constants. |
-| `sdl.window` / `sdl.render` / `sdl.events` / `sdl.input` / `sdl.timer` | Hand-written idiomatic demos API. |
-| `sdl.<category>` | Thin stubs or wrappers for each SDL header category (expand as needed). |
+| `sdl.window` / `sdl.render` / `sdl.events` / `sdl.input` / `sdl.timer` / `sdl.opengl` | Hand-written idiomatic demos API. |
+| `sdl.<category>` | Idiomatic wrappers over `sdl3.<category>` (~1000 short names; `SDLError?`, handles). Variadics / macro-only entry points omitted — see JogDocs Friction. |
 | `sdl3.<category>` | Internal raw externs (~1100 `SDL_*` symbols, pin 3.4.18). |
 
 ## Layout
@@ -43,7 +43,10 @@ JogSDL/
   scripts/build-sdl3.sh
   scripts/build-sdl3-emscripten.sh
   scripts/check-sdl3-sync.sh
+  scripts/check-idiomatic-sdl.sh
   scripts/gen_sdl3_bindings.py
+  scripts/gen_idiomatic_sdl.py
+  scripts/gen_idiomatic_sdl_v2.py
   prefix/                 # local SDL3 install (gitignored)
   prefix-emscripten/      # Emscripten static SDL3 (gitignored)
   vendor/SDL3-3.4.18/     # extracted source (gitignored)

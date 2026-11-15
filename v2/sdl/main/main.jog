@@ -1,0 +1,19 @@
+// Idiomatic v2 wrappers for SDL main (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn SetMainReady() {
+    SDL_SetMainReady()
+}
+
+fn RegisterApp(name: *byte, style: u32, hInst: *byte): i32 {
+    return SDL_RegisterApp(name, style, hInst)
+}
+
+fn UnregisterApp() {
+    SDL_UnregisterApp()
+}
+
+fn GDKSuspendComplete() {
+    SDL_GDKSuspendComplete()
+}
+

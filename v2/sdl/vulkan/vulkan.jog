@@ -1,0 +1,31 @@
+// Idiomatic v2 wrappers for SDL vulkan (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn Vulkan_LoadLibrary(path: *byte): i32 {
+    return SDL_Vulkan_LoadLibrary(path)
+}
+
+fn Vulkan_UnloadLibrary() {
+    SDL_Vulkan_UnloadLibrary()
+}
+
+fn Vulkan_GetInstanceExtensions(count: *byte): **byte {
+    return SDL_Vulkan_GetInstanceExtensions(count)
+}
+
+fn Vulkan_CreateSurface(window: *byte, instance: u8, allocator: *byte, surface: *byte): i32 {
+    return SDL_Vulkan_CreateSurface(window, instance, allocator, surface)
+}
+
+fn Vulkan_DestroySurface(instance: u8, surface: u8, allocator: *byte) {
+    SDL_Vulkan_DestroySurface(instance, surface, allocator)
+}
+
+fn Vulkan_GetPresentationSupport(instance: u8, physicalDevice: u8, queueFamilyIndex: u32): i32 {
+    return SDL_Vulkan_GetPresentationSupport(instance, physicalDevice, queueFamilyIndex)
+}
+
+fn Vulkan_GetVkGetInstanceProcAddr(): i32 {
+    return SDL_Vulkan_GetVkGetInstanceProcAddr()
+}
+

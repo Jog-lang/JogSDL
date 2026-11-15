@@ -1,2 +1,41 @@
-// Idiomatic sdl.hints — expand wrappers over sdl3.hints as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.hints.
+// Idiomatic wrappers over sdl3.hints.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.hints as raw
+import sdl
+import std.c
+
+fn SetHint(name: *const c.char, value: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SetHint(name, value) {
+        return sdl.last_error("SetHint failed")
+    }
+    return null
+}
+
+fn ResetHint(name: *const c.char): sdl.SDLError? {
+    if !raw.SDL_ResetHint(name) {
+        return sdl.last_error("ResetHint failed")
+    }
+    return null
+}
+
+fn ResetHints() {
+    raw.SDL_ResetHints()
+}
+
+fn GetHintBoolean(name: *const c.char, default_value: bool): sdl.SDLError? {
+    if !raw.SDL_GetHintBoolean(name, default_value) {
+        return sdl.last_error("GetHintBoolean failed")
+    }
+    return null
+}
+
+fn AddHintCallback(name: *const c.char, callback: *void, userdata: *void): sdl.SDLError? {
+    if !raw.SDL_AddHintCallback(name, callback, userdata) {
+        return sdl.last_error("AddHintCallback failed")
+    }
+    return null
+}
+
+fn RemoveHintCallback(name: *const c.char, callback: *void, userdata: *void) {
+    raw.SDL_RemoveHintCallback(name, callback, userdata)
+}

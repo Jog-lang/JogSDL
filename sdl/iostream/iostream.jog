@@ -1,2 +1,294 @@
-// Idiomatic sdl.iostream — expand wrappers over sdl3.iostream as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.iostream.
+// Idiomatic wrappers over sdl3.iostream.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.iostream as raw
+import sdl
+import std.c
+
+struct IOStream {
+    ptr: *raw.SDL_IOStream?
+}
+
+fn empty_iostream(): IOStream {
+    var h: IOStream
+    return h
+}
+
+fn IOFromFile(file: *const c.char, mode: *const c.char): *raw.SDL_IOStream {
+    return raw.SDL_IOFromFile(file, mode)
+}
+
+fn IOFromMem(mem: *void, size: c.size_t): *raw.SDL_IOStream {
+    return raw.SDL_IOFromMem(mem, size)
+}
+
+fn IOFromConstMem(mem: *const void, size: c.size_t): *raw.SDL_IOStream {
+    return raw.SDL_IOFromConstMem(mem, size)
+}
+
+fn IOFromDynamicMem(): *raw.SDL_IOStream {
+    return raw.SDL_IOFromDynamicMem()
+}
+
+fn OpenIO(iface: *const void, userdata: *void): *raw.SDL_IOStream {
+    return raw.SDL_OpenIO(iface, userdata)
+}
+
+fn CloseIO(context_: *raw.SDL_IOStream): sdl.SDLError? {
+    if !raw.SDL_CloseIO(context_) {
+        return sdl.last_error("CloseIO failed")
+    }
+    return null
+}
+
+fn GetIOProperties(context_: *raw.SDL_IOStream): u32 {
+    return raw.SDL_GetIOProperties(context_)
+}
+
+fn GetIOStatus(context_: *raw.SDL_IOStream): u32 {
+    return raw.SDL_GetIOStatus(context_)
+}
+
+fn GetIOSize(context_: *raw.SDL_IOStream): i64 {
+    return raw.SDL_GetIOSize(context_)
+}
+
+fn SeekIO(context_: *raw.SDL_IOStream, offset: i64, whence: u32): i64 {
+    return raw.SDL_SeekIO(context_, offset, whence)
+}
+
+fn TellIO(context_: *raw.SDL_IOStream): i64 {
+    return raw.SDL_TellIO(context_)
+}
+
+fn ReadIO(context_: *raw.SDL_IOStream, ptr: *void, size: c.size_t): c.size_t {
+    return raw.SDL_ReadIO(context_, ptr, size)
+}
+
+fn WriteIO(context_: *raw.SDL_IOStream, ptr: *const void, size: c.size_t): c.size_t {
+    return raw.SDL_WriteIO(context_, ptr, size)
+}
+
+fn FlushIO(context_: *raw.SDL_IOStream): sdl.SDLError? {
+    if !raw.SDL_FlushIO(context_) {
+        return sdl.last_error("FlushIO failed")
+    }
+    return null
+}
+
+fn LoadFile_IO(src: *raw.SDL_IOStream, datasize: *c.size_t, closeio: bool): *void {
+    return raw.SDL_LoadFile_IO(src, datasize, closeio)
+}
+
+fn LoadFile(file: *const c.char, datasize: *c.size_t): *void {
+    return raw.SDL_LoadFile(file, datasize)
+}
+
+fn SaveFile_IO(src: *raw.SDL_IOStream, data: *const void, datasize: c.size_t, closeio: bool): sdl.SDLError? {
+    if !raw.SDL_SaveFile_IO(src, data, datasize, closeio) {
+        return sdl.last_error("SaveFile_IO failed")
+    }
+    return null
+}
+
+fn SaveFile(file: *const c.char, data: *const void, datasize: c.size_t): sdl.SDLError? {
+    if !raw.SDL_SaveFile(file, data, datasize) {
+        return sdl.last_error("SaveFile failed")
+    }
+    return null
+}
+
+fn ReadU8(src: *raw.SDL_IOStream, value: *u8): sdl.SDLError? {
+    if !raw.SDL_ReadU8(src, value) {
+        return sdl.last_error("ReadU8 failed")
+    }
+    return null
+}
+
+fn ReadS8(src: *raw.SDL_IOStream, value: *i8): sdl.SDLError? {
+    if !raw.SDL_ReadS8(src, value) {
+        return sdl.last_error("ReadS8 failed")
+    }
+    return null
+}
+
+fn ReadU16LE(src: *raw.SDL_IOStream, value: *u16): sdl.SDLError? {
+    if !raw.SDL_ReadU16LE(src, value) {
+        return sdl.last_error("ReadU16LE failed")
+    }
+    return null
+}
+
+fn ReadS16LE(src: *raw.SDL_IOStream, value: *i16): sdl.SDLError? {
+    if !raw.SDL_ReadS16LE(src, value) {
+        return sdl.last_error("ReadS16LE failed")
+    }
+    return null
+}
+
+fn ReadU16BE(src: *raw.SDL_IOStream, value: *u16): sdl.SDLError? {
+    if !raw.SDL_ReadU16BE(src, value) {
+        return sdl.last_error("ReadU16BE failed")
+    }
+    return null
+}
+
+fn ReadS16BE(src: *raw.SDL_IOStream, value: *i16): sdl.SDLError? {
+    if !raw.SDL_ReadS16BE(src, value) {
+        return sdl.last_error("ReadS16BE failed")
+    }
+    return null
+}
+
+fn ReadU32LE(src: *raw.SDL_IOStream, value: *u32): sdl.SDLError? {
+    if !raw.SDL_ReadU32LE(src, value) {
+        return sdl.last_error("ReadU32LE failed")
+    }
+    return null
+}
+
+fn ReadS32LE(src: *raw.SDL_IOStream, value: *i32): sdl.SDLError? {
+    if !raw.SDL_ReadS32LE(src, value) {
+        return sdl.last_error("ReadS32LE failed")
+    }
+    return null
+}
+
+fn ReadU32BE(src: *raw.SDL_IOStream, value: *u32): sdl.SDLError? {
+    if !raw.SDL_ReadU32BE(src, value) {
+        return sdl.last_error("ReadU32BE failed")
+    }
+    return null
+}
+
+fn ReadS32BE(src: *raw.SDL_IOStream, value: *i32): sdl.SDLError? {
+    if !raw.SDL_ReadS32BE(src, value) {
+        return sdl.last_error("ReadS32BE failed")
+    }
+    return null
+}
+
+fn ReadU64LE(src: *raw.SDL_IOStream, value: *u64): sdl.SDLError? {
+    if !raw.SDL_ReadU64LE(src, value) {
+        return sdl.last_error("ReadU64LE failed")
+    }
+    return null
+}
+
+fn ReadS64LE(src: *raw.SDL_IOStream, value: *i64): sdl.SDLError? {
+    if !raw.SDL_ReadS64LE(src, value) {
+        return sdl.last_error("ReadS64LE failed")
+    }
+    return null
+}
+
+fn ReadU64BE(src: *raw.SDL_IOStream, value: *u64): sdl.SDLError? {
+    if !raw.SDL_ReadU64BE(src, value) {
+        return sdl.last_error("ReadU64BE failed")
+    }
+    return null
+}
+
+fn ReadS64BE(src: *raw.SDL_IOStream, value: *i64): sdl.SDLError? {
+    if !raw.SDL_ReadS64BE(src, value) {
+        return sdl.last_error("ReadS64BE failed")
+    }
+    return null
+}
+
+fn WriteU8(dst: *raw.SDL_IOStream, value: u8): sdl.SDLError? {
+    if !raw.SDL_WriteU8(dst, value) {
+        return sdl.last_error("WriteU8 failed")
+    }
+    return null
+}
+
+fn WriteS8(dst: *raw.SDL_IOStream, value: i8): sdl.SDLError? {
+    if !raw.SDL_WriteS8(dst, value) {
+        return sdl.last_error("WriteS8 failed")
+    }
+    return null
+}
+
+fn WriteU16LE(dst: *raw.SDL_IOStream, value: u16): sdl.SDLError? {
+    if !raw.SDL_WriteU16LE(dst, value) {
+        return sdl.last_error("WriteU16LE failed")
+    }
+    return null
+}
+
+fn WriteS16LE(dst: *raw.SDL_IOStream, value: i16): sdl.SDLError? {
+    if !raw.SDL_WriteS16LE(dst, value) {
+        return sdl.last_error("WriteS16LE failed")
+    }
+    return null
+}
+
+fn WriteU16BE(dst: *raw.SDL_IOStream, value: u16): sdl.SDLError? {
+    if !raw.SDL_WriteU16BE(dst, value) {
+        return sdl.last_error("WriteU16BE failed")
+    }
+    return null
+}
+
+fn WriteS16BE(dst: *raw.SDL_IOStream, value: i16): sdl.SDLError? {
+    if !raw.SDL_WriteS16BE(dst, value) {
+        return sdl.last_error("WriteS16BE failed")
+    }
+    return null
+}
+
+fn WriteU32LE(dst: *raw.SDL_IOStream, value: u32): sdl.SDLError? {
+    if !raw.SDL_WriteU32LE(dst, value) {
+        return sdl.last_error("WriteU32LE failed")
+    }
+    return null
+}
+
+fn WriteS32LE(dst: *raw.SDL_IOStream, value: i32): sdl.SDLError? {
+    if !raw.SDL_WriteS32LE(dst, value) {
+        return sdl.last_error("WriteS32LE failed")
+    }
+    return null
+}
+
+fn WriteU32BE(dst: *raw.SDL_IOStream, value: u32): sdl.SDLError? {
+    if !raw.SDL_WriteU32BE(dst, value) {
+        return sdl.last_error("WriteU32BE failed")
+    }
+    return null
+}
+
+fn WriteS32BE(dst: *raw.SDL_IOStream, value: i32): sdl.SDLError? {
+    if !raw.SDL_WriteS32BE(dst, value) {
+        return sdl.last_error("WriteS32BE failed")
+    }
+    return null
+}
+
+fn WriteU64LE(dst: *raw.SDL_IOStream, value: u64): sdl.SDLError? {
+    if !raw.SDL_WriteU64LE(dst, value) {
+        return sdl.last_error("WriteU64LE failed")
+    }
+    return null
+}
+
+fn WriteS64LE(dst: *raw.SDL_IOStream, value: i64): sdl.SDLError? {
+    if !raw.SDL_WriteS64LE(dst, value) {
+        return sdl.last_error("WriteS64LE failed")
+    }
+    return null
+}
+
+fn WriteU64BE(dst: *raw.SDL_IOStream, value: u64): sdl.SDLError? {
+    if !raw.SDL_WriteU64BE(dst, value) {
+        return sdl.last_error("WriteU64BE failed")
+    }
+    return null
+}
+
+fn WriteS64BE(dst: *raw.SDL_IOStream, value: i64): sdl.SDLError? {
+    if !raw.SDL_WriteS64BE(dst, value) {
+        return sdl.last_error("WriteS64BE failed")
+    }
+    return null
+}

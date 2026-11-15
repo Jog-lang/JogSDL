@@ -1,2 +1,20 @@
-// Idiomatic sdl.messagebox — expand wrappers over sdl3.messagebox as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.messagebox.
+// Idiomatic wrappers over sdl3.messagebox.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.messagebox as raw
+import sdl3.video
+import sdl
+import std.c
+
+fn ShowMessageBox(messageboxdata: *const void, buttonid: *c.int): sdl.SDLError? {
+    if !raw.SDL_ShowMessageBox(messageboxdata, buttonid) {
+        return sdl.last_error("ShowMessageBox failed")
+    }
+    return null
+}
+
+fn ShowSimpleMessageBox(flags: u32, title: *const c.char, message: *const c.char, window: *video.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_ShowSimpleMessageBox(flags, title, message, window) {
+        return sdl.last_error("ShowSimpleMessageBox failed")
+    }
+    return null
+}

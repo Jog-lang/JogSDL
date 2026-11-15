@@ -1,2 +1,8 @@
-// Idiomatic sdl.power — expand wrappers over sdl3.power as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.power.
+// Idiomatic wrappers over sdl3.power.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.power as raw
+import std.c
+
+fn GetPowerInfo(seconds: *c.int, percent: *c.int): u32 {
+    return raw.SDL_GetPowerInfo(seconds, percent)
+}

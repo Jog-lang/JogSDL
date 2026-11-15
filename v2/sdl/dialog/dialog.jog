@@ -1,0 +1,19 @@
+// Idiomatic v2 wrappers for SDL dialog (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn ShowFileDialogWithProperties(type_: u32, callback: *byte, userdata: *byte, props: u32): i32 {
+    return SDL_ShowFileDialogWithProperties(type_, callback, userdata, props)
+}
+
+fn ShowOpenFileDialog(callback: *byte, userdata: *byte, window: *byte, filters: *byte, nfilters: i32, default_location: *byte, allow_many: i32): i32 {
+    return SDL_ShowOpenFileDialog(callback, userdata, window, filters, nfilters, default_location, allow_many)
+}
+
+fn ShowOpenFolderDialog(callback: *byte, userdata: *byte, window: *byte, default_location: *byte, allow_many: i32): i32 {
+    return SDL_ShowOpenFolderDialog(callback, userdata, window, default_location, allow_many)
+}
+
+fn ShowSaveFileDialog(callback: *byte, userdata: *byte, window: *byte, filters: *byte, nfilters: i32, default_location: *byte): i32 {
+    return SDL_ShowSaveFileDialog(callback, userdata, window, filters, nfilters, default_location)
+}
+

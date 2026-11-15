@@ -1,0 +1,7 @@
+// Idiomatic v2 wrappers for SDL platform (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetPlatform(): *byte {
+    return SDL_GetPlatform()
+}
+

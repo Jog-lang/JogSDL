@@ -1,0 +1,27 @@
+// Idiomatic v2 wrappers for SDL hints (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn SetHint(name: *byte, value: *byte): i32 {
+    return SDL_SetHint(name, value)
+}
+
+fn ResetHint(name: *byte): i32 {
+    return SDL_ResetHint(name)
+}
+
+fn ResetHints() {
+    SDL_ResetHints()
+}
+
+fn GetHintBoolean(name: *byte, default_value: i32): i32 {
+    return SDL_GetHintBoolean(name, default_value)
+}
+
+fn AddHintCallback(name: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_AddHintCallback(name, callback, userdata)
+}
+
+fn RemoveHintCallback(name: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_RemoveHintCallback(name, callback, userdata)
+}
+

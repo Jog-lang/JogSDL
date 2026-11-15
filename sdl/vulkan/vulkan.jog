@@ -1,2 +1,43 @@
-// Idiomatic sdl.vulkan — expand wrappers over sdl3.vulkan as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.vulkan.
+// Idiomatic wrappers over sdl3.vulkan.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.vulkan as raw
+import sdl3.video
+import sdl
+import std.c
+
+fn Vulkan_LoadLibrary(path: *const c.char): sdl.SDLError? {
+    if !raw.SDL_Vulkan_LoadLibrary(path) {
+        return sdl.last_error("Vulkan_LoadLibrary failed")
+    }
+    return null
+}
+
+fn Vulkan_GetVkGetInstanceProcAddr(): *void {
+    return raw.SDL_Vulkan_GetVkGetInstanceProcAddr()
+}
+
+fn Vulkan_UnloadLibrary() {
+    raw.SDL_Vulkan_UnloadLibrary()
+}
+
+fn Vulkan_GetInstanceExtensions(count: *u32): **c.char {
+    return raw.SDL_Vulkan_GetInstanceExtensions(count)
+}
+
+fn Vulkan_CreateSurface(window: *video.SDL_Window, instance: *void, allocator: *const void, surface: *void): sdl.SDLError? {
+    if !raw.SDL_Vulkan_CreateSurface(window, instance, allocator, surface) {
+        return sdl.last_error("Vulkan_CreateSurface failed")
+    }
+    return null
+}
+
+fn Vulkan_DestroySurface(instance: *void, surface: *void, allocator: *const void) {
+    raw.SDL_Vulkan_DestroySurface(instance, surface, allocator)
+}
+
+fn Vulkan_GetPresentationSupport(instance: *void, physicalDevice: *void, queueFamilyIndex: u32): sdl.SDLError? {
+    if !raw.SDL_Vulkan_GetPresentationSupport(instance, physicalDevice, queueFamilyIndex) {
+        return sdl.last_error("Vulkan_GetPresentationSupport failed")
+    }
+    return null
+}

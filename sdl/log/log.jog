@@ -1,2 +1,40 @@
-// Idiomatic sdl.log — expand wrappers over sdl3.log as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.log.
+// Idiomatic wrappers over sdl3.log.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.log as raw
+import sdl
+import std.c
+
+fn SetLogPriorities(priority: u32) {
+    raw.SDL_SetLogPriorities(priority)
+}
+
+fn SetLogPriority(category: c.int, priority: u32) {
+    raw.SDL_SetLogPriority(category, priority)
+}
+
+fn GetLogPriority(category: c.int): u32 {
+    return raw.SDL_GetLogPriority(category)
+}
+
+fn ResetLogPriorities() {
+    raw.SDL_ResetLogPriorities()
+}
+
+fn SetLogPriorityPrefix(priority: u32, prefix: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SetLogPriorityPrefix(priority, prefix) {
+        return sdl.last_error("SetLogPriorityPrefix failed")
+    }
+    return null
+}
+
+fn GetDefaultLogOutputFunction(): *void {
+    return raw.SDL_GetDefaultLogOutputFunction()
+}
+
+fn GetLogOutputFunction(callback: *void, userdata: **void) {
+    raw.SDL_GetLogOutputFunction(callback, userdata)
+}
+
+fn SetLogOutputFunction(callback: *void, userdata: *void) {
+    raw.SDL_SetLogOutputFunction(callback, userdata)
+}

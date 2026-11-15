@@ -1,2 +1,155 @@
-// Idiomatic sdl.system — expand wrappers over sdl3.system as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.system.
+// Idiomatic wrappers over sdl3.system.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.system as raw
+import sdl3.video
+import sdl
+import std.c
+
+fn GetDirect3D9AdapterIndex(displayID: u32): c.int {
+    return raw.SDL_GetDirect3D9AdapterIndex(displayID)
+}
+
+fn GetDXGIOutputInfo(displayID: u32, adapterIndex: *c.int, outputIndex: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetDXGIOutputInfo(displayID, adapterIndex, outputIndex) {
+        return sdl.last_error("GetDXGIOutputInfo failed")
+    }
+    return null
+}
+
+fn SetLinuxThreadPriority(threadID: i64, priority: c.int): sdl.SDLError? {
+    if !raw.SDL_SetLinuxThreadPriority(threadID, priority) {
+        return sdl.last_error("SetLinuxThreadPriority failed")
+    }
+    return null
+}
+
+fn SetLinuxThreadPriorityAndPolicy(threadID: i64, sdlPriority: c.int, schedPolicy: c.int): sdl.SDLError? {
+    if !raw.SDL_SetLinuxThreadPriorityAndPolicy(threadID, sdlPriority, schedPolicy) {
+        return sdl.last_error("SetLinuxThreadPriorityAndPolicy failed")
+    }
+    return null
+}
+
+fn SetiOSAnimationCallback(window: *video.SDL_Window, interval: c.int, callback: *void, callbackParam: *void): sdl.SDLError? {
+    if !raw.SDL_SetiOSAnimationCallback(window, interval, callback, callbackParam) {
+        return sdl.last_error("SetiOSAnimationCallback failed")
+    }
+    return null
+}
+
+fn SetiOSEventPump(enabled: bool) {
+    raw.SDL_SetiOSEventPump(enabled)
+}
+
+fn GetAndroidJNIEnv(): *void {
+    return raw.SDL_GetAndroidJNIEnv()
+}
+
+fn GetAndroidActivity(): *void {
+    return raw.SDL_GetAndroidActivity()
+}
+
+fn GetAndroidSDKVersion(): c.int {
+    return raw.SDL_GetAndroidSDKVersion()
+}
+
+fn IsChromebook(): sdl.SDLError? {
+    if !raw.SDL_IsChromebook() {
+        return sdl.last_error("IsChromebook failed")
+    }
+    return null
+}
+
+fn IsDeXMode(): sdl.SDLError? {
+    if !raw.SDL_IsDeXMode() {
+        return sdl.last_error("IsDeXMode failed")
+    }
+    return null
+}
+
+fn SendAndroidBackButton() {
+    raw.SDL_SendAndroidBackButton()
+}
+
+fn GetAndroidInternalStoragePath(): *const c.char {
+    return raw.SDL_GetAndroidInternalStoragePath()
+}
+
+fn GetAndroidExternalStorageState(): u32 {
+    return raw.SDL_GetAndroidExternalStorageState()
+}
+
+fn GetAndroidExternalStoragePath(): *const c.char {
+    return raw.SDL_GetAndroidExternalStoragePath()
+}
+
+fn GetAndroidCachePath(): *const c.char {
+    return raw.SDL_GetAndroidCachePath()
+}
+
+fn RequestAndroidPermission(permission: *const c.char, cb: *void, userdata: *void): sdl.SDLError? {
+    if !raw.SDL_RequestAndroidPermission(permission, cb, userdata) {
+        return sdl.last_error("RequestAndroidPermission failed")
+    }
+    return null
+}
+
+fn ShowAndroidToast(message: *const c.char, duration: c.int, gravity: c.int, xoffset: c.int, yoffset: c.int): sdl.SDLError? {
+    if !raw.SDL_ShowAndroidToast(message, duration, gravity, xoffset, yoffset) {
+        return sdl.last_error("ShowAndroidToast failed")
+    }
+    return null
+}
+
+fn SendAndroidMessage(command: u32, param: c.int): sdl.SDLError? {
+    if !raw.SDL_SendAndroidMessage(command, param) {
+        return sdl.last_error("SendAndroidMessage failed")
+    }
+    return null
+}
+
+fn IsTablet(): sdl.SDLError? {
+    if !raw.SDL_IsTablet() {
+        return sdl.last_error("IsTablet failed")
+    }
+    return null
+}
+
+fn IsTV(): sdl.SDLError? {
+    if !raw.SDL_IsTV() {
+        return sdl.last_error("IsTV failed")
+    }
+    return null
+}
+
+fn GetSandbox(): u32 {
+    return raw.SDL_GetSandbox()
+}
+
+fn OnApplicationWillTerminate() {
+    raw.SDL_OnApplicationWillTerminate()
+}
+
+fn OnApplicationDidReceiveMemoryWarning() {
+    raw.SDL_OnApplicationDidReceiveMemoryWarning()
+}
+
+fn OnApplicationWillEnterBackground() {
+    raw.SDL_OnApplicationWillEnterBackground()
+}
+
+fn OnApplicationDidEnterBackground() {
+    raw.SDL_OnApplicationDidEnterBackground()
+}
+
+fn OnApplicationWillEnterForeground() {
+    raw.SDL_OnApplicationWillEnterForeground()
+}
+
+fn OnApplicationDidEnterForeground() {
+    raw.SDL_OnApplicationDidEnterForeground()
+}
+
+fn OnApplicationDidChangeStatusBarOrientation() {
+    raw.SDL_OnApplicationDidChangeStatusBarOrientation()
+}

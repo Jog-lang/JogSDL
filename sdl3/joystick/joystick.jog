@@ -1,6 +1,7 @@
 // Raw SDL3 joystick — generated from headers; hand-maintain.
 // Unexported — apps use jog_sdl.sdl*.
 import std.c
+import sdl3.guid
 
 @opaque struct SDL_Joystick
 
@@ -13,7 +14,7 @@ extern {
     fn SDL_GetJoystickNameForID(instance_id: u32): *const c.char
     fn SDL_GetJoystickPathForID(instance_id: u32): *const c.char
     fn SDL_GetJoystickPlayerIndexForID(instance_id: u32): c.int
-    fn SDL_GetJoystickGUIDForID(instance_id: u32): SDL_GUID
+    fn SDL_GetJoystickGUIDForID(instance_id: u32): guid.SDL_GUID
     fn SDL_GetJoystickVendorForID(instance_id: u32): u16
     fn SDL_GetJoystickProductForID(instance_id: u32): u16
     fn SDL_GetJoystickProductVersionForID(instance_id: u32): u16
@@ -34,14 +35,14 @@ extern {
     fn SDL_GetJoystickPath(joystick: *SDL_Joystick): *const c.char
     fn SDL_GetJoystickPlayerIndex(joystick: *SDL_Joystick): c.int
     fn SDL_SetJoystickPlayerIndex(joystick: *SDL_Joystick, player_index: c.int): bool
-    fn SDL_GetJoystickGUID(joystick: *SDL_Joystick): SDL_GUID
+    fn SDL_GetJoystickGUID(joystick: *SDL_Joystick): guid.SDL_GUID
     fn SDL_GetJoystickVendor(joystick: *SDL_Joystick): u16
     fn SDL_GetJoystickProduct(joystick: *SDL_Joystick): u16
     fn SDL_GetJoystickProductVersion(joystick: *SDL_Joystick): u16
     fn SDL_GetJoystickFirmwareVersion(joystick: *SDL_Joystick): u16
     fn SDL_GetJoystickSerial(joystick: *SDL_Joystick): *const c.char
     fn SDL_GetJoystickType(joystick: *SDL_Joystick): u32
-    fn SDL_GetJoystickGUIDInfo(guid: SDL_GUID, vendor: *u16, product: *u16, version: *u16, crc16: *u16)
+    fn SDL_GetJoystickGUIDInfo(guid: guid.SDL_GUID, vendor: *u16, product: *u16, version: *u16, crc16: *u16)
     fn SDL_JoystickConnected(joystick: *SDL_Joystick): bool
     fn SDL_GetJoystickID(joystick: *SDL_Joystick): u32
     fn SDL_GetNumJoystickAxes(joystick: *SDL_Joystick): c.int

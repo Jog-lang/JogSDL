@@ -1,0 +1,13 @@
+error: skip variadic SDL_SetError
+iostream: skip variadic SDL_IOprintf
+log: skip variadic SDL_Log
+log: skip variadic SDL_LogTrace
+log: skip variadic SDL_LogVerbose
+log: skip variadic SDL_LogDebug
+log: skip variadic SDL_LogInfo
+log: skip variadic SDL_LogWarn
+log: skip variadic SDL_LogError
+log: skip variadic SDL_LogCritical
+log: skip variadic SDL_LogMessage
+thread: skip macro-only SDL_CreateThread (use *Runtime)
+thread: skip macro-only SDL_CreateThreadWithProperties (use *Runtime)

@@ -1,0 +1,103 @@
+// Idiomatic v2 wrappers for SDL haptic (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetHaptics(count: *byte): *byte {
+    return SDL_GetHaptics(count)
+}
+
+fn GetHapticNameForID(instance_id: u32): *byte {
+    return SDL_GetHapticNameForID(instance_id)
+}
+
+fn OpenHaptic(instance_id: u32): *byte {
+    return SDL_OpenHaptic(instance_id)
+}
+
+fn GetHapticFromID(instance_id: u32): *byte {
+    return SDL_GetHapticFromID(instance_id)
+}
+
+fn GetHapticID(haptic: *byte): u32 {
+    return SDL_GetHapticID(haptic)
+}
+
+fn GetHapticName(haptic: *byte): *byte {
+    return SDL_GetHapticName(haptic)
+}
+
+fn IsMouseHaptic(): i32 {
+    return SDL_IsMouseHaptic()
+}
+
+fn OpenHapticFromMouse(): *byte {
+    return SDL_OpenHapticFromMouse()
+}
+
+fn IsJoystickHaptic(joystick: *byte): i32 {
+    return SDL_IsJoystickHaptic(joystick)
+}
+
+fn OpenHapticFromJoystick(joystick: *byte): *byte {
+    return SDL_OpenHapticFromJoystick(joystick)
+}
+
+fn CloseHaptic(haptic: *byte) {
+    SDL_CloseHaptic(haptic)
+}
+
+fn GetMaxHapticEffects(haptic: *byte): i32 {
+    return SDL_GetMaxHapticEffects(haptic)
+}
+
+fn GetMaxHapticEffectsPlaying(haptic: *byte): i32 {
+    return SDL_GetMaxHapticEffectsPlaying(haptic)
+}
+
+fn GetHapticFeatures(haptic: *byte): u32 {
+    return SDL_GetHapticFeatures(haptic)
+}
+
+fn GetNumHapticAxes(haptic: *byte): i32 {
+    return SDL_GetNumHapticAxes(haptic)
+}
+
+fn HapticEffectSupported(haptic: *byte, effect: *byte): i32 {
+    return SDL_HapticEffectSupported(haptic, effect)
+}
+
+fn SetHapticGain(haptic: *byte, gain: i32): i32 {
+    return SDL_SetHapticGain(haptic, gain)
+}
+
+fn SetHapticAutocenter(haptic: *byte, autocenter: i32): i32 {
+    return SDL_SetHapticAutocenter(haptic, autocenter)
+}
+
+fn PauseHaptic(haptic: *byte): i32 {
+    return SDL_PauseHaptic(haptic)
+}
+
+fn ResumeHaptic(haptic: *byte): i32 {
+    return SDL_ResumeHaptic(haptic)
+}
+
+fn StopHapticEffects(haptic: *byte): i32 {
+    return SDL_StopHapticEffects(haptic)
+}
+
+fn HapticRumbleSupported(haptic: *byte): i32 {
+    return SDL_HapticRumbleSupported(haptic)
+}
+
+fn InitHapticRumble(haptic: *byte): i32 {
+    return SDL_InitHapticRumble(haptic)
+}
+
+fn PlayHapticRumble(haptic: *byte, strength: f32, length: u32): i32 {
+    return SDL_PlayHapticRumble(haptic, strength, length)
+}
+
+fn StopHapticRumble(haptic: *byte): i32 {
+    return SDL_StopHapticRumble(haptic)
+}
+

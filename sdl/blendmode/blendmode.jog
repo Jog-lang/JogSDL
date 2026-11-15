@@ -1,2 +1,7 @@
-// Idiomatic sdl.blendmode — expand wrappers over sdl3.blendmode as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.blendmode.
+// Idiomatic wrappers over sdl3.blendmode.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.blendmode as raw
+
+fn ComposeCustomBlendMode(srcColorFactor: u32, dstColorFactor: u32, colorOperation: u32, srcAlphaFactor: u32, dstAlphaFactor: u32, alphaOperation: u32): u32 {
+    return raw.SDL_ComposeCustomBlendMode(srcColorFactor, dstColorFactor, colorOperation, srcAlphaFactor, dstAlphaFactor, alphaOperation)
+}

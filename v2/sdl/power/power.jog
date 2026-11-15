@@ -1,0 +1,7 @@
+// Idiomatic v2 wrappers for SDL power (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetPowerInfo(seconds: *byte, percent: *byte): *byte {
+    return SDL_GetPowerInfo(seconds, percent)
+}
+

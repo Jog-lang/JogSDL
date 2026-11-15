@@ -1,0 +1,3 @@
+// Idiomatic v2 wrappers for SDL pen (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+

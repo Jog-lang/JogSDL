@@ -1,2 +1,404 @@
-// Idiomatic sdl.surface — expand wrappers over sdl3.surface as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.surface.
+// Idiomatic wrappers over sdl3.surface.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.surface as raw
+import sdl3.iostream
+import sdl3.rect
+import sdl
+import std.c
+
+struct Surface {
+    ptr: *raw.SDL_Surface?
+}
+
+fn empty_surface(): Surface {
+    var h: Surface
+    return h
+}
+
+fn CreateSurface(width: c.int, height: c.int, format: u32): *raw.SDL_Surface {
+    return raw.SDL_CreateSurface(width, height, format)
+}
+
+fn CreateSurfaceFrom(width: c.int, height: c.int, format: u32, pixels: *void, pitch: c.int): *raw.SDL_Surface {
+    return raw.SDL_CreateSurfaceFrom(width, height, format, pixels, pitch)
+}
+
+fn Surface.destroy() {
+    if self.ptr != null {
+        raw.SDL_DestroySurface(self.ptr!!)
+    }
+}
+
+fn GetSurfaceProperties(surface: *raw.SDL_Surface): u32 {
+    return raw.SDL_GetSurfaceProperties(surface)
+}
+
+fn SetSurfaceColorspace(surface: *raw.SDL_Surface, colorspace: u32): sdl.SDLError? {
+    if !raw.SDL_SetSurfaceColorspace(surface, colorspace) {
+        return sdl.last_error("SetSurfaceColorspace failed")
+    }
+    return null
+}
+
+fn GetSurfaceColorspace(surface: *raw.SDL_Surface): u32 {
+    return raw.SDL_GetSurfaceColorspace(surface)
+}
+
+fn CreateSurfacePalette(surface: *raw.SDL_Surface): *void {
+    return raw.SDL_CreateSurfacePalette(surface)
+}
+
+fn SetSurfacePalette(surface: *raw.SDL_Surface, palette: *void): sdl.SDLError? {
+    if !raw.SDL_SetSurfacePalette(surface, palette) {
+        return sdl.last_error("SetSurfacePalette failed")
+    }
+    return null
+}
+
+fn GetSurfacePalette(surface: *raw.SDL_Surface): *void {
+    return raw.SDL_GetSurfacePalette(surface)
+}
+
+fn AddSurfaceAlternateImage(surface: *raw.SDL_Surface, image: *raw.SDL_Surface): sdl.SDLError? {
+    if !raw.SDL_AddSurfaceAlternateImage(surface, image) {
+        return sdl.last_error("AddSurfaceAlternateImage failed")
+    }
+    return null
+}
+
+fn SurfaceHasAlternateImages(surface: *raw.SDL_Surface): sdl.SDLError? {
+    if !raw.SDL_SurfaceHasAlternateImages(surface) {
+        return sdl.last_error("SurfaceHasAlternateImages failed")
+    }
+    return null
+}
+
+fn GetSurfaceImages(surface: *raw.SDL_Surface, count: *c.int): **raw.SDL_Surface {
+    return raw.SDL_GetSurfaceImages(surface, count)
+}
+
+fn RemoveSurfaceAlternateImages(surface: *raw.SDL_Surface) {
+    raw.SDL_RemoveSurfaceAlternateImages(surface)
+}
+
+fn LockSurface(surface: *raw.SDL_Surface): sdl.SDLError? {
+    if !raw.SDL_LockSurface(surface) {
+        return sdl.last_error("LockSurface failed")
+    }
+    return null
+}
+
+fn UnlockSurface(surface: *raw.SDL_Surface) {
+    raw.SDL_UnlockSurface(surface)
+}
+
+fn LoadSurface_IO(src: *iostream.SDL_IOStream, closeio: bool): *raw.SDL_Surface {
+    return raw.SDL_LoadSurface_IO(src, closeio)
+}
+
+fn LoadSurface(file: *const c.char): *raw.SDL_Surface {
+    return raw.SDL_LoadSurface(file)
+}
+
+fn LoadBMP_IO(src: *iostream.SDL_IOStream, closeio: bool): *raw.SDL_Surface {
+    return raw.SDL_LoadBMP_IO(src, closeio)
+}
+
+fn LoadBMP(file: *const c.char): *raw.SDL_Surface {
+    return raw.SDL_LoadBMP(file)
+}
+
+fn SaveBMP_IO(surface: *raw.SDL_Surface, dst: *iostream.SDL_IOStream, closeio: bool): sdl.SDLError? {
+    if !raw.SDL_SaveBMP_IO(surface, dst, closeio) {
+        return sdl.last_error("SaveBMP_IO failed")
+    }
+    return null
+}
+
+fn SaveBMP(surface: *raw.SDL_Surface, file: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SaveBMP(surface, file) {
+        return sdl.last_error("SaveBMP failed")
+    }
+    return null
+}
+
+fn LoadPNG_IO(src: *iostream.SDL_IOStream, closeio: bool): *raw.SDL_Surface {
+    return raw.SDL_LoadPNG_IO(src, closeio)
+}
+
+fn LoadPNG(file: *const c.char): *raw.SDL_Surface {
+    return raw.SDL_LoadPNG(file)
+}
+
+fn SavePNG_IO(surface: *raw.SDL_Surface, dst: *iostream.SDL_IOStream, closeio: bool): sdl.SDLError? {
+    if !raw.SDL_SavePNG_IO(surface, dst, closeio) {
+        return sdl.last_error("SavePNG_IO failed")
+    }
+    return null
+}
+
+fn SavePNG(surface: *raw.SDL_Surface, file: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SavePNG(surface, file) {
+        return sdl.last_error("SavePNG failed")
+    }
+    return null
+}
+
+fn SetSurfaceRLE(surface: *raw.SDL_Surface, enabled: bool): sdl.SDLError? {
+    if !raw.SDL_SetSurfaceRLE(surface, enabled) {
+        return sdl.last_error("SetSurfaceRLE failed")
+    }
+    return null
+}
+
+fn SurfaceHasRLE(surface: *raw.SDL_Surface): sdl.SDLError? {
+    if !raw.SDL_SurfaceHasRLE(surface) {
+        return sdl.last_error("SurfaceHasRLE failed")
+    }
+    return null
+}
+
+fn SetSurfaceColorKey(surface: *raw.SDL_Surface, enabled: bool, key: u32): sdl.SDLError? {
+    if !raw.SDL_SetSurfaceColorKey(surface, enabled, key) {
+        return sdl.last_error("SetSurfaceColorKey failed")
+    }
+    return null
+}
+
+fn SurfaceHasColorKey(surface: *raw.SDL_Surface): sdl.SDLError? {
+    if !raw.SDL_SurfaceHasColorKey(surface) {
+        return sdl.last_error("SurfaceHasColorKey failed")
+    }
+    return null
+}
+
+fn GetSurfaceColorKey(surface: *raw.SDL_Surface, key: *u32): sdl.SDLError? {
+    if !raw.SDL_GetSurfaceColorKey(surface, key) {
+        return sdl.last_error("GetSurfaceColorKey failed")
+    }
+    return null
+}
+
+fn SetSurfaceColorMod(surface: *raw.SDL_Surface, r: u8, g: u8, b: u8): sdl.SDLError? {
+    if !raw.SDL_SetSurfaceColorMod(surface, r, g, b) {
+        return sdl.last_error("SetSurfaceColorMod failed")
+    }
+    return null
+}
+
+fn GetSurfaceColorMod(surface: *raw.SDL_Surface, r: *u8, g: *u8, b: *u8): sdl.SDLError? {
+    if !raw.SDL_GetSurfaceColorMod(surface, r, g, b) {
+        return sdl.last_error("GetSurfaceColorMod failed")
+    }
+    return null
+}
+
+fn SetSurfaceAlphaMod(surface: *raw.SDL_Surface, alpha: u8): sdl.SDLError? {
+    if !raw.SDL_SetSurfaceAlphaMod(surface, alpha) {
+        return sdl.last_error("SetSurfaceAlphaMod failed")
+    }
+    return null
+}
+
+fn GetSurfaceAlphaMod(surface: *raw.SDL_Surface, alpha: *u8): sdl.SDLError? {
+    if !raw.SDL_GetSurfaceAlphaMod(surface, alpha) {
+        return sdl.last_error("GetSurfaceAlphaMod failed")
+    }
+    return null
+}
+
+fn SetSurfaceBlendMode(surface: *raw.SDL_Surface, blendMode: u32): sdl.SDLError? {
+    if !raw.SDL_SetSurfaceBlendMode(surface, blendMode) {
+        return sdl.last_error("SetSurfaceBlendMode failed")
+    }
+    return null
+}
+
+fn GetSurfaceBlendMode(surface: *raw.SDL_Surface, blendMode: *u32): sdl.SDLError? {
+    if !raw.SDL_GetSurfaceBlendMode(surface, blendMode) {
+        return sdl.last_error("GetSurfaceBlendMode failed")
+    }
+    return null
+}
+
+fn SetSurfaceClipRect(surface: *raw.SDL_Surface, rect: *const rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_SetSurfaceClipRect(surface, rect) {
+        return sdl.last_error("SetSurfaceClipRect failed")
+    }
+    return null
+}
+
+fn GetSurfaceClipRect(surface: *raw.SDL_Surface, rect: *rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_GetSurfaceClipRect(surface, rect) {
+        return sdl.last_error("GetSurfaceClipRect failed")
+    }
+    return null
+}
+
+fn FlipSurface(surface: *raw.SDL_Surface, flip: u32): sdl.SDLError? {
+    if !raw.SDL_FlipSurface(surface, flip) {
+        return sdl.last_error("FlipSurface failed")
+    }
+    return null
+}
+
+fn RotateSurface(surface: *raw.SDL_Surface, angle: f32): *raw.SDL_Surface {
+    return raw.SDL_RotateSurface(surface, angle)
+}
+
+fn DuplicateSurface(surface: *raw.SDL_Surface): *raw.SDL_Surface {
+    return raw.SDL_DuplicateSurface(surface)
+}
+
+fn ScaleSurface(surface: *raw.SDL_Surface, width: c.int, height: c.int, scaleMode: u32): *raw.SDL_Surface {
+    return raw.SDL_ScaleSurface(surface, width, height, scaleMode)
+}
+
+fn ConvertSurface(surface: *raw.SDL_Surface, format: u32): *raw.SDL_Surface {
+    return raw.SDL_ConvertSurface(surface, format)
+}
+
+fn ConvertSurfaceAndColorspace(surface: *raw.SDL_Surface, format: u32, palette: *void, colorspace: u32, props: u32): *raw.SDL_Surface {
+    return raw.SDL_ConvertSurfaceAndColorspace(surface, format, palette, colorspace, props)
+}
+
+fn ConvertPixels(width: c.int, height: c.int, src_format: u32, src: *const void, src_pitch: c.int, dst_format: u32, dst: *void, dst_pitch: c.int): sdl.SDLError? {
+    if !raw.SDL_ConvertPixels(width, height, src_format, src, src_pitch, dst_format, dst, dst_pitch) {
+        return sdl.last_error("ConvertPixels failed")
+    }
+    return null
+}
+
+fn ConvertPixelsAndColorspace(width: c.int, height: c.int, src_format: u32, src_colorspace: u32, src_properties: u32, src: *const void, src_pitch: c.int, dst_format: u32, dst_colorspace: u32, dst_properties: u32, dst: *void, dst_pitch: c.int): sdl.SDLError? {
+    if !raw.SDL_ConvertPixelsAndColorspace(width, height, src_format, src_colorspace, src_properties, src, src_pitch, dst_format, dst_colorspace, dst_properties, dst, dst_pitch) {
+        return sdl.last_error("ConvertPixelsAndColorspace failed")
+    }
+    return null
+}
+
+fn PremultiplyAlpha(width: c.int, height: c.int, src_format: u32, src: *const void, src_pitch: c.int, dst_format: u32, dst: *void, dst_pitch: c.int, linear: bool): sdl.SDLError? {
+    if !raw.SDL_PremultiplyAlpha(width, height, src_format, src, src_pitch, dst_format, dst, dst_pitch, linear) {
+        return sdl.last_error("PremultiplyAlpha failed")
+    }
+    return null
+}
+
+fn PremultiplySurfaceAlpha(surface: *raw.SDL_Surface, linear: bool): sdl.SDLError? {
+    if !raw.SDL_PremultiplySurfaceAlpha(surface, linear) {
+        return sdl.last_error("PremultiplySurfaceAlpha failed")
+    }
+    return null
+}
+
+fn ClearSurface(surface: *raw.SDL_Surface, r: f32, g: f32, b: f32, a: f32): sdl.SDLError? {
+    if !raw.SDL_ClearSurface(surface, r, g, b, a) {
+        return sdl.last_error("ClearSurface failed")
+    }
+    return null
+}
+
+fn FillSurfaceRect(dst: *raw.SDL_Surface, rect: *const rect.SDL_Rect, color: u32): sdl.SDLError? {
+    if !raw.SDL_FillSurfaceRect(dst, rect, color) {
+        return sdl.last_error("FillSurfaceRect failed")
+    }
+    return null
+}
+
+fn FillSurfaceRects(dst: *raw.SDL_Surface, rects: *const rect.SDL_Rect, count: c.int, color: u32): sdl.SDLError? {
+    if !raw.SDL_FillSurfaceRects(dst, rects, count, color) {
+        return sdl.last_error("FillSurfaceRects failed")
+    }
+    return null
+}
+
+fn BlitSurface(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_BlitSurface(src, srcrect, dst, dstrect) {
+        return sdl.last_error("BlitSurface failed")
+    }
+    return null
+}
+
+fn BlitSurfaceUnchecked(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_BlitSurfaceUnchecked(src, srcrect, dst, dstrect) {
+        return sdl.last_error("BlitSurfaceUnchecked failed")
+    }
+    return null
+}
+
+fn BlitSurfaceScaled(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect, scaleMode: u32): sdl.SDLError? {
+    if !raw.SDL_BlitSurfaceScaled(src, srcrect, dst, dstrect, scaleMode) {
+        return sdl.last_error("BlitSurfaceScaled failed")
+    }
+    return null
+}
+
+fn BlitSurfaceUncheckedScaled(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect, scaleMode: u32): sdl.SDLError? {
+    if !raw.SDL_BlitSurfaceUncheckedScaled(src, srcrect, dst, dstrect, scaleMode) {
+        return sdl.last_error("BlitSurfaceUncheckedScaled failed")
+    }
+    return null
+}
+
+fn StretchSurface(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect, scaleMode: u32): sdl.SDLError? {
+    if !raw.SDL_StretchSurface(src, srcrect, dst, dstrect, scaleMode) {
+        return sdl.last_error("StretchSurface failed")
+    }
+    return null
+}
+
+fn BlitSurfaceTiled(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_BlitSurfaceTiled(src, srcrect, dst, dstrect) {
+        return sdl.last_error("BlitSurfaceTiled failed")
+    }
+    return null
+}
+
+fn BlitSurfaceTiledWithScale(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, scale: f32, scaleMode: u32, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_BlitSurfaceTiledWithScale(src, srcrect, scale, scaleMode, dst, dstrect) {
+        return sdl.last_error("BlitSurfaceTiledWithScale failed")
+    }
+    return null
+}
+
+fn BlitSurface9Grid(src: *raw.SDL_Surface, srcrect: *const rect.SDL_Rect, left_width: c.int, right_width: c.int, top_height: c.int, bottom_height: c.int, scale: f32, scaleMode: u32, dst: *raw.SDL_Surface, dstrect: *const rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_BlitSurface9Grid(src, srcrect, left_width, right_width, top_height, bottom_height, scale, scaleMode, dst, dstrect) {
+        return sdl.last_error("BlitSurface9Grid failed")
+    }
+    return null
+}
+
+fn MapSurfaceRGB(surface: *raw.SDL_Surface, r: u8, g: u8, b: u8): u32 {
+    return raw.SDL_MapSurfaceRGB(surface, r, g, b)
+}
+
+fn MapSurfaceRGBA(surface: *raw.SDL_Surface, r: u8, g: u8, b: u8, a: u8): u32 {
+    return raw.SDL_MapSurfaceRGBA(surface, r, g, b, a)
+}
+
+fn ReadSurfacePixel(surface: *raw.SDL_Surface, x: c.int, y: c.int, r: *u8, g: *u8, b: *u8, a: *u8): sdl.SDLError? {
+    if !raw.SDL_ReadSurfacePixel(surface, x, y, r, g, b, a) {
+        return sdl.last_error("ReadSurfacePixel failed")
+    }
+    return null
+}
+
+fn ReadSurfacePixelFloat(surface: *raw.SDL_Surface, x: c.int, y: c.int, r: *f32, g: *f32, b: *f32, a: *f32): sdl.SDLError? {
+    if !raw.SDL_ReadSurfacePixelFloat(surface, x, y, r, g, b, a) {
+        return sdl.last_error("ReadSurfacePixelFloat failed")
+    }
+    return null
+}
+
+fn WriteSurfacePixel(surface: *raw.SDL_Surface, x: c.int, y: c.int, r: u8, g: u8, b: u8, a: u8): sdl.SDLError? {
+    if !raw.SDL_WriteSurfacePixel(surface, x, y, r, g, b, a) {
+        return sdl.last_error("WriteSurfacePixel failed")
+    }
+    return null
+}
+
+fn WriteSurfacePixelFloat(surface: *raw.SDL_Surface, x: c.int, y: c.int, r: f32, g: f32, b: f32, a: f32): sdl.SDLError? {
+    if !raw.SDL_WriteSurfacePixelFloat(surface, x, y, r, g, b, a) {
+        return sdl.last_error("WriteSurfacePixelFloat failed")
+    }
+    return null
+}

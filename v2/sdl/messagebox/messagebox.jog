@@ -1,0 +1,11 @@
+// Idiomatic v2 wrappers for SDL messagebox (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn ShowMessageBox(messageboxdata: *byte, buttonid: *byte): i32 {
+    return SDL_ShowMessageBox(messageboxdata, buttonid)
+}
+
+fn ShowSimpleMessageBox(flags: u32, title: *byte, message: *byte, window: *byte): i32 {
+    return SDL_ShowSimpleMessageBox(flags, title, message, window)
+}
+

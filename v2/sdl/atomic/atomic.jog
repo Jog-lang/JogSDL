@@ -1,0 +1,67 @@
+// Idiomatic v2 wrappers for SDL atomic (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn TryLockSpinlock(lock: *byte): i32 {
+    return SDL_TryLockSpinlock(lock)
+}
+
+fn LockSpinlock(lock: *byte) {
+    SDL_LockSpinlock(lock)
+}
+
+fn UnlockSpinlock(lock: *byte) {
+    SDL_UnlockSpinlock(lock)
+}
+
+fn MemoryBarrierReleaseFunction() {
+    SDL_MemoryBarrierReleaseFunction()
+}
+
+fn MemoryBarrierAcquireFunction() {
+    SDL_MemoryBarrierAcquireFunction()
+}
+
+fn CompareAndSwapAtomicInt(a: *byte, oldval: i32, newval: i32): i32 {
+    return SDL_CompareAndSwapAtomicInt(a, oldval, newval)
+}
+
+fn SetAtomicInt(a: *byte, v: i32): i32 {
+    return SDL_SetAtomicInt(a, v)
+}
+
+fn GetAtomicInt(a: *byte): i32 {
+    return SDL_GetAtomicInt(a)
+}
+
+fn AddAtomicInt(a: *byte, v: i32): i32 {
+    return SDL_AddAtomicInt(a, v)
+}
+
+fn CompareAndSwapAtomicU32(a: *byte, oldval: u32, newval: u32): i32 {
+    return SDL_CompareAndSwapAtomicU32(a, oldval, newval)
+}
+
+fn SetAtomicU32(a: *byte, v: u32): u32 {
+    return SDL_SetAtomicU32(a, v)
+}
+
+fn GetAtomicU32(a: *byte): u32 {
+    return SDL_GetAtomicU32(a)
+}
+
+fn AddAtomicU32(a: *byte, v: i32): u32 {
+    return SDL_AddAtomicU32(a, v)
+}
+
+fn CompareAndSwapAtomicPointer(a: **byte, oldval: *byte, newval: *byte): i32 {
+    return SDL_CompareAndSwapAtomicPointer(a, oldval, newval)
+}
+
+fn SetAtomicPointer(a: **byte, v: *byte): *byte {
+    return SDL_SetAtomicPointer(a, v)
+}
+
+fn GetAtomicPointer(a: **byte): *byte {
+    return SDL_GetAtomicPointer(a)
+}
+

@@ -10,11 +10,13 @@ export sdl.assert
 export sdl.asyncio
 export sdl.atomic
 export sdl.audio
+export sdl.bits
 export sdl.blendmode
 export sdl.camera
 export sdl.clipboard
 export sdl.cpuinfo
 export sdl.dialog
+export sdl.endian
 export sdl.error
 export sdl.events
 export sdl.filesystem
@@ -29,6 +31,7 @@ export sdl.input
 export sdl.iostream
 export sdl.joystick
 export sdl.keyboard
+export sdl.keycode
 export sdl.loadso
 export sdl.locale
 export sdl.log
@@ -39,6 +42,7 @@ export sdl.misc
 export sdl.mouse
 export sdl.mutex
 export sdl.opengl
+export sdl.pen
 export sdl.pixels
 export sdl.platform
 export sdl.power
@@ -46,7 +50,9 @@ export sdl.process
 export sdl.properties
 export sdl.rect
 export sdl.render
+export sdl.scancode
 export sdl.sensor
+export sdl.stdinc
 export sdl.storage
 export sdl.surface
 export sdl.system

@@ -1,2 +1,12 @@
-// Idiomatic sdl.version — expand wrappers over sdl3.version as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.version.
+// Idiomatic wrappers over sdl3.version.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.version as raw
+import std.c
+
+fn GetVersion(): c.int {
+    return raw.SDL_GetVersion()
+}
+
+fn GetRevision(): *const c.char {
+    return raw.SDL_GetRevision()
+}

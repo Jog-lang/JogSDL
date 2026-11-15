@@ -1,2 +1,16 @@
-// Idiomatic sdl.touch — expand wrappers over sdl3.touch as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.touch.
+// Idiomatic wrappers over sdl3.touch.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.touch as raw
+import std.c
+
+fn GetTouchDevices(count: *c.int): *u64 {
+    return raw.SDL_GetTouchDevices(count)
+}
+
+fn GetTouchDeviceName(touchID: u64): *const c.char {
+    return raw.SDL_GetTouchDeviceName(touchID)
+}
+
+fn GetTouchFingers(touchID: u64, count: *c.int): **void {
+    return raw.SDL_GetTouchFingers(touchID, count)
+}

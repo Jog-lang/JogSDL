@@ -1,0 +1,47 @@
+// Idiomatic v2 wrappers for SDL pixels (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetPixelFormatName(format: u32): *byte {
+    return SDL_GetPixelFormatName(format)
+}
+
+fn GetMasksForPixelFormat(format: u32, bpp: *byte, Rmask: *byte, Gmask: *byte, Bmask: *byte, Amask: *byte): i32 {
+    return SDL_GetMasksForPixelFormat(format, bpp, Rmask, Gmask, Bmask, Amask)
+}
+
+fn GetPixelFormatForMasks(bpp: i32, Rmask: u32, Gmask: u32, Bmask: u32, Amask: u32): u32 {
+    return SDL_GetPixelFormatForMasks(bpp, Rmask, Gmask, Bmask, Amask)
+}
+
+fn GetPixelFormatDetails(format: u32): *byte {
+    return SDL_GetPixelFormatDetails(format)
+}
+
+fn CreatePalette(ncolors: i32): *byte {
+    return SDL_CreatePalette(ncolors)
+}
+
+fn SetPaletteColors(palette: *byte, colors: *byte, firstcolor: i32, ncolors: i32): i32 {
+    return SDL_SetPaletteColors(palette, colors, firstcolor, ncolors)
+}
+
+fn DestroyPalette(palette: *byte) {
+    SDL_DestroyPalette(palette)
+}
+
+fn MapRGB(format: *byte, palette: *byte, r: u8, g: u8, b: u8): u32 {
+    return SDL_MapRGB(format, palette, r, g, b)
+}
+
+fn MapRGBA(format: *byte, palette: *byte, r: u8, g: u8, b: u8, a: u8): u32 {
+    return SDL_MapRGBA(format, palette, r, g, b, a)
+}
+
+fn GetRGB(pixelvalue: u32, format: *byte, palette: *byte, r: *byte, g: *byte, b: *byte) {
+    SDL_GetRGB(pixelvalue, format, palette, r, g, b)
+}
+
+fn GetRGBA(pixelvalue: u32, format: *byte, palette: *byte, r: *byte, g: *byte, b: *byte, a: *byte) {
+    SDL_GetRGBA(pixelvalue, format, palette, r, g, b, a)
+}
+

@@ -1,2 +1,68 @@
-// Idiomatic sdl.thread — expand wrappers over sdl3.thread as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.thread.
+// Idiomatic wrappers over sdl3.thread.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.thread as raw
+import sdl
+import std.c
+
+struct Thread {
+    ptr: *raw.SDL_Thread?
+}
+
+fn empty_thread(): Thread {
+    var h: Thread
+    return h
+}
+
+fn CreateThreadRuntime(fn_: *void, name: *const c.char, data: *void, pfnBeginThread: *void, pfnEndThread: *void): *raw.SDL_Thread {
+    return raw.SDL_CreateThreadRuntime(fn_, name, data, pfnBeginThread, pfnEndThread)
+}
+
+fn CreateThreadWithPropertiesRuntime(props: u32, pfnBeginThread: *void, pfnEndThread: *void): *raw.SDL_Thread {
+    return raw.SDL_CreateThreadWithPropertiesRuntime(props, pfnBeginThread, pfnEndThread)
+}
+
+fn GetThreadName(thread: *raw.SDL_Thread): *const c.char {
+    return raw.SDL_GetThreadName(thread)
+}
+
+fn GetCurrentThreadID(): u64 {
+    return raw.SDL_GetCurrentThreadID()
+}
+
+fn GetThreadID(thread: *raw.SDL_Thread): u64 {
+    return raw.SDL_GetThreadID(thread)
+}
+
+fn SetCurrentThreadPriority(priority: u32): sdl.SDLError? {
+    if !raw.SDL_SetCurrentThreadPriority(priority) {
+        return sdl.last_error("SetCurrentThreadPriority failed")
+    }
+    return null
+}
+
+fn WaitThread(thread: *raw.SDL_Thread, status: *c.int) {
+    raw.SDL_WaitThread(thread, status)
+}
+
+fn GetThreadState(thread: *raw.SDL_Thread): u32 {
+    return raw.SDL_GetThreadState(thread)
+}
+
+fn DetachThread(thread: *raw.SDL_Thread) {
+    raw.SDL_DetachThread(thread)
+}
+
+fn GetTLS(id: *void): *void {
+    return raw.SDL_GetTLS(id)
+}
+
+fn SetTLS(id: *void, value: *const void, destructor: *void): sdl.SDLError? {
+    if !raw.SDL_SetTLS(id, value, destructor) {
+        return sdl.last_error("SetTLS failed")
+    }
+    return null
+}
+
+fn CleanupTLS() {
+    raw.SDL_CleanupTLS()
+}

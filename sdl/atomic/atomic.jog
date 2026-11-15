@@ -1,2 +1,81 @@
-// Idiomatic sdl.atomic — expand wrappers over sdl3.atomic as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.atomic.
+// Idiomatic wrappers over sdl3.atomic.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.atomic as raw
+import sdl
+import std.c
+
+fn TryLockSpinlock(lock: *void): sdl.SDLError? {
+    if !raw.SDL_TryLockSpinlock(lock) {
+        return sdl.last_error("TryLockSpinlock failed")
+    }
+    return null
+}
+
+fn LockSpinlock(lock: *void) {
+    raw.SDL_LockSpinlock(lock)
+}
+
+fn UnlockSpinlock(lock: *void) {
+    raw.SDL_UnlockSpinlock(lock)
+}
+
+fn MemoryBarrierReleaseFunction() {
+    raw.SDL_MemoryBarrierReleaseFunction()
+}
+
+fn MemoryBarrierAcquireFunction() {
+    raw.SDL_MemoryBarrierAcquireFunction()
+}
+
+fn CompareAndSwapAtomicInt(a: *void, oldval: c.int, newval: c.int): sdl.SDLError? {
+    if !raw.SDL_CompareAndSwapAtomicInt(a, oldval, newval) {
+        return sdl.last_error("CompareAndSwapAtomicInt failed")
+    }
+    return null
+}
+
+fn SetAtomicInt(a: *void, v: c.int): c.int {
+    return raw.SDL_SetAtomicInt(a, v)
+}
+
+fn GetAtomicInt(a: *void): c.int {
+    return raw.SDL_GetAtomicInt(a)
+}
+
+fn AddAtomicInt(a: *void, v: c.int): c.int {
+    return raw.SDL_AddAtomicInt(a, v)
+}
+
+fn CompareAndSwapAtomicU32(a: *void, oldval: u32, newval: u32): sdl.SDLError? {
+    if !raw.SDL_CompareAndSwapAtomicU32(a, oldval, newval) {
+        return sdl.last_error("CompareAndSwapAtomicU32 failed")
+    }
+    return null
+}
+
+fn SetAtomicU32(a: *void, v: u32): u32 {
+    return raw.SDL_SetAtomicU32(a, v)
+}
+
+fn GetAtomicU32(a: *void): u32 {
+    return raw.SDL_GetAtomicU32(a)
+}
+
+fn AddAtomicU32(a: *void, v: c.int): u32 {
+    return raw.SDL_AddAtomicU32(a, v)
+}
+
+fn CompareAndSwapAtomicPointer(a: **void, oldval: *void, newval: *void): sdl.SDLError? {
+    if !raw.SDL_CompareAndSwapAtomicPointer(a, oldval, newval) {
+        return sdl.last_error("CompareAndSwapAtomicPointer failed")
+    }
+    return null
+}
+
+fn SetAtomicPointer(a: **void, v: *void): *void {
+    return raw.SDL_SetAtomicPointer(a, v)
+}
+
+fn GetAtomicPointer(a: **void): *void {
+    return raw.SDL_GetAtomicPointer(a)
+}

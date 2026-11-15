@@ -1,0 +1,5 @@
+v2/surface: skip SDL_ConvertPixelsAndColorspace — 12 args > jog-v2 IR limit 8
+v2/surface: skip SDL_PremultiplyAlpha — 9 args > jog-v2 IR limit 8
+v2/surface: skip SDL_BlitSurface9Grid — 10 args > jog-v2 IR limit 8
+v2/thread: skip macro-only SDL_CreateThreadWithProperties (use *Runtime)
+v2/thread: skip macro-only SDL_CreateThread (use *Runtime)

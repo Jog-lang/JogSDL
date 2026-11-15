@@ -1,2 +1,25 @@
-// Idiomatic sdl.loadso — expand wrappers over sdl3.loadso as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.loadso.
+// Idiomatic wrappers over sdl3.loadso.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.loadso as raw
+import std.c
+
+struct SharedObject {
+    ptr: *raw.SDL_SharedObject?
+}
+
+fn empty_sharedobject(): SharedObject {
+    var h: SharedObject
+    return h
+}
+
+fn LoadObject(sofile: *const c.char): *raw.SDL_SharedObject {
+    return raw.SDL_LoadObject(sofile)
+}
+
+fn LoadFunction(handle: *raw.SDL_SharedObject, name: *const c.char): *void {
+    return raw.SDL_LoadFunction(handle, name)
+}
+
+fn UnloadObject(handle: *raw.SDL_SharedObject) {
+    raw.SDL_UnloadObject(handle)
+}
