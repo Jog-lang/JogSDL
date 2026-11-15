@@ -1,0 +1,429 @@
+// Soft-raster textured cube over the CPU raycaster (track C).
+// Scalar package temps only — no struct returns (bump-heap safe).
+// Yaw/pitch projection; perspective-correct UV; depth-test vs per-column walls.
+// Keep hot-path call arity low (high-arity float args have corrupted coords).
+import std.math
+
+val MESH_NEAR: f64 = 0.05
+val MESH_EYE_Z: f64 = 0.5
+val MESH_C0: i64 = 4294912040
+val MESH_C1: i64 = 4280821980
+
+var mesh_tex: *byte = null
+var mesh_tex_w: i64 = 16
+var mesh_tex_h: i64 = 16
+var mesh_cx: f64 = 3.6
+var mesh_cy: f64 = 2.5
+var mesh_half: f64 = 0.28
+var mesh_z0: f64 = 0.15
+var mesh_z1: f64 = 0.85
+var mesh_spin: f64 = 0.0
+var mesh_t: f64 = 0.0
+var mesh_enabled: i64 = 1
+var mesh_fb_w: i64 = 160
+var mesh_fb_h: i64 = 100
+var mesh_load_u: f64 = 0.0
+var mesh_load_v: f64 = 0.0
+var mesh_su: f64 = 0.0
+var mesh_sv: f64 = 0.0
+
+var proj_ok: i64 = 0
+var proj_sx: f64 = 0.0
+var proj_sy: f64 = 0.0
+var proj_sz: f64 = 0.0
+
+var ta_sx: f64 = 0.0
+var ta_sy: f64 = 0.0
+var ta_sz: f64 = 0.0
+var ta_u: f64 = 0.0
+var ta_v: f64 = 0.0
+var tb_sx: f64 = 0.0
+var tb_sy: f64 = 0.0
+var tb_sz: f64 = 0.0
+var tb_u: f64 = 0.0
+var tb_v: f64 = 0.0
+var tc_sx: f64 = 0.0
+var tc_sy: f64 = 0.0
+var tc_sz: f64 = 0.0
+var tc_u: f64 = 0.0
+var tc_v: f64 = 0.0
+
+var q0x: f64 = 0.0
+var q0y: f64 = 0.0
+var q0z: f64 = 0.0
+var q1x: f64 = 0.0
+var q1y: f64 = 0.0
+var q1z: f64 = 0.0
+var q2x: f64 = 0.0
+var q2y: f64 = 0.0
+var q2z: f64 = 0.0
+var q3x: f64 = 0.0
+var q3y: f64 = 0.0
+var q3z: f64 = 0.0
+var mesh_wx: f64 = 0.0
+var mesh_wy: f64 = 0.0
+
+fn mesh_init_checker() {
+    val n: i64 = 16
+    val pix = alloc(n * n * 4)
+    if (pix == null) {
+        panic("mesh tex alloc failed\n")
+    }
+    tex_fill_checker(pix, n, n, MESH_C0, MESH_C1, 4)
+    mesh_tex = pix
+    mesh_tex_w = n
+    mesh_tex_h = n
+}
+
+fn mesh_set_pos(x: f64, y: f64) {
+    mesh_cx = x
+    mesh_cy = y
+}
+
+fn mesh_set_spin(s: f64) {
+    mesh_spin = s
+}
+
+fn mesh_set_enabled(on: i64) {
+    mesh_enabled = on
+}
+
+fn mesh_update(dt: f64) {
+    mesh_t = mesh_t + dt
+    mesh_spin = mesh_spin + dt * 1.1
+    mesh_cx = 9.0 + cos(mesh_t * 0.7) * 1.2
+    mesh_cy = 6.0 + sin(mesh_t * 0.7) * 1.2
+}
+
+fn mesh_sample_uv(): i64 {
+    val pixels = mesh_tex
+    val w = mesh_tex_w
+    val h = mesh_tex_h
+    if (pixels == null || w <= 0 || h <= 0) {
+        return 0
+    }
+    var u = mesh_su
+    var v = mesh_sv
+    if (u < 0.0) {
+        u = 0.0
+    }
+    if (v < 0.0) {
+        v = 0.0
+    }
+    if (u > 0.999) {
+        u = 0.999
+    }
+    if (v > 0.999) {
+        v = 0.999
+    }
+    var tx = f_to_i(u * (w as f64))
+    var ty = f_to_i(v * (h as f64))
+    if (tx < 0) {
+        tx = 0
+    }
+    if (ty < 0) {
+        ty = 0
+    }
+    if (tx >= w) {
+        tx = w - 1
+    }
+    if (ty >= h) {
+        ty = h - 1
+    }
+    return tex_peek32(pixels, (ty * w + tx) * 4)
+}
+
+fn mesh_project(wx: f64, wy: f64, wz: f64) {
+    proj_ok = 0
+    val rel_x = wx - cam_pos_x
+    val rel_y = wy - cam_pos_y
+    val det = cam_plane_x * cam_dir_y - cam_dir_x * cam_plane_y
+    if (det == 0.0) {
+        return
+    }
+    val inv = 1.0 / det
+    val cam_x = inv * (cam_dir_y * rel_x - cam_dir_x * rel_y)
+    val cam_z = inv * (0.0 - cam_plane_y * rel_x + cam_plane_x * rel_y)
+    if (cam_z < MESH_NEAR) {
+        return
+    }
+    val fb_wf = mesh_fb_w as f64
+    val fb_hf = mesh_fb_h as f64
+    val horizon = fb_hf / 2.0 + cam_pitch
+    proj_sx = (fb_wf / 2.0) * (1.0 + cam_x / cam_z)
+    val dy = wz - MESH_EYE_Z
+    proj_sy = horizon - (dy * fb_hf / cam_z)
+    proj_sz = cam_z
+    proj_ok = 1
+}
+
+fn mesh_load_vert_a(wx: f64, wy: f64, wz: f64): i64 {
+    mesh_project(wx, wy, wz)
+    if (proj_ok == 0) {
+        return 0
+    }
+    ta_sx = proj_sx
+    ta_sy = proj_sy
+    ta_sz = proj_sz
+    ta_u = mesh_load_u
+    ta_v = mesh_load_v
+    return 1
+}
+
+fn mesh_load_vert_b(wx: f64, wy: f64, wz: f64): i64 {
+    mesh_project(wx, wy, wz)
+    if (proj_ok == 0) {
+        return 0
+    }
+    tb_sx = proj_sx
+    tb_sy = proj_sy
+    tb_sz = proj_sz
+    tb_u = mesh_load_u
+    tb_v = mesh_load_v
+    return 1
+}
+
+fn mesh_load_vert_c(wx: f64, wy: f64, wz: f64): i64 {
+    mesh_project(wx, wy, wz)
+    if (proj_ok == 0) {
+        return 0
+    }
+    tc_sx = proj_sx
+    tc_sy = proj_sy
+    tc_sz = proj_sz
+    tc_u = mesh_load_u
+    tc_v = mesh_load_v
+    return 1
+}
+
+fn mesh_f_min(a: f64, b: f64): f64 {
+    if (a < b) {
+        return a
+    }
+    return b
+}
+
+fn mesh_f_max(a: f64, b: f64): f64 {
+    if (a > b) {
+        return a
+    }
+    return b
+}
+
+fn mesh_raster_tri(pixels: *byte) {
+    val ax = ta_sx
+    val ay = ta_sy
+    val bx = tb_sx
+    val by = tb_sy
+    val cx = tc_sx
+    val cy = tc_sy
+    val area = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+    if (area <= 0.0) {
+        return
+    }
+    if (ta_sz < MESH_NEAR) {
+        return
+    }
+    if (tb_sz < MESH_NEAR) {
+        return
+    }
+    if (tc_sz < MESH_NEAR) {
+        return
+    }
+    var minx = f_to_i(mesh_f_min(ax, mesh_f_min(bx, cx)))
+    var maxx = f_to_i(mesh_f_max(ax, mesh_f_max(bx, cx)))
+    var miny = f_to_i(mesh_f_min(ay, mesh_f_min(by, cy)))
+    var maxy = f_to_i(mesh_f_max(ay, mesh_f_max(by, cy)))
+    val fb_w = mesh_fb_w
+    val fb_h = mesh_fb_h
+    if (minx < 0) {
+        minx = 0
+    }
+    if (miny < 0) {
+        miny = 0
+    }
+    if (maxx >= fb_w) {
+        maxx = fb_w - 1
+    }
+    if (maxy >= fb_h) {
+        maxy = fb_h - 1
+    }
+    if (minx > maxx) {
+        return
+    }
+    if (miny > maxy) {
+        return
+    }
+    val inv_a = 1.0 / ta_sz
+    val inv_b = 1.0 / tb_sz
+    val inv_c = 1.0 / tc_sz
+    val u_a = ta_u * inv_a
+    val u_b = tb_u * inv_b
+    val u_c = tc_u * inv_c
+    val v_a = ta_v * inv_a
+    val v_b = tb_v * inv_b
+    val v_c = tc_v * inv_c
+    var y = miny
+    while (y <= maxy) {
+        val py = (y as f64) + 0.5
+        var x = minx
+        while (x <= maxx) {
+            val px = (x as f64) + 0.5
+            val w0 = (cx - bx) * (py - by) - (cy - by) * (px - bx)
+            val w1 = (ax - cx) * (py - cy) - (ay - cy) * (px - cx)
+            val w2 = (bx - ax) * (py - ay) - (by - ay) * (px - ax)
+            if (w0 >= 0.0) {
+                if (w1 >= 0.0) {
+                    if (w2 >= 0.0) {
+                        val b0 = w0 / area
+                        val b1 = w1 / area
+                        val b2 = w2 / area
+                        val inv_z = b0 * inv_a + b1 * inv_b + b2 * inv_c
+                        if (inv_z > 0.0) {
+                            val z = 1.0 / inv_z
+                            val zi = depth_from_dist(z)
+                            // Per-column wall depth (ignores floor/ceiling — cube can sit in room).
+                            if (zi < depth_get_col(x)) {
+                                mesh_su = z * (b0 * u_a + b1 * u_b + b2 * u_c)
+                                mesh_sv = z * (b0 * v_a + b1 * v_b + b2 * v_c)
+                                val argb = mesh_sample_uv()
+                                poke32(pixels, (y * fb_w + x) * 4, argb)
+                            }
+                        }
+                    }
+                }
+            }
+            x = x + 1
+        }
+        y = y + 1
+    }
+}
+
+fn mesh_world_xy(lx: f64, ly: f64) {
+    val c = cos(mesh_spin)
+    val s = sin(mesh_spin)
+    mesh_wx = mesh_cx + lx * c - ly * s
+    mesh_wy = mesh_cy + lx * s + ly * c
+}
+
+fn mesh_set_q0(lx: f64, ly: f64, z: f64) {
+    mesh_world_xy(lx, ly)
+    q0x = mesh_wx
+    q0y = mesh_wy
+    q0z = z
+}
+
+fn mesh_set_q1(lx: f64, ly: f64, z: f64) {
+    mesh_world_xy(lx, ly)
+    q1x = mesh_wx
+    q1y = mesh_wy
+    q1z = z
+}
+
+fn mesh_set_q2(lx: f64, ly: f64, z: f64) {
+    mesh_world_xy(lx, ly)
+    q2x = mesh_wx
+    q2y = mesh_wy
+    q2z = z
+}
+
+fn mesh_set_q3(lx: f64, ly: f64, z: f64) {
+    mesh_world_xy(lx, ly)
+    q3x = mesh_wx
+    q3y = mesh_wy
+    q3z = z
+}
+
+fn mesh_draw_quad(pixels: *byte) {
+    mesh_load_u = 0.0
+    mesh_load_v = 0.0
+    if (mesh_load_vert_a(q0x, q0y, q0z) != 0) {
+        mesh_load_u = 1.0
+        mesh_load_v = 0.0
+        if (mesh_load_vert_b(q1x, q1y, q1z) != 0) {
+            mesh_load_u = 1.0
+            mesh_load_v = 1.0
+            if (mesh_load_vert_c(q2x, q2y, q2z) != 0) {
+                mesh_raster_tri(pixels)
+            }
+        }
+    }
+    mesh_load_u = 0.0
+    mesh_load_v = 0.0
+    if (mesh_load_vert_a(q0x, q0y, q0z) != 0) {
+        mesh_load_u = 1.0
+        mesh_load_v = 1.0
+        if (mesh_load_vert_b(q2x, q2y, q2z) != 0) {
+            mesh_load_u = 0.0
+            mesh_load_v = 1.0
+            if (mesh_load_vert_c(q3x, q3y, q3z) != 0) {
+                mesh_raster_tri(pixels)
+            }
+        }
+    }
+}
+
+fn mesh_draw(pixels: *byte, fb_w: i64, fb_h: i64) {
+    mesh_fb_w = fb_w
+    mesh_fb_h = fb_h
+    if (mesh_enabled == 0) {
+        return
+    }
+    if (mesh_tex == null) {
+        return
+    }
+    val h = mesh_half
+    val z0 = mesh_z0
+    val z1 = mesh_z1
+    // Far faces roughly first (painter), then near — +X/+Y/top last-ish.
+    mesh_set_q0(h, 0.0 - h, z0)
+    mesh_set_q1(h, h, z0)
+    mesh_set_q2(h, h, z1)
+    mesh_set_q3(h, 0.0 - h, z1)
+    mesh_draw_quad(pixels)
+    mesh_set_q0(0.0 - h, 0.0 - h, z0)
+    mesh_set_q1(h, 0.0 - h, z0)
+    mesh_set_q2(h, 0.0 - h, z1)
+    mesh_set_q3(0.0 - h, 0.0 - h, z1)
+    mesh_draw_quad(pixels)
+    mesh_set_q0(h, h, z0)
+    mesh_set_q1(0.0 - h, h, z0)
+    mesh_set_q2(0.0 - h, h, z1)
+    mesh_set_q3(h, h, z1)
+    mesh_draw_quad(pixels)
+    mesh_set_q0(0.0 - h, 0.0 - h, z0)
+    mesh_set_q1(0.0 - h, h, z0)
+    mesh_set_q2(h, h, z0)
+    mesh_set_q3(h, 0.0 - h, z0)
+    mesh_draw_quad(pixels)
+    mesh_set_q0(0.0 - h, 0.0 - h, z1)
+    mesh_set_q1(h, 0.0 - h, z1)
+    mesh_set_q2(h, h, z1)
+    mesh_set_q3(0.0 - h, h, z1)
+    mesh_draw_quad(pixels)
+    // Camera-facing -X last so it wins painter overlaps.
+    mesh_set_q0(0.0 - h, h, z0)
+    mesh_set_q1(0.0 - h, 0.0 - h, z0)
+    mesh_set_q2(0.0 - h, 0.0 - h, z1)
+    mesh_set_q3(0.0 - h, h, z1)
+    mesh_draw_quad(pixels)
+}
+
+fn mesh_count_color(pixels: *byte, fb_w: i64, fb_h: i64, argb: i64): i64 {
+    var n: i64 = 0
+    var i: i64 = 0
+    val total = fb_w * fb_h
+    while (i < total) {
+        val off = i * 4
+        val b0 = pixels[off] & 255
+        val b1 = pixels[off + 1] & 255
+        val b2 = pixels[off + 2] & 255
+        val b3 = pixels[off + 3] & 255
+        val got = b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
+        if (got == argb) {
+            n = n + 1
+        }
+        i = i + 1
+    }
+    return n
+}
