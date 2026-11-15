@@ -1,0 +1,134 @@
+// Frame timing for the native raycaster (track D / JOG-117).
+// GetTicks-based dt + Delay only when ahead of ~60 FPS. Logs fps/dt/cpu to stderr.
+// Scalar package state only — no struct returns (bump-heap safe).
+
+extern {
+    fn write(fd: i32, buf: *byte, count: u64): i64
+}
+
+val TARGET_FRAME_MS: u64 = 16
+val DT_CLAMP_S: f64 = 0.05
+val TIMING_LOG_EVERY: i64 = 60
+
+var timing_prev_ticks: u64 = 0
+var timing_frame_start: u64 = 0
+var timing_frames_seen: i64 = 0
+var timing_log_frames: i64 = 0
+var timing_log_cpu_ms: u64 = 0
+var timing_log_wall_ms: u64 = 0
+var timing_log_buf: *byte = null
+
+fn timing_put_lit(buf: *byte, pos: i64, lit: *byte, n: i64): i64 {
+    var i = 0
+    while (i < n) {
+        buf[pos + i] = lit[i]
+        i = i + 1
+    }
+    return pos + n
+}
+
+fn timing_put_u64(buf: *byte, pos: i64, v: u64): i64 {
+    if (v == 0) {
+        buf[pos] = 48
+        return pos + 1
+    }
+    var x = v
+    var digits = 0
+    while (x != 0) {
+        digits = digits + 1
+        x = x / 10
+    }
+    var i = digits
+    x = v
+    while (i > 0) {
+        i = i - 1
+        buf[pos + i] = 48 + ((x % 10) as i64)
+        x = x / 10
+    }
+    return pos + digits
+}
+
+fn timing_log_line(fps: u64, dt_ms: u64, cpu_ms: u64) {
+    val buf = timing_log_buf
+    if (buf == null) {
+        return
+    }
+    var p: i64 = 0
+    p = timing_put_lit(buf, p, c"timing fps=", 11)
+    p = timing_put_u64(buf, p, fps)
+    p = timing_put_lit(buf, p, c" dt_ms=", 7)
+    p = timing_put_u64(buf, p, dt_ms)
+    p = timing_put_lit(buf, p, c" cpu_ms=", 8)
+    p = timing_put_u64(buf, p, cpu_ms)
+    // Copy LF from a c-string; numeric byte stores of 10 were writing NUL.
+    p = timing_put_lit(buf, p, c"\n", 1)
+    write(2, buf, p as u64)
+}
+
+fn timing_emit_window() {
+    if (timing_log_frames <= 0) {
+        return
+    }
+    var fps: u64 = 0
+    if (timing_log_wall_ms != 0) {
+        fps = (timing_log_frames as u64) * 1000 / timing_log_wall_ms
+    }
+    val dt_ms = timing_log_wall_ms / (timing_log_frames as u64)
+    val avg_cpu = timing_log_cpu_ms / (timing_log_frames as u64)
+    timing_log_line(fps, dt_ms, avg_cpu)
+    timing_log_frames = 0
+    timing_log_cpu_ms = 0
+    timing_log_wall_ms = 0
+}
+
+fn timing_init() {
+    timing_log_buf = alloc(64)
+    val now = GetTicks()
+    timing_prev_ticks = now
+    timing_frame_start = now
+    timing_frames_seen = 0
+    timing_log_frames = 0
+    timing_log_cpu_ms = 0
+    timing_log_wall_ms = 0
+}
+
+// Wall dt since previous begin (includes prior Delay). Clamped for hitches.
+fn timing_begin_frame(): f64 {
+    val now = GetTicks()
+    var elapsed_ms = now - timing_prev_ticks
+    timing_prev_ticks = now
+    timing_frame_start = now
+    var dt = (elapsed_ms as i64) as f64 / 1000.0
+    if (timing_frames_seen == 0) {
+        dt = 0.016
+    }
+    timing_frames_seen = timing_frames_seen + 1
+    if (dt <= 0.0) {
+        dt = 0.001
+    }
+    if (dt > DT_CLAMP_S) {
+        dt = DT_CLAMP_S
+    }
+    return dt
+}
+
+// Cap to TARGET_FRAME_MS when the CPU frame finishes early; log fps/dt/cpu.
+fn timing_end_frame() {
+    val after_cpu = GetTicks()
+    var cpu_ms = after_cpu - timing_frame_start
+    if (cpu_ms < TARGET_FRAME_MS) {
+        val rem = (TARGET_FRAME_MS - cpu_ms) as i64
+        Delay(rem as u32)
+    }
+    val wall_ms = GetTicks() - timing_frame_start
+    timing_log_frames = timing_log_frames + 1
+    timing_log_cpu_ms = timing_log_cpu_ms + cpu_ms
+    timing_log_wall_ms = timing_log_wall_ms + wall_ms
+    if (timing_log_frames >= TIMING_LOG_EVERY) {
+        timing_emit_window()
+    }
+}
+
+fn timing_flush() {
+    timing_emit_window()
+}

@@ -5,6 +5,7 @@ version 0.1.0
 root main.jog
 source math2d.jog
 source world.jog
+source timing.jog
 source ../../sdl.jog
 source ../../sdl3.jog
 link.linux SDL3
