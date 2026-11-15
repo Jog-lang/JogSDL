@@ -39,11 +39,8 @@ fn color(r: u8, g: u8, b: u8, a: u8): Color {
 }
 
 /// True when the underlying SDL renderer pointer is non-null.
-fn Renderer.ok(): i32 {
-    if (self.ptr == null) {
-        return 0
-    }
-    return 1
+fn Renderer.ok(): bool {
+    return self.ptr != null
 }
 
 /// Escape hatch for Friction wasm tick loops that stash opaque pointers.
@@ -142,11 +139,8 @@ fn Renderer.draw_texture(tex: Texture): SDLError? {
 }
 
 /// True when the underlying SDL texture pointer is non-null.
-fn Texture.ok(): i32 {
-    if (self.ptr == null) {
-        return 0
-    }
-    return 1
+fn Texture.ok(): bool {
+    return self.ptr != null
 }
 
 /// Escape hatch for Friction wasm tick loops that stash opaque pointers.

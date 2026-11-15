@@ -12,12 +12,12 @@ fn main() {
     }
 
     val (win, win_err) = CreateWindow(c"JogSDL v2", 640, 480, WindowFlag.Resizable)
-    if (win_err != null || win.ok() == 0) {
+    if (win_err != null || !win.ok()) {
         panic("SDL CreateWindow failed\n")
     }
 
     val (ren, ren_err) = win.create_renderer()
-    if (ren_err != null || ren.ok() == 0) {
+    if (ren_err != null || !ren.ok()) {
         panic("SDL CreateRenderer failed\n")
     }
 
@@ -27,7 +27,7 @@ fn main() {
     val start = GetTicks()
 
     while (running != 0) {
-        while (ev.poll() != 0) {
+        while (ev.poll()) {
             val kind = ev.kind()
             if (kind == EventTypeId.Quit || kind == EventTypeId.WindowCloseRequested) {
                 running = 0

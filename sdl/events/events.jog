@@ -20,11 +20,11 @@ fn EventBuf.raw_ptr(): *byte {
 
 /**
  * Poll the next pending event into this buffer.
- * @return 1 if an event was stored, 0 if the queue is empty
+ * @return true if an event was stored, false if the queue is empty
  * @see https://wiki.libsdl.org/SDL3/SDL_PollEvent
  */
-fn EventBuf.poll(): i32 {
-    return SDL_PollEvent(self.ptr)
+fn EventBuf.poll(): bool {
+    return SDL_PollEvent(self.ptr) != 0
 }
 
 /**
@@ -66,11 +66,11 @@ fn PushEvent(ev: EventBuf): SDLError? {
 /**
  * Poll into a raw blob pointer (Friction / wasm tick).
  * Prefer `EventBuf.poll`.
- * @return 1 if an event was stored, 0 if empty
+ * @return true if an event was stored, false if empty
  * @see https://wiki.libsdl.org/SDL3/SDL_PollEvent
  */
-fn PollEventHas(buf: *byte): i32 {
-    return SDL_PollEvent(buf)
+fn PollEventHas(buf: *byte): bool {
+    return SDL_PollEvent(buf) != 0
 }
 
 /**

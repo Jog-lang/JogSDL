@@ -89,7 +89,7 @@ fn main() {
         panic("SDL Init failed\n")
     }
     val (win, win_err) = CreateWindow(c"input_selftest", 320, 200)
-    if (win_err != null || win.ok() == 0) {
+    if (win_err != null || !win.ok()) {
         panic("CreateWindow failed\n")
     }
     zero_event(blob)
@@ -99,7 +99,7 @@ fn main() {
         panic("PushEvent failed\n")
     }
     var saw = 0
-    while (ev.poll() != 0) {
+    while (ev.poll()) {
         if (ev.kind() == EventTypeId.KeyDown) {
             if (ev.scancode() == Scancode.Escape) {
                 saw = 1

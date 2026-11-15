@@ -29,11 +29,8 @@ fn CreateWindow(title: str, w: i32, h: i32, ...WindowFlag: flags): (Window, SDLE
 }
 
 /// True when the underlying SDL window pointer is non-null.
-fn Window.ok(): i32 {
-    if (self.ptr == null) {
-        return 0
-    }
-    return 1
+fn Window.ok(): bool {
+    return self.ptr != null
 }
 
 /// Escape hatch for Friction paths that must stash an opaque pointer (wasm tick).
@@ -55,15 +52,16 @@ fn Window.destroy() {
 /**
  * Enable or disable relative mouse mode for this window.
  * When enabled, the cursor is hidden and continuous relative motion is reported.
- * @param enabled non-zero to enable, zero to disable
+ * @param enabled true to enable, false to disable
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_SetWindowRelativeMouseMode
  */
-fn Window.set_relative_mouse(enabled: i32): SDLError? {
+fn Window.set_relative_mouse(enabled: bool): SDLError? {
     if (self.ptr == null) {
         return last_error("set_relative_mouse: null window")
     }
-    if (SDL_SetWindowRelativeMouseMode(self.ptr, enabled) == 0) {
+    // sdl3 FFI stays C bool-as-i32; convert at the idiomatic boundary.
+    if (SDL_SetWindowRelativeMouseMode(self.ptr, enabled as i32) == 0) {
         return last_error("SetWindowRelativeMouseMode failed")
     }
     return null
