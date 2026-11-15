@@ -1,6 +1,0 @@
-// Raw SDL3 blendmode — v2 flat merge (generated).
-@link("SDL3")
-extern {
-
-    fn SDL_ComposeCustomBlendMode(srcColorFactor: u32, dstColorFactor: u32, colorOperation: u32, srcAlphaFactor: u32, dstAlphaFactor: u32, alphaOperation: u32): i32
-}

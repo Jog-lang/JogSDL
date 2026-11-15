@@ -1,41 +1,27 @@
-// Idiomatic wrappers over sdl3.hints.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.hints as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL hints (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn SetHint(name: *const c.char, value: *const c.char): sdl.SDLError? {
-    if !raw.SDL_SetHint(name, value) {
-        return sdl.last_error("SetHint failed")
-    }
-    return null
+fn SetHint(name: *byte, value: *byte): i32 {
+    return SDL_SetHint(name, value)
 }
 
-fn ResetHint(name: *const c.char): sdl.SDLError? {
-    if !raw.SDL_ResetHint(name) {
-        return sdl.last_error("ResetHint failed")
-    }
-    return null
+fn ResetHint(name: *byte): i32 {
+    return SDL_ResetHint(name)
 }
 
 fn ResetHints() {
-    raw.SDL_ResetHints()
+    SDL_ResetHints()
 }
 
-fn GetHintBoolean(name: *const c.char, default_value: bool): sdl.SDLError? {
-    if !raw.SDL_GetHintBoolean(name, default_value) {
-        return sdl.last_error("GetHintBoolean failed")
-    }
-    return null
+fn GetHintBoolean(name: *byte, default_value: i32): i32 {
+    return SDL_GetHintBoolean(name, default_value)
 }
 
-fn AddHintCallback(name: *const c.char, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_AddHintCallback(name, callback, userdata) {
-        return sdl.last_error("AddHintCallback failed")
-    }
-    return null
+fn AddHintCallback(name: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_AddHintCallback(name, callback, userdata)
 }
 
-fn RemoveHintCallback(name: *const c.char, callback: *void, userdata: *void) {
-    raw.SDL_RemoveHintCallback(name, callback, userdata)
+fn RemoveHintCallback(name: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_RemoveHintCallback(name, callback, userdata)
 }
+

@@ -1,0 +1,129 @@
+// Controlled input plumbing test (no human typing required).
+// 1) *byte keyboard index stride (the #16 KeyboardIsDown bug)
+// 2) EventBuf type/scancode masks vs qword loads
+// 3) f32bits_to_f64 for a known mouse-delta bit pattern
+// 4) PushEvent round-trip via idiomatic sdl.* (no SDL_* in demos)
+
+fn zero_event(buf: *byte) {
+    var i = 0
+    while (i < 128) {
+        buf[i] = 0
+        i = i + 1
+    }
+}
+
+fn poke_u32(buf: *byte, off: i64, v: i64) {
+    buf[off] = v & 255
+    buf[off + 1] = (v >> 8) & 255
+    buf[off + 2] = (v >> 16) & 255
+    buf[off + 3] = (v >> 24) & 255
+}
+
+fn main() {
+    val sc_w = Scancode.W as u32
+    val sc_esc = Scancode.Escape as u32
+    val ev_key = EventTypeId.KeyDown as u32
+
+    // --- keyboard index ---
+    val kbuf: *byte = alloc(512)
+    var i = 0
+    while (i < 512) {
+        kbuf[i] = 0
+        i = i + 1
+    }
+    kbuf[26] = 1
+    if (kbuf[sc_w] != 0) {
+        print("kbd index stride ok\n")
+    } else {
+        panic("kbd index stride BAD\n")
+    }
+    // Mirror KeyboardIsDown with annotated *byte
+    var n: i32 = 512
+    val state: *byte = kbuf
+    if (state[sc_w] != 0) {
+        print("KeyboardIsDown-style index ok\n")
+    } else {
+        panic("KeyboardIsDown-style index BAD\n")
+    }
+
+    // --- event masks via EventBuf ---
+    var ev = make_event_buf()
+    val blob = ev.raw_ptr()
+    zero_event(blob)
+    poke_u32(blob, 0, ev_key)
+    poke_u32(blob, 24, sc_w)
+    poke_u32(blob, 28, 119)
+    if (ev.kind() == EventTypeId.KeyDown) {
+        print("EventType mask ok\n")
+    } else {
+        panic("EventType mask BAD\n")
+    }
+    if (ev.scancode() == Scancode.W) {
+        print("EventScancode mask ok\n")
+    } else {
+        panic("EventScancode mask BAD\n")
+    }
+    // Unmasked qword compare would fail when keycode sits in high half:
+    val raw = *(blob + 24)
+    if (raw != sc_w) {
+        print("qword scancode != W (expected; proves mask needed)\n")
+    } else {
+        print("qword scancode coincidentally == W\n")
+    }
+
+    // --- f32 bits → f64 (2.0f = 0x40000000) ---
+    if (f32bits_to_f64(1073741824) == 2.0) {
+        print("f32bits_to_f64(2.0f) ok\n")
+    } else {
+        panic("f32bits_to_f64 BAD\n")
+    }
+    // -0.5f = 0xbf000000 = 3204448256
+    if (f32bits_to_f64(3204448256) == (0.0 - 0.5)) {
+        print("f32bits_to_f64(-0.5f) ok\n")
+    } else {
+        panic("f32bits_to_f64(-0.5f) BAD\n")
+    }
+
+    // --- live SDL PushEvent round-trip ---
+    if Init(InitFlag.Video) != null {
+        panic("SDL Init failed\n")
+    }
+    val (win, win_err) = CreateWindow(c"input_selftest", 320, 200)
+    if (win_err != null || win.ok() == 0) {
+        panic("CreateWindow failed\n")
+    }
+    zero_event(blob)
+    poke_u32(blob, 0, ev_key)
+    poke_u32(blob, 24, sc_esc)
+    if (PushEvent(ev) != null) {
+        panic("PushEvent failed\n")
+    }
+    var saw = 0
+    while (ev.poll() != 0) {
+        if (ev.kind() == EventTypeId.KeyDown) {
+            if (ev.scancode() == Scancode.Escape) {
+                saw = 1
+            }
+        }
+    }
+    if (saw != 0) {
+        print("PushEvent PollEvent scancode ok\n")
+    } else {
+        panic("PushEvent PollEvent scancode BAD\n")
+    }
+
+    // Synthetic relative mouse: write f32 3.0 into buffer, promote
+    val mbuf = alloc(8)
+    // 3.0f = 0x40400000 = 1077936128
+    poke_u32(mbuf, 0, 1077936128)
+    poke_u32(mbuf, 4, 0)
+    if (f32_slot_to_f64(mbuf) == 3.0) {
+        print("mouse f32 slot promote ok\n")
+    } else {
+        panic("mouse f32 slot promote BAD\n")
+    }
+
+    win.destroy()
+    Quit()
+    print("input_selftest ok\n")
+}

@@ -1,125 +1,87 @@
-// Idiomatic wrappers over sdl3.properties.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.properties as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL properties (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
 fn GetGlobalProperties(): u32 {
-    return raw.SDL_GetGlobalProperties()
+    return SDL_GetGlobalProperties()
 }
 
 fn CreateProperties(): u32 {
-    return raw.SDL_CreateProperties()
+    return SDL_CreateProperties()
 }
 
-fn CopyProperties(src: u32, dst: u32): sdl.SDLError? {
-    if !raw.SDL_CopyProperties(src, dst) {
-        return sdl.last_error("CopyProperties failed")
-    }
-    return null
+fn CopyProperties(src: u32, dst: u32): i32 {
+    return SDL_CopyProperties(src, dst)
 }
 
-fn LockProperties(props: u32): sdl.SDLError? {
-    if !raw.SDL_LockProperties(props) {
-        return sdl.last_error("LockProperties failed")
-    }
-    return null
+fn LockProperties(props: u32): i32 {
+    return SDL_LockProperties(props)
 }
 
 fn UnlockProperties(props: u32) {
-    raw.SDL_UnlockProperties(props)
+    SDL_UnlockProperties(props)
 }
 
-fn SetPointerPropertyWithCleanup(props: u32, name: *const c.char, value: *void, cleanup: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_SetPointerPropertyWithCleanup(props, name, value, cleanup, userdata) {
-        return sdl.last_error("SetPointerPropertyWithCleanup failed")
-    }
-    return null
+fn SetPointerProperty(props: u32, name: *byte, value: *byte): i32 {
+    return SDL_SetPointerProperty(props, name, value)
 }
 
-fn SetPointerProperty(props: u32, name: *const c.char, value: *void): sdl.SDLError? {
-    if !raw.SDL_SetPointerProperty(props, name, value) {
-        return sdl.last_error("SetPointerProperty failed")
-    }
-    return null
+fn SetStringProperty(props: u32, name: *byte, value: *byte): i32 {
+    return SDL_SetStringProperty(props, name, value)
 }
 
-fn SetStringProperty(props: u32, name: *const c.char, value: *const c.char): sdl.SDLError? {
-    if !raw.SDL_SetStringProperty(props, name, value) {
-        return sdl.last_error("SetStringProperty failed")
-    }
-    return null
+fn SetNumberProperty(props: u32, name: *byte, value: i64): i32 {
+    return SDL_SetNumberProperty(props, name, value)
 }
 
-fn SetNumberProperty(props: u32, name: *const c.char, value: i64): sdl.SDLError? {
-    if !raw.SDL_SetNumberProperty(props, name, value) {
-        return sdl.last_error("SetNumberProperty failed")
-    }
-    return null
+fn SetFloatProperty(props: u32, name: *byte, value: f32): i32 {
+    return SDL_SetFloatProperty(props, name, value)
 }
 
-fn SetFloatProperty(props: u32, name: *const c.char, value: f32): sdl.SDLError? {
-    if !raw.SDL_SetFloatProperty(props, name, value) {
-        return sdl.last_error("SetFloatProperty failed")
-    }
-    return null
+fn SetBooleanProperty(props: u32, name: *byte, value: i32): i32 {
+    return SDL_SetBooleanProperty(props, name, value)
 }
 
-fn SetBooleanProperty(props: u32, name: *const c.char, value: bool): sdl.SDLError? {
-    if !raw.SDL_SetBooleanProperty(props, name, value) {
-        return sdl.last_error("SetBooleanProperty failed")
-    }
-    return null
+fn HasProperty(props: u32, name: *byte): i32 {
+    return SDL_HasProperty(props, name)
 }
 
-fn HasProperty(props: u32, name: *const c.char): sdl.SDLError? {
-    if !raw.SDL_HasProperty(props, name) {
-        return sdl.last_error("HasProperty failed")
-    }
-    return null
+fn GetPointerProperty(props: u32, name: *byte, default_value: *byte): *byte {
+    return SDL_GetPointerProperty(props, name, default_value)
 }
 
-fn GetPropertyType(props: u32, name: *const c.char): u32 {
-    return raw.SDL_GetPropertyType(props, name)
+fn GetStringProperty(props: u32, name: *byte, default_value: *byte): *byte {
+    return SDL_GetStringProperty(props, name, default_value)
 }
 
-fn GetPointerProperty(props: u32, name: *const c.char, default_value: *void): *void {
-    return raw.SDL_GetPointerProperty(props, name, default_value)
+fn GetNumberProperty(props: u32, name: *byte, default_value: i64): i64 {
+    return SDL_GetNumberProperty(props, name, default_value)
 }
 
-fn GetStringProperty(props: u32, name: *const c.char, default_value: *const c.char): *const c.char {
-    return raw.SDL_GetStringProperty(props, name, default_value)
+fn GetFloatProperty(props: u32, name: *byte, default_value: f32): f32 {
+    return SDL_GetFloatProperty(props, name, default_value)
 }
 
-fn GetNumberProperty(props: u32, name: *const c.char, default_value: i64): i64 {
-    return raw.SDL_GetNumberProperty(props, name, default_value)
+fn GetBooleanProperty(props: u32, name: *byte, default_value: i32): i32 {
+    return SDL_GetBooleanProperty(props, name, default_value)
 }
 
-fn GetFloatProperty(props: u32, name: *const c.char, default_value: f32): f32 {
-    return raw.SDL_GetFloatProperty(props, name, default_value)
-}
-
-fn GetBooleanProperty(props: u32, name: *const c.char, default_value: bool): sdl.SDLError? {
-    if !raw.SDL_GetBooleanProperty(props, name, default_value) {
-        return sdl.last_error("GetBooleanProperty failed")
-    }
-    return null
-}
-
-fn ClearProperty(props: u32, name: *const c.char): sdl.SDLError? {
-    if !raw.SDL_ClearProperty(props, name) {
-        return sdl.last_error("ClearProperty failed")
-    }
-    return null
-}
-
-fn EnumerateProperties(props: u32, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_EnumerateProperties(props, callback, userdata) {
-        return sdl.last_error("EnumerateProperties failed")
-    }
-    return null
+fn ClearProperty(props: u32, name: *byte): i32 {
+    return SDL_ClearProperty(props, name)
 }
 
 fn DestroyProperties(props: u32) {
-    raw.SDL_DestroyProperties(props)
+    SDL_DestroyProperties(props)
 }
+
+fn EnumerateProperties(props: u32, callback: *byte, userdata: *byte): i32 {
+    return SDL_EnumerateProperties(props, callback, userdata)
+}
+
+fn GetPropertyType(props: u32, name: *byte): *byte {
+    return SDL_GetPropertyType(props, name)
+}
+
+fn SetPointerPropertyWithCleanup(props: u32, name: *byte, value: *byte, cleanup: *byte, userdata: *byte): i32 {
+    return SDL_SetPointerPropertyWithCleanup(props, name, value, cleanup, userdata)
+}
+

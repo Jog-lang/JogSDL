@@ -1,6 +1,0 @@
-// Raw SDL3 version — v2 flat merge (generated).
-@link("SDL3")
-extern {
-    fn SDL_GetVersion(): i32
-    fn SDL_GetRevision(): *byte
-}

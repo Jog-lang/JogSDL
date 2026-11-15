@@ -1,322 +1,263 @@
-// Idiomatic wrappers over sdl3.gamepad.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.gamepad as raw
-import sdl3.guid
-import sdl3.iostream
-import sdl3.joystick
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL gamepad (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Gamepad {
-    ptr: *raw.SDL_Gamepad?
+fn AddGamepadMapping(mapping: *byte): i32 {
+    return SDL_AddGamepadMapping(mapping)
 }
 
-fn empty_gamepad(): Gamepad {
-    var h: Gamepad
-    return h
+fn AddGamepadMappingsFromIO(src: *byte, closeio: i32): i32 {
+    return SDL_AddGamepadMappingsFromIO(src, closeio)
 }
 
-fn AddGamepadMapping(mapping: *const c.char): c.int {
-    return raw.SDL_AddGamepadMapping(mapping)
+fn AddGamepadMappingsFromFile(file: *byte): i32 {
+    return SDL_AddGamepadMappingsFromFile(file)
 }
 
-fn AddGamepadMappingsFromIO(src: *iostream.SDL_IOStream, closeio: bool): c.int {
-    return raw.SDL_AddGamepadMappingsFromIO(src, closeio)
+fn ReloadGamepadMappings(): i32 {
+    return SDL_ReloadGamepadMappings()
 }
 
-fn AddGamepadMappingsFromFile(file: *const c.char): c.int {
-    return raw.SDL_AddGamepadMappingsFromFile(file)
+fn GetGamepadMappings(count: *byte): **byte {
+    return SDL_GetGamepadMappings(count)
 }
 
-fn ReloadGamepadMappings(): sdl.SDLError? {
-    if !raw.SDL_ReloadGamepadMappings() {
-        return sdl.last_error("ReloadGamepadMappings failed")
-    }
-    return null
+fn GetGamepadMapping(gamepad: *byte): *byte {
+    return SDL_GetGamepadMapping(gamepad)
 }
 
-fn GetGamepadMappings(count: *c.int): **c.char {
-    return raw.SDL_GetGamepadMappings(count)
+fn SetGamepadMapping(instance_id: u32, mapping: *byte): i32 {
+    return SDL_SetGamepadMapping(instance_id, mapping)
 }
 
-fn GetGamepadMappingForGUID(guid: guid.SDL_GUID): *c.char {
-    return raw.SDL_GetGamepadMappingForGUID(guid)
+fn HasGamepad(): i32 {
+    return SDL_HasGamepad()
 }
 
-fn GetGamepadMapping(gamepad: *raw.SDL_Gamepad): *c.char {
-    return raw.SDL_GetGamepadMapping(gamepad)
+fn GetGamepads(count: *byte): *byte {
+    return SDL_GetGamepads(count)
 }
 
-fn SetGamepadMapping(instance_id: u32, mapping: *const c.char): sdl.SDLError? {
-    if !raw.SDL_SetGamepadMapping(instance_id, mapping) {
-        return sdl.last_error("SetGamepadMapping failed")
-    }
-    return null
+fn IsGamepad(instance_id: u32): i32 {
+    return SDL_IsGamepad(instance_id)
 }
 
-fn HasGamepad(): sdl.SDLError? {
-    if !raw.SDL_HasGamepad() {
-        return sdl.last_error("HasGamepad failed")
-    }
-    return null
+fn GetGamepadNameForID(instance_id: u32): *byte {
+    return SDL_GetGamepadNameForID(instance_id)
 }
 
-fn GetGamepads(count: *c.int): *u32 {
-    return raw.SDL_GetGamepads(count)
+fn GetGamepadPathForID(instance_id: u32): *byte {
+    return SDL_GetGamepadPathForID(instance_id)
 }
 
-fn IsGamepad(instance_id: u32): sdl.SDLError? {
-    if !raw.SDL_IsGamepad(instance_id) {
-        return sdl.last_error("IsGamepad failed")
-    }
-    return null
-}
-
-fn GetGamepadNameForID(instance_id: u32): *const c.char {
-    return raw.SDL_GetGamepadNameForID(instance_id)
-}
-
-fn GetGamepadPathForID(instance_id: u32): *const c.char {
-    return raw.SDL_GetGamepadPathForID(instance_id)
-}
-
-fn GetGamepadPlayerIndexForID(instance_id: u32): c.int {
-    return raw.SDL_GetGamepadPlayerIndexForID(instance_id)
-}
-
-fn GetGamepadGUIDForID(instance_id: u32): guid.SDL_GUID {
-    return raw.SDL_GetGamepadGUIDForID(instance_id)
+fn GetGamepadPlayerIndexForID(instance_id: u32): i32 {
+    return SDL_GetGamepadPlayerIndexForID(instance_id)
 }
 
 fn GetGamepadVendorForID(instance_id: u32): u16 {
-    return raw.SDL_GetGamepadVendorForID(instance_id)
+    return SDL_GetGamepadVendorForID(instance_id)
 }
 
 fn GetGamepadProductForID(instance_id: u32): u16 {
-    return raw.SDL_GetGamepadProductForID(instance_id)
+    return SDL_GetGamepadProductForID(instance_id)
 }
 
 fn GetGamepadProductVersionForID(instance_id: u32): u16 {
-    return raw.SDL_GetGamepadProductVersionForID(instance_id)
+    return SDL_GetGamepadProductVersionForID(instance_id)
 }
 
-fn GetGamepadTypeForID(instance_id: u32): u32 {
-    return raw.SDL_GetGamepadTypeForID(instance_id)
+fn GetGamepadMappingForID(instance_id: u32): *byte {
+    return SDL_GetGamepadMappingForID(instance_id)
 }
 
-fn GetRealGamepadTypeForID(instance_id: u32): u32 {
-    return raw.SDL_GetRealGamepadTypeForID(instance_id)
+fn OpenGamepad(instance_id: u32): *byte {
+    return SDL_OpenGamepad(instance_id)
 }
 
-fn GetGamepadMappingForID(instance_id: u32): *c.char {
-    return raw.SDL_GetGamepadMappingForID(instance_id)
+fn GetGamepadFromID(instance_id: u32): *byte {
+    return SDL_GetGamepadFromID(instance_id)
 }
 
-fn OpenGamepad(instance_id: u32): *raw.SDL_Gamepad {
-    return raw.SDL_OpenGamepad(instance_id)
+fn GetGamepadFromPlayerIndex(player_index: i32): *byte {
+    return SDL_GetGamepadFromPlayerIndex(player_index)
 }
 
-fn GetGamepadFromID(instance_id: u32): *raw.SDL_Gamepad {
-    return raw.SDL_GetGamepadFromID(instance_id)
+fn GetGamepadProperties(gamepad: *byte): u32 {
+    return SDL_GetGamepadProperties(gamepad)
 }
 
-fn GetGamepadFromPlayerIndex(player_index: c.int): *raw.SDL_Gamepad {
-    return raw.SDL_GetGamepadFromPlayerIndex(player_index)
+fn GetGamepadID(gamepad: *byte): u32 {
+    return SDL_GetGamepadID(gamepad)
 }
 
-fn GetGamepadProperties(gamepad: *raw.SDL_Gamepad): u32 {
-    return raw.SDL_GetGamepadProperties(gamepad)
+fn GetGamepadName(gamepad: *byte): *byte {
+    return SDL_GetGamepadName(gamepad)
 }
 
-fn GetGamepadID(gamepad: *raw.SDL_Gamepad): u32 {
-    return raw.SDL_GetGamepadID(gamepad)
+fn GetGamepadPath(gamepad: *byte): *byte {
+    return SDL_GetGamepadPath(gamepad)
 }
 
-fn GetGamepadName(gamepad: *raw.SDL_Gamepad): *const c.char {
-    return raw.SDL_GetGamepadName(gamepad)
+fn GetGamepadPlayerIndex(gamepad: *byte): i32 {
+    return SDL_GetGamepadPlayerIndex(gamepad)
 }
 
-fn GetGamepadPath(gamepad: *raw.SDL_Gamepad): *const c.char {
-    return raw.SDL_GetGamepadPath(gamepad)
+fn SetGamepadPlayerIndex(gamepad: *byte, player_index: i32): i32 {
+    return SDL_SetGamepadPlayerIndex(gamepad, player_index)
 }
 
-fn GetGamepadType(gamepad: *raw.SDL_Gamepad): u32 {
-    return raw.SDL_GetGamepadType(gamepad)
+fn GetGamepadVendor(gamepad: *byte): u16 {
+    return SDL_GetGamepadVendor(gamepad)
 }
 
-fn GetRealGamepadType(gamepad: *raw.SDL_Gamepad): u32 {
-    return raw.SDL_GetRealGamepadType(gamepad)
+fn GetGamepadProduct(gamepad: *byte): u16 {
+    return SDL_GetGamepadProduct(gamepad)
 }
 
-fn GetGamepadPlayerIndex(gamepad: *raw.SDL_Gamepad): c.int {
-    return raw.SDL_GetGamepadPlayerIndex(gamepad)
+fn GetGamepadProductVersion(gamepad: *byte): u16 {
+    return SDL_GetGamepadProductVersion(gamepad)
 }
 
-fn SetGamepadPlayerIndex(gamepad: *raw.SDL_Gamepad, player_index: c.int): sdl.SDLError? {
-    if !raw.SDL_SetGamepadPlayerIndex(gamepad, player_index) {
-        return sdl.last_error("SetGamepadPlayerIndex failed")
-    }
-    return null
+fn GetGamepadFirmwareVersion(gamepad: *byte): u16 {
+    return SDL_GetGamepadFirmwareVersion(gamepad)
 }
 
-fn GetGamepadVendor(gamepad: *raw.SDL_Gamepad): u16 {
-    return raw.SDL_GetGamepadVendor(gamepad)
+fn GetGamepadSerial(gamepad: *byte): *byte {
+    return SDL_GetGamepadSerial(gamepad)
 }
 
-fn GetGamepadProduct(gamepad: *raw.SDL_Gamepad): u16 {
-    return raw.SDL_GetGamepadProduct(gamepad)
+fn GetGamepadSteamHandle(gamepad: *byte): u64 {
+    return SDL_GetGamepadSteamHandle(gamepad)
 }
 
-fn GetGamepadProductVersion(gamepad: *raw.SDL_Gamepad): u16 {
-    return raw.SDL_GetGamepadProductVersion(gamepad)
+fn GamepadConnected(gamepad: *byte): i32 {
+    return SDL_GamepadConnected(gamepad)
 }
 
-fn GetGamepadFirmwareVersion(gamepad: *raw.SDL_Gamepad): u16 {
-    return raw.SDL_GetGamepadFirmwareVersion(gamepad)
+fn GetGamepadJoystick(gamepad: *byte): *byte {
+    return SDL_GetGamepadJoystick(gamepad)
 }
 
-fn GetGamepadSerial(gamepad: *raw.SDL_Gamepad): *const c.char {
-    return raw.SDL_GetGamepadSerial(gamepad)
+fn SetGamepadEventsEnabled(enabled: i32) {
+    SDL_SetGamepadEventsEnabled(enabled)
 }
 
-fn GetGamepadSteamHandle(gamepad: *raw.SDL_Gamepad): u64 {
-    return raw.SDL_GetGamepadSteamHandle(gamepad)
+fn GamepadEventsEnabled(): i32 {
+    return SDL_GamepadEventsEnabled()
 }
 
-fn GetGamepadPowerInfo(gamepad: *raw.SDL_Gamepad, percent: *c.int): u32 {
-    return raw.SDL_GetGamepadPowerInfo(gamepad, percent)
-}
-
-fn GamepadConnected(gamepad: *raw.SDL_Gamepad): sdl.SDLError? {
-    if !raw.SDL_GamepadConnected(gamepad) {
-        return sdl.last_error("GamepadConnected failed")
-    }
-    return null
-}
-
-fn GetGamepadJoystick(gamepad: *raw.SDL_Gamepad): *joystick.SDL_Joystick {
-    return raw.SDL_GetGamepadJoystick(gamepad)
-}
-
-fn SetGamepadEventsEnabled(enabled: bool) {
-    raw.SDL_SetGamepadEventsEnabled(enabled)
-}
-
-fn GamepadEventsEnabled(): sdl.SDLError? {
-    if !raw.SDL_GamepadEventsEnabled() {
-        return sdl.last_error("GamepadEventsEnabled failed")
-    }
-    return null
-}
-
-fn GetGamepadBindings(gamepad: *raw.SDL_Gamepad, count: *c.int): **void {
-    return raw.SDL_GetGamepadBindings(gamepad, count)
+fn GetGamepadBindings(gamepad: *byte, count: *byte): **byte {
+    return SDL_GetGamepadBindings(gamepad, count)
 }
 
 fn UpdateGamepads() {
-    raw.SDL_UpdateGamepads()
+    SDL_UpdateGamepads()
 }
 
-fn GetGamepadTypeFromString(str: *const c.char): u32 {
-    return raw.SDL_GetGamepadTypeFromString(str)
+fn GetNumGamepadTouchpads(gamepad: *byte): i32 {
+    return SDL_GetNumGamepadTouchpads(gamepad)
 }
 
-fn GetGamepadStringForType(type_: u32): *const c.char {
-    return raw.SDL_GetGamepadStringForType(type_)
+fn GetNumGamepadTouchpadFingers(gamepad: *byte, touchpad: i32): i32 {
+    return SDL_GetNumGamepadTouchpadFingers(gamepad, touchpad)
 }
 
-fn GetGamepadAxisFromString(str: *const c.char): u32 {
-    return raw.SDL_GetGamepadAxisFromString(str)
+fn GetGamepadTouchpadFinger(gamepad: *byte, touchpad: i32, finger: i32, down: *byte, x: *byte, y: *byte, pressure: *byte): i32 {
+    return SDL_GetGamepadTouchpadFinger(gamepad, touchpad, finger, down, x, y, pressure)
 }
 
-fn GetGamepadStringForAxis(axis: u32): *const c.char {
-    return raw.SDL_GetGamepadStringForAxis(axis)
+fn RumbleGamepad(gamepad: *byte, low_frequency_rumble: u16, high_frequency_rumble: u16, duration_ms: u32): i32 {
+    return SDL_RumbleGamepad(gamepad, low_frequency_rumble, high_frequency_rumble, duration_ms)
 }
 
-fn GamepadHasAxis(gamepad: *raw.SDL_Gamepad, axis: u32): sdl.SDLError? {
-    if !raw.SDL_GamepadHasAxis(gamepad, axis) {
-        return sdl.last_error("GamepadHasAxis failed")
-    }
-    return null
+fn RumbleGamepadTriggers(gamepad: *byte, left_rumble: u16, right_rumble: u16, duration_ms: u32): i32 {
+    return SDL_RumbleGamepadTriggers(gamepad, left_rumble, right_rumble, duration_ms)
 }
 
-fn GetGamepadAxis(gamepad: *raw.SDL_Gamepad, axis: u32): i16 {
-    return raw.SDL_GetGamepadAxis(gamepad, axis)
+fn SetGamepadLED(gamepad: *byte, red: u8, green: u8, blue: u8): i32 {
+    return SDL_SetGamepadLED(gamepad, red, green, blue)
 }
 
-fn GetGamepadButtonFromString(str: *const c.char): u32 {
-    return raw.SDL_GetGamepadButtonFromString(str)
+fn SendGamepadEffect(gamepad: *byte, data: *byte, size: i32): i32 {
+    return SDL_SendGamepadEffect(gamepad, data, size)
 }
 
-fn GetGamepadStringForButton(button: u32): *const c.char {
-    return raw.SDL_GetGamepadStringForButton(button)
+fn CloseGamepad(gamepad: *byte) {
+    SDL_CloseGamepad(gamepad)
 }
 
-fn GamepadHasButton(gamepad: *raw.SDL_Gamepad, button: u32): sdl.SDLError? {
-    if !raw.SDL_GamepadHasButton(gamepad, button) {
-        return sdl.last_error("GamepadHasButton failed")
-    }
-    return null
+fn GamepadHasAxis(gamepad: *byte, axis: u32): i32 {
+    return SDL_GamepadHasAxis(gamepad, axis)
 }
 
-fn GetGamepadButton(gamepad: *raw.SDL_Gamepad, button: u32): sdl.SDLError? {
-    if !raw.SDL_GetGamepadButton(gamepad, button) {
-        return sdl.last_error("GetGamepadButton failed")
-    }
-    return null
+fn GamepadHasButton(gamepad: *byte, button: u32): i32 {
+    return SDL_GamepadHasButton(gamepad, button)
 }
 
-fn GetNumGamepadTouchpads(gamepad: *raw.SDL_Gamepad): c.int {
-    return raw.SDL_GetNumGamepadTouchpads(gamepad)
+fn GetGamepadAppleSFSymbolsNameForAxis(gamepad: *byte, axis: u32): *byte {
+    return SDL_GetGamepadAppleSFSymbolsNameForAxis(gamepad, axis)
 }
 
-fn GetNumGamepadTouchpadFingers(gamepad: *raw.SDL_Gamepad, touchpad: c.int): c.int {
-    return raw.SDL_GetNumGamepadTouchpadFingers(gamepad, touchpad)
+fn GetGamepadAppleSFSymbolsNameForButton(gamepad: *byte, button: u32): *byte {
+    return SDL_GetGamepadAppleSFSymbolsNameForButton(gamepad, button)
 }
 
-fn GetGamepadTouchpadFinger(gamepad: *raw.SDL_Gamepad, touchpad: c.int, finger: c.int, down: *bool, x: *f32, y: *f32, pressure: *f32): sdl.SDLError? {
-    if !raw.SDL_GetGamepadTouchpadFinger(gamepad, touchpad, finger, down, x, y, pressure) {
-        return sdl.last_error("GetGamepadTouchpadFinger failed")
-    }
-    return null
+fn GetGamepadAxis(gamepad: *byte, axis: u32): *byte {
+    return SDL_GetGamepadAxis(gamepad, axis)
 }
 
-fn RumbleGamepad(gamepad: *raw.SDL_Gamepad, low_frequency_rumble: u16, high_frequency_rumble: u16, duration_ms: u32): sdl.SDLError? {
-    if !raw.SDL_RumbleGamepad(gamepad, low_frequency_rumble, high_frequency_rumble, duration_ms) {
-        return sdl.last_error("RumbleGamepad failed")
-    }
-    return null
+fn GetGamepadAxisFromString(str: *byte): *byte {
+    return SDL_GetGamepadAxisFromString(str)
 }
 
-fn RumbleGamepadTriggers(gamepad: *raw.SDL_Gamepad, left_rumble: u16, right_rumble: u16, duration_ms: u32): sdl.SDLError? {
-    if !raw.SDL_RumbleGamepadTriggers(gamepad, left_rumble, right_rumble, duration_ms) {
-        return sdl.last_error("RumbleGamepadTriggers failed")
-    }
-    return null
+fn GetGamepadButton(gamepad: *byte, button: u32): *byte {
+    return SDL_GetGamepadButton(gamepad, button)
 }
 
-fn SetGamepadLED(gamepad: *raw.SDL_Gamepad, red: u8, green: u8, blue: u8): sdl.SDLError? {
-    if !raw.SDL_SetGamepadLED(gamepad, red, green, blue) {
-        return sdl.last_error("SetGamepadLED failed")
-    }
-    return null
+fn GetGamepadButtonFromString(str: *byte): *byte {
+    return SDL_GetGamepadButtonFromString(str)
 }
 
-fn SendGamepadEffect(gamepad: *raw.SDL_Gamepad, data: *const void, size: c.int): sdl.SDLError? {
-    if !raw.SDL_SendGamepadEffect(gamepad, data, size) {
-        return sdl.last_error("SendGamepadEffect failed")
-    }
-    return null
+fn GetGamepadGUIDForID(instance_id: u32): *byte {
+    return SDL_GetGamepadGUIDForID(instance_id)
 }
 
-fn CloseGamepad(gamepad: *raw.SDL_Gamepad) {
-    raw.SDL_CloseGamepad(gamepad)
+fn GetGamepadMappingForGUID(guid: i32): *byte {
+    return SDL_GetGamepadMappingForGUID(guid)
 }
 
-fn GetGamepadAppleSFSymbolsNameForButton(gamepad: *raw.SDL_Gamepad, button: u32): *const c.char {
-    return raw.SDL_GetGamepadAppleSFSymbolsNameForButton(gamepad, button)
+fn GetGamepadPowerInfo(gamepad: *byte, percent: *byte): *byte {
+    return SDL_GetGamepadPowerInfo(gamepad, percent)
 }
 
-fn GetGamepadAppleSFSymbolsNameForAxis(gamepad: *raw.SDL_Gamepad, axis: u32): *const c.char {
-    return raw.SDL_GetGamepadAppleSFSymbolsNameForAxis(gamepad, axis)
+fn GetGamepadStringForAxis(axis: u32): *byte {
+    return SDL_GetGamepadStringForAxis(axis)
 }
+
+fn GetGamepadStringForButton(button: u32): *byte {
+    return SDL_GetGamepadStringForButton(button)
+}
+
+fn GetGamepadStringForType(type_: u32): *byte {
+    return SDL_GetGamepadStringForType(type_)
+}
+
+fn GetGamepadType(gamepad: *byte): *byte {
+    return SDL_GetGamepadType(gamepad)
+}
+
+fn GetGamepadTypeForID(instance_id: u32): *byte {
+    return SDL_GetGamepadTypeForID(instance_id)
+}
+
+fn GetGamepadTypeFromString(str: *byte): *byte {
+    return SDL_GetGamepadTypeFromString(str)
+}
+
+fn GetRealGamepadType(gamepad: *byte): *byte {
+    return SDL_GetRealGamepadType(gamepad)
+}
+
+fn GetRealGamepadTypeForID(instance_id: u32): *byte {
+    return SDL_GetRealGamepadTypeForID(instance_id)
+}
+

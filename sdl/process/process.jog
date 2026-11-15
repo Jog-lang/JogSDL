@@ -1,59 +1,39 @@
-// Idiomatic wrappers over sdl3.process.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.process as raw
-import sdl3.iostream
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL process (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Process {
-    ptr: *raw.SDL_Process?
+fn CreateProcess(args: **byte, pipe_stdio: i32): *byte {
+    return SDL_CreateProcess(args, pipe_stdio)
 }
 
-fn empty_process(): Process {
-    var h: Process
-    return h
+fn CreateProcessWithProperties(props: u32): *byte {
+    return SDL_CreateProcessWithProperties(props)
 }
 
-fn CreateProcess(args: **c.char, pipe_stdio: bool): *raw.SDL_Process {
-    return raw.SDL_CreateProcess(args, pipe_stdio)
+fn GetProcessProperties(process: *byte): u32 {
+    return SDL_GetProcessProperties(process)
 }
 
-fn CreateProcessWithProperties(props: u32): *raw.SDL_Process {
-    return raw.SDL_CreateProcessWithProperties(props)
+fn ReadProcess(process: *byte, datasize: *byte, exitcode: *byte): *byte {
+    return SDL_ReadProcess(process, datasize, exitcode)
 }
 
-fn GetProcessProperties(process: *raw.SDL_Process): u32 {
-    return raw.SDL_GetProcessProperties(process)
+fn GetProcessInput(process: *byte): *byte {
+    return SDL_GetProcessInput(process)
 }
 
-fn ReadProcess(process: *raw.SDL_Process, datasize: *c.size_t, exitcode: *c.int): *void {
-    return raw.SDL_ReadProcess(process, datasize, exitcode)
+fn GetProcessOutput(process: *byte): *byte {
+    return SDL_GetProcessOutput(process)
 }
 
-fn GetProcessInput(process: *raw.SDL_Process): *iostream.SDL_IOStream {
-    return raw.SDL_GetProcessInput(process)
+fn KillProcess(process: *byte, force: i32): i32 {
+    return SDL_KillProcess(process, force)
 }
 
-fn GetProcessOutput(process: *raw.SDL_Process): *iostream.SDL_IOStream {
-    return raw.SDL_GetProcessOutput(process)
+fn WaitProcess(process: *byte, block: i32, exitcode: *byte): i32 {
+    return SDL_WaitProcess(process, block, exitcode)
 }
 
-fn KillProcess(process: *raw.SDL_Process, force: bool): sdl.SDLError? {
-    if !raw.SDL_KillProcess(process, force) {
-        return sdl.last_error("KillProcess failed")
-    }
-    return null
+fn DestroyProcess(process: *byte) {
+    SDL_DestroyProcess(process)
 }
 
-fn WaitProcess(process: *raw.SDL_Process, block: bool, exitcode: *c.int): sdl.SDLError? {
-    if !raw.SDL_WaitProcess(process, block, exitcode) {
-        return sdl.last_error("WaitProcess failed")
-    }
-    return null
-}
-
-fn Process.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyProcess(self.ptr!!)
-    }
-}

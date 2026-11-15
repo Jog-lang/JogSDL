@@ -1,8 +1,7 @@
-// Idiomatic wrappers over sdl3.platform.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.platform as raw
-import std.c
+// Idiomatic v2 wrappers for SDL platform (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GetPlatform(): *const c.char {
-    return raw.SDL_GetPlatform()
+fn GetPlatform(): *byte {
+    return SDL_GetPlatform()
 }
+

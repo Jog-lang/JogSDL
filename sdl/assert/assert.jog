@@ -1,23 +1,23 @@
-// Idiomatic wrappers over sdl3.assert.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.assert as raw
+// Idiomatic v2 wrappers for SDL assert (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn SetAssertionHandler(handler: *void, userdata: *void) {
-    raw.SDL_SetAssertionHandler(handler, userdata)
-}
-
-fn GetDefaultAssertionHandler(): *void {
-    return raw.SDL_GetDefaultAssertionHandler()
-}
-
-fn GetAssertionHandler(puserdata: **void): *void {
-    return raw.SDL_GetAssertionHandler(puserdata)
-}
-
-fn GetAssertionReport(): *const void {
-    return raw.SDL_GetAssertionReport()
+fn GetAssertionReport(): *byte {
+    return SDL_GetAssertionReport()
 }
 
 fn ResetAssertionReport() {
-    raw.SDL_ResetAssertionReport()
+    SDL_ResetAssertionReport()
 }
+
+fn GetAssertionHandler(puserdata: **byte): *byte {
+    return SDL_GetAssertionHandler(puserdata)
+}
+
+fn GetDefaultAssertionHandler(): *byte {
+    return SDL_GetDefaultAssertionHandler()
+}
+
+fn SetAssertionHandler(handler: *byte, userdata: *byte): i32 {
+    return SDL_SetAssertionHandler(handler, userdata)
+}
+

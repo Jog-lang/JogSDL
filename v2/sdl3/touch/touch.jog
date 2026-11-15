@@ -1,7 +1,0 @@
-// Raw SDL3 touch — v2 flat merge (generated).
-@link("SDL3")
-extern {
-    fn SDL_GetTouchDevices(count: *byte): *byte
-    fn SDL_GetTouchDeviceName(touchID: u64): *byte
-    fn SDL_GetTouchFingers(touchID: u64, count: *byte): **byte
-}

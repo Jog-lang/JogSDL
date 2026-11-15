@@ -1,8 +1,7 @@
-// Idiomatic wrappers over sdl3.power.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.power as raw
-import std.c
+// Idiomatic v2 wrappers for SDL power (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GetPowerInfo(seconds: *c.int, percent: *c.int): u32 {
-    return raw.SDL_GetPowerInfo(seconds, percent)
+fn GetPowerInfo(seconds: *byte, percent: *byte): *byte {
+    return SDL_GetPowerInfo(seconds, percent)
 }
+

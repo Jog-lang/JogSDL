@@ -1,25 +1,20 @@
-// Raw SDL3 storage — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-import std.c
-
-@opaque struct SDL_Storage
-
+// Raw SDL3 storage — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_OpenTitleStorage(override: *const c.char, props: u32): *SDL_Storage
-    fn SDL_OpenUserStorage(org: *const c.char, app: *const c.char, props: u32): *SDL_Storage
-    fn SDL_OpenFileStorage(path: *const c.char): *SDL_Storage
-    fn SDL_OpenStorage(iface: *const void, userdata: *void): *SDL_Storage
-    fn SDL_CloseStorage(storage: *SDL_Storage): bool
-    fn SDL_StorageReady(storage: *SDL_Storage): bool
-    fn SDL_GetStorageFileSize(storage: *SDL_Storage, path: *const c.char, length: *u64): bool
-    fn SDL_ReadStorageFile(storage: *SDL_Storage, path: *const c.char, destination: *void, length: u64): bool
-    fn SDL_WriteStorageFile(storage: *SDL_Storage, path: *const c.char, source: *const void, length: u64): bool
-    fn SDL_CreateStorageDirectory(storage: *SDL_Storage, path: *const c.char): bool
-    fn SDL_EnumerateStorageDirectory(storage: *SDL_Storage, path: *const c.char, callback: *void, userdata: *void): bool
-    fn SDL_RemoveStoragePath(storage: *SDL_Storage, path: *const c.char): bool
-    fn SDL_RenameStoragePath(storage: *SDL_Storage, oldpath: *const c.char, newpath: *const c.char): bool
-    fn SDL_CopyStorageFile(storage: *SDL_Storage, oldpath: *const c.char, newpath: *const c.char): bool
-    fn SDL_GetStoragePathInfo(storage: *SDL_Storage, path: *const c.char, info: *void): bool
-    fn SDL_GetStorageSpaceRemaining(storage: *SDL_Storage): u64
+    fn SDL_OpenTitleStorage(override: *byte, props: u32): *byte
+    fn SDL_OpenUserStorage(org: *byte, app: *byte, props: u32): *byte
+    fn SDL_OpenFileStorage(path: *byte): *byte
+    fn SDL_OpenStorage(iface: *byte, userdata: *byte): *byte
+    fn SDL_CloseStorage(storage: *byte): i32
+    fn SDL_StorageReady(storage: *byte): i32
+    fn SDL_GetStorageFileSize(storage: *byte, path: *byte, length: *byte): i32
+    fn SDL_ReadStorageFile(storage: *byte, path: *byte, destination: *byte, length: u64): i32
+    fn SDL_WriteStorageFile(storage: *byte, path: *byte, source: *byte, length: u64): i32
+    fn SDL_CreateStorageDirectory(storage: *byte, path: *byte): i32
+    fn SDL_RemoveStoragePath(storage: *byte, path: *byte): i32
+    fn SDL_RenameStoragePath(storage: *byte, oldpath: *byte, newpath: *byte): i32
+    fn SDL_CopyStorageFile(storage: *byte, oldpath: *byte, newpath: *byte): i32
+    fn SDL_GetStoragePathInfo(storage: *byte, path: *byte, info: *byte): i32
+    fn SDL_GetStorageSpaceRemaining(storage: *byte): u64
+    fn SDL_EnumerateStorageDirectory(storage: *byte, path: *byte, callback: *byte, userdata: *byte): i32
 }

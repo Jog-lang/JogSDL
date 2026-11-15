@@ -1,7 +1,0 @@
-// Raw SDL3 loadso — v2 flat merge (generated).
-@link("SDL3")
-extern {
-    fn SDL_LoadObject(sofile: *byte): *byte
-    fn SDL_UnloadObject(handle: *byte)
-    fn SDL_LoadFunction(handle: *byte, name: *byte): i32
-}

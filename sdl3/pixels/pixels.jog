@@ -1,22 +1,15 @@
-// Raw SDL3 pixels — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-import std.c
-
-@opaque struct SDL_Palette
-
-@opaque struct SDL_PixelFormatDetails
-
+// Raw SDL3 pixels — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_GetPixelFormatName(format: u32): *const c.char
-    fn SDL_GetMasksForPixelFormat(format: u32, bpp: *c.int, Rmask: *u32, Gmask: *u32, Bmask: *u32, Amask: *u32): bool
-    fn SDL_GetPixelFormatForMasks(bpp: c.int, Rmask: u32, Gmask: u32, Bmask: u32, Amask: u32): u32
-    fn SDL_GetPixelFormatDetails(format: u32): *const void
-    fn SDL_CreatePalette(ncolors: c.int): *void
-    fn SDL_SetPaletteColors(palette: *void, colors: *const SDL_Color, firstcolor: c.int, ncolors: c.int): bool
-    fn SDL_DestroyPalette(palette: *void)
-    fn SDL_MapRGB(format: *const void, palette: *const void, r: u8, g: u8, b: u8): u32
-    fn SDL_MapRGBA(format: *const void, palette: *const void, r: u8, g: u8, b: u8, a: u8): u32
-    fn SDL_GetRGB(pixelvalue: u32, format: *const void, palette: *const void, r: *u8, g: *u8, b: *u8)
-    fn SDL_GetRGBA(pixelvalue: u32, format: *const void, palette: *const void, r: *u8, g: *u8, b: *u8, a: *u8)
+    fn SDL_GetPixelFormatName(format: u32): *byte
+    fn SDL_GetMasksForPixelFormat(format: u32, bpp: *byte, Rmask: *byte, Gmask: *byte, Bmask: *byte, Amask: *byte): i32
+    fn SDL_GetPixelFormatForMasks(bpp: i32, Rmask: u32, Gmask: u32, Bmask: u32, Amask: u32): u32
+    fn SDL_GetPixelFormatDetails(format: u32): *byte
+    fn SDL_CreatePalette(ncolors: i32): *byte
+    fn SDL_SetPaletteColors(palette: *byte, colors: *byte, firstcolor: i32, ncolors: i32): i32
+    fn SDL_DestroyPalette(palette: *byte)
+    fn SDL_MapRGB(format: *byte, palette: *byte, r: u8, g: u8, b: u8): u32
+    fn SDL_MapRGBA(format: *byte, palette: *byte, r: u8, g: u8, b: u8, a: u8): u32
+    fn SDL_GetRGB(pixelvalue: u32, format: *byte, palette: *byte, r: *byte, g: *byte, b: *byte)
+    fn SDL_GetRGBA(pixelvalue: u32, format: *byte, palette: *byte, r: *byte, g: *byte, b: *byte, a: *byte)
 }

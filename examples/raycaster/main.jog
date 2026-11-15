@@ -1,220 +1,275 @@
-import jog_sdl.sdl
-import jog_sdl.sdl.window
-import jog_sdl.sdl.render
-import jog_sdl.sdl.events
-import jog_sdl.sdl.input
-import jog_sdl.sdl.timer
-import std.math
-import std.mem
-
-val SCREEN_W: i32 = 640
-val SCREEN_H: i32 = 400
-val MOVE_SPEED: f64 = 3.0
-val ROT_SPEED: f64 = 2.0
-
-// Frame state at package scope so the @export tick can see it.
-var g_running: bool = false
-var g_win: window.Window
-var g_ren: render.Renderer
-var g_tex: render.Texture
-var g_pixels: []u32
-var g_map: Map
-var g_pos_x: f64 = 2.5
-var g_pos_y: f64 = 2.5
-var g_dir_x: f64 = 1.0
-var g_dir_y: f64 = 0.0
-var g_plane_x: f64 = 0.0
-var g_plane_y: f64 = 0.66
-var g_last_ticks: u64 = 0
+// Proto-3D software raycaster on Jog v2 (float camera basis).
+// WASD move/strafe, arrows or mouse-x yaw, mouse-y pitch (horizon), E/Space door.
+// Soft-raster textured cube depth-tested against DDA walls (track C).
+// Native: parallel column bands via go/Dispatcher (track E); JOGSDL_RAYCASTER_SERIAL=1 to force serial.
+// Soft frame cap: JOGSDL_RAYCASTER_SMOKE=1 (or true) for agent/CI.
+// Camera lives in package scalars (world.jog) — no per-frame struct bump allocs.
+// Frame pacing: timing.jog (GetTicks dt + Delay-to-cap @ ~60 FPS).
 
 extern {
-    fn jog_host_run_loop(tick: extern () -> i32)
+    fn getenv(name: *byte): *byte
+    fn strcmp(a: *byte, b: *byte): i32
 }
 
-/**
- * One frame for desktop and Emscripten. Return 0 to stop the host loop.
- */
-@export
-fn tick_frame(): i32 {
-    for {
-        val (ev, ok) = events.PollEvent()
-        if !ok {
-            break
-        }
-        if ev.kind == sdl.EVENT_QUIT || ev.kind == sdl.EVENT_WINDOW_CLOSE_REQUESTED {
-            g_running = false
-        }
-        if ev.kind == sdl.EVENT_KEY_DOWN && ev.scancode == sdl.SCANCODE_ESCAPE {
-            g_running = false
-        }
-    }
-    if !g_running {
+val WIN_W: i32 = 640
+val WIN_H: i32 = 400
+val FB_W: i64 = 160
+val FB_H: i64 = 100
+val FB_W32: i32 = 160
+val FB_H32: i32 = 100
+val FB_BYTES: u64 = 64000
+val SMOKE_FRAMES: i64 = 180
+val PLANE_LEN: f64 = 0.66
+
+fn wants_smoke(): i64 {
+    val p = getenv(c"JOGSDL_RAYCASTER_SMOKE")
+    if (p == null) {
         return 0
     }
-
-    val now = timer.GetTicks()
-    var dt = (now - g_last_ticks) as f64 / 1000.0
-    g_last_ticks = now
-    if dt > 0.05 {
-        dt = 0.05
+    if (strcmp(p, c"1") == 0) {
+        return 1
     }
-
-    if input.KeyboardIsDown(sdl.SCANCODE_LEFT) {
-        val rot = ROT_SPEED * dt
-        val old_dir_x = g_dir_x
-        g_dir_x = g_dir_x * math.cos(rot) - g_dir_y * math.sin(rot)
-        g_dir_y = old_dir_x * math.sin(rot) + g_dir_y * math.cos(rot)
-        val old_plane_x = g_plane_x
-        g_plane_x = g_plane_x * math.cos(rot) - g_plane_y * math.sin(rot)
-        g_plane_y = old_plane_x * math.sin(rot) + g_plane_y * math.cos(rot)
+    if (strcmp(p, c"true") == 0) {
+        return 1
     }
-    if input.KeyboardIsDown(sdl.SCANCODE_RIGHT) {
-        val rot = -ROT_SPEED * dt
-        val old_dir_x = g_dir_x
-        g_dir_x = g_dir_x * math.cos(rot) - g_dir_y * math.sin(rot)
-        g_dir_y = old_dir_x * math.sin(rot) + g_dir_y * math.cos(rot)
-        val old_plane_x = g_plane_x
-        g_plane_x = g_plane_x * math.cos(rot) - g_plane_y * math.sin(rot)
-        g_plane_y = old_plane_x * math.sin(rot) + g_plane_y * math.cos(rot)
-    }
-
-    val move = MOVE_SPEED * dt
-    if input.KeyboardIsDown(sdl.SCANCODE_W) {
-        val nx = g_pos_x + g_dir_x * move
-        val ny = g_pos_y + g_dir_y * move
-        if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
-            g_pos_x = nx
-        }
-        if !g_map.solid(math.floor(g_pos_x) as i32, math.floor(ny) as i32) {
-            g_pos_y = ny
-        }
-    }
-    if input.KeyboardIsDown(sdl.SCANCODE_S) {
-        val nx = g_pos_x - g_dir_x * move
-        val ny = g_pos_y - g_dir_y * move
-        if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
-            g_pos_x = nx
-        }
-        if !g_map.solid(math.floor(g_pos_x) as i32, math.floor(ny) as i32) {
-            g_pos_y = ny
-        }
-    }
-    if input.KeyboardIsDown(sdl.SCANCODE_A) {
-        val nx = g_pos_x - g_plane_x * move
-        val ny = g_pos_y - g_plane_y * move
-        if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
-            g_pos_x = nx
-        }
-        if !g_map.solid(math.floor(g_pos_x) as i32, math.floor(ny) as i32) {
-            g_pos_y = ny
-        }
-    }
-    if input.KeyboardIsDown(sdl.SCANCODE_D) {
-        val nx = g_pos_x + g_plane_x * move
-        val ny = g_pos_y + g_plane_y * move
-        if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
-            g_pos_x = nx
-        }
-        if !g_map.solid(math.floor(g_pos_x) as i32, math.floor(ny) as i32) {
-            g_pos_y = ny
-        }
-    }
-
-    render_frame(g_pixels, g_map, g_pos_x, g_pos_y, g_dir_x, g_dir_y, g_plane_x, g_plane_y)
-
-    _ = g_tex.update(g_pixels.ptr as *const void)
-    _ = g_ren.set_draw_color(0, 0, 0, 255)
-    _ = g_ren.clear()
-    _ = g_ren.draw_texture(g_tex)
-    _ = g_ren.present()
-    return 1
+    return 0
 }
 
 fn main() {
-    with (mem.heap()) {
-        var err = sdl.Init(sdl.INIT_VIDEO)
-        if err != null {
-            panic("SDL Init failed: ${err!!.message()}")
-        }
-
-        var (win, ren, create_err) = window.CreateWindowAndRenderer(
-            "JogSDL raycaster",
-            SCREEN_W,
-            SCREEN_H,
-            sdl.WINDOW_RESIZABLE
-        )
-        if create_err != null {
-            panic("CreateWindowAndRenderer failed: ${create_err!!.message()}")
-        }
-        g_win = win
-        g_ren = ren
-
-        var (tex, tex_err) = g_ren.create_streaming_texture(SCREEN_W, SCREEN_H)
-        if tex_err != null {
-            panic("CreateTexture failed: ${tex_err!!.message()}")
-        }
-        g_tex = tex
-
-        g_pixels = mem.newSlice<u32>((SCREEN_W * SCREEN_H) as usize)
-        g_map = demo_map()
-        g_last_ticks = timer.GetTicks()
-        g_running = true
-
-        // Desktop: while-iterate. Emscripten: requestAnimationFrame via emcc.
-        jog_host_run_loop(tick_frame)
-
-        mem.freeSlice(g_pixels)
-        g_tex.destroy()
-        g_ren.destroy()
-        g_win.destroy()
-        sdl.Quit()
+    val smoke = wants_smoke()
+    // Pool before SDL — clone workers + libc/SDL malloc coexist better.
+    if (parallel_wants_serial() == 0) {
+        dispatcher_pool(4)
+        print("parallel bands via go/Dispatcher (4 workers)\n")
+    } else {
+        print("parallel serial mode (JOGSDL_RAYCASTER_SERIAL)\n")
     }
-}
 
-fn render_frame(
-    pixels: []u32,
-    map: Map,
-    pos_x: f64,
-    pos_y: f64,
-    dir_x: f64,
-    dir_y: f64,
-    plane_x: f64,
-    plane_y: f64
-) {
-    val w = SCREEN_W
-    val h = SCREEN_H
-    var x: i32 = 0
-    for x < w {
-        val camera_x = 2.0 * (x as f64) / (w as f64) - 1.0
-        val ray_dir_x = dir_x + plane_x * camera_x
-        val ray_dir_y = dir_y + plane_y * camera_x
-        val hit = map.cast(pos_x, pos_y, ray_dir_x, ray_dir_y)
-        var line_h = ((h as f64) / hit.dist) as i32
-        if line_h > h * 4 {
-            line_h = h * 4
-        }
-        var draw_start = -line_h / 2 + h / 2
-        var draw_end = line_h / 2 + h / 2
-        if draw_start < 0 {
-            draw_start = 0
-        }
-        if draw_end >= h {
-            draw_end = h - 1
-        }
-        val color = wall_color(hit.wall_id, hit.side)
+    if Init(InitFlag.Video) != null {
+        panic("SDL Init failed\n")
+    }
 
-        var y: i32 = 0
-        for y < h {
-            val idx = (y * w + x) as usize
-            if y < draw_start {
-                pixels[idx] = CEILING_COLOR
-            } else if y > draw_end {
-                pixels[idx] = FLOOR_COLOR
-            } else {
-                pixels[idx] = color
+    val (win, win_err) = CreateWindow(c"JogSDL raycaster proto-3D", WIN_W, WIN_H, WindowFlag.Resizable)
+    if (win_err != null || win.ok() == 0) {
+        panic("CreateWindow failed\n")
+    }
+    // Relative mouse for look; ignore failure (headless / no grab).
+    win.set_relative_mouse(1)
+
+    val (ren, ren_err) = win.create_renderer()
+    if (ren_err != null || ren.ok() == 0) {
+        panic("CreateRenderer failed\n")
+    }
+    val (tex, tex_err) = ren.create_streaming_texture(FB_W32, FB_H32)
+    if (tex_err != null || tex.ok() == 0) {
+        panic("CreateTexture failed\n")
+    }
+
+    val pixels = alloc(FB_BYTES)
+    if (pixels == null) {
+        panic("alloc framebuffer failed\n")
+    }
+    if (parallel_init(FB_BYTES as i64, FB_W, FB_H) == 0) {
+        panic("parallel_init failed\n")
+    }
+    if (depth_init(FB_W) == 0) {
+        panic("depth_init failed\n")
+    }
+    mesh_init_checker()
+    // Spawn facing +x toward the interactive door at (5,2).
+    set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
+    var key_use = 0
+    var key_use_prev = 0
+    var ev = make_event_buf()
+    // SDL writes f32 into these 4-byte cells; promote with f32_slot_to_f64 (not `as f64`).
+    val mouse_f32 = alloc(8)
+    var running = 1
+    var frames = 0
+    var input_keys_seen = 0
+    var input_mouse_seen = 0
+    timing_init()
+
+    while (running != 0) {
+        while (ev.poll() != 0) {
+            val kind = ev.kind()
+            if (kind == EventTypeId.Quit || kind == EventTypeId.WindowCloseRequested) {
+                running = 0
             }
-            y = y + 1
+            if (kind == EventTypeId.KeyDown || kind == EventTypeId.KeyUp) {
+                val sc = ev.scancode()
+                var down = 0
+                if (kind == EventTypeId.KeyDown) {
+                    down = 1
+                }
+                if (sc == Scancode.Escape) {
+                    running = 0
+                }
+                // E/Space edge-trigger still from events; movement uses keyboard state.
+                if (sc == Scancode.E || sc == Scancode.Space) { key_use = down }
+            }
         }
-        x = x + 1
+        if (running == 0) {
+            break
+        }
+        // Soft cap only when JOGSDL_RAYCASTER_SMOKE is set (default stays open).
+        if (smoke != 0 && frames >= SMOKE_FRAMES) {
+            break
+        }
+
+        // Thin timing hook (pitch/other tracks: keep edits away from timing.jog).
+        val dt = timing_begin_frame()
+
+        // Keyboard state (not only KEY_DOWN edges) so held keys work after focus return.
+        val key_w = KeyboardIsDown(Scancode.W)
+        val key_s = KeyboardIsDown(Scancode.S)
+        val key_a = KeyboardIsDown(Scancode.A)
+        val key_d = KeyboardIsDown(Scancode.D)
+        val key_left = KeyboardIsDown(Scancode.Left)
+        val key_right = KeyboardIsDown(Scancode.Right)
+        if (key_w + key_s + key_a + key_d + key_left + key_right != 0) {
+            input_keys_seen = 1
+        }
+
+        var yaw = 0.0
+        if (key_left != 0) {
+            yaw = yaw + dt * 2.5
+        }
+        if (key_right != 0) {
+            yaw = yaw - dt * 2.5
+        }
+        // Relative mouse: X → yaw (rad/px), Y → classic pitch (horizon px; clamped).
+        ReadRelativeMouse(mouse_f32, mouse_f32 + 4)
+        val mx = f32_slot_to_f64(mouse_f32)
+        val my = f32_slot_to_f64(mouse_f32 + 4)
+        if (mx != 0.0 || my != 0.0) {
+            input_mouse_seen = 1
+        }
+        yaw = yaw - mx * 0.003
+        if (yaw != 0.0) {
+            rotate_cam_yaw(yaw)
+        }
+        // SDL +Y is down; mouse up (neg my) → look up → positive pitch → horizon lower.
+        if (my != 0.0) {
+            add_cam_pitch(0.0 - my * 0.35)
+        }
+
+        val move = dt * 3.0
+        if (key_w != 0) {
+            parallel_try_move(cam_dir_x * move, cam_dir_y * move)
+        }
+        if (key_s != 0) {
+            parallel_try_move(cam_dir_x * (0.0 - move), cam_dir_y * (0.0 - move))
+        }
+        if (key_a != 0) {
+            parallel_try_move(cam_plane_x * (0.0 - move), cam_plane_y * (0.0 - move))
+        }
+        if (key_d != 0) {
+            parallel_try_move(cam_plane_x * move, cam_plane_y * move)
+        }
+        if (key_use != 0 && key_use_prev == 0) {
+            parallel_try_use_door()
+        }
+        key_use_prev = key_use
+
+        if (smoke != 0 && frames == 0) {
+            // Pitch + mesh smoke: hide cube during horizon check.
+            mesh_set_enabled(0)
+            set_cam_pitch(30.0)
+            render_frame_parallel()
+            parallel_blit_to(pixels)
+            parallel_map_cast_fwd()
+            if (hit_dist == 2.5 && hit_wall == 5) {
+                print("map_cast door ahead ok\n")
+            } else {
+                print("map_cast door ahead BAD\n")
+            }
+            val mid = (FB_W / 2) * 4
+            val row0 = pixels[mid + 2]
+            val row50 = pixels[(50 * FB_W + FB_W / 2) * 4 + 2]
+            if (row0 == 25 && row50 == 25) {
+                print("pitch horizon shift ok\n")
+            } else {
+                print("pitch horizon shift BAD\n")
+            }
+            // Visible textured cube in open corridor (before door).
+            set_cam_pitch(0.0)
+            mesh_set_enabled(1)
+            mesh_set_spin(0.35)
+            mesh_set_pos(3.6, 2.5)
+            render_frame_parallel()
+            parallel_blit_to(pixels)
+            mesh_draw(pixels, FB_W, FB_H)
+            val n0 = mesh_count_color(pixels, FB_W, FB_H, MESH_C0)
+            val n1 = mesh_count_color(pixels, FB_W, FB_H, MESH_C1)
+            if (n0 > 20 && n1 > 20) {
+                print("mesh cube multi-color ok\n")
+            } else {
+                print("mesh cube multi-color BAD\n")
+            }
+            dump_fb_ppm(pixels, FB_W, FB_H)
+            // Cube behind closed door: center column must stay door (not checker).
+            mesh_set_pos(10.0, 2.5)
+            mesh_set_spin(0.0)
+            mesh_half = 0.2
+            render_frame_parallel()
+            parallel_blit_to(pixels)
+            mesh_draw(pixels, FB_W, FB_H)
+            var occluded = 1
+            val mid = FB_W / 2
+            var yy: i64 = 30
+            while (yy < 70) {
+                val off = (yy * FB_W + mid) * 4
+                val b0 = pixels[off] & 255
+                val b1 = pixels[off + 1] & 255
+                val b2 = pixels[off + 2] & 255
+                val b3 = pixels[off + 3] & 255
+                val got = b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
+                if (got == MESH_C0 || got == MESH_C1) {
+                    occluded = 0
+                }
+                yy = yy + 1
+            }
+            if (occluded != 0) {
+                print("mesh cube occluded ok\n")
+            } else {
+                print("mesh cube occluded BAD\n")
+            }
+            mesh_half = 0.28
+            mesh_set_pos(9.0, 6.0)
+            mesh_set_spin(0.0)
+        } else {
+            if (smoke == 0) {
+                mesh_update(dt)
+            }
+            render_frame_parallel()
+            parallel_blit_to(pixels)
+            mesh_draw(pixels, FB_W, FB_H)
+        }
+        tex.update(pixels)
+        ren.set_draw_color(0, 0, 0, 255)
+        ren.clear()
+        ren.draw_texture(tex)
+        ren.present()
+        timing_end_frame()
+        frames = frames + 1
+    }
+
+    timing_flush()
+    win.set_relative_mouse(0)
+    tex.destroy()
+    ren.destroy()
+    win.destroy()
+    Quit()
+    if (smoke != 0) {
+        // Smoke cannot prove live keys; JOGSDL_INPUT_SELFTEST does (see input_selftest).
+        print("raycaster exit\n")
+    } else {
+        if (input_keys_seen != 0) {
+            print("input keys seen\n")
+        }
+        if (input_mouse_seen != 0) {
+            print("input mouse seen\n")
+        }
+        print("raycaster exit\n")
     }
 }

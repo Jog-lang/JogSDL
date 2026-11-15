@@ -1,26 +1,23 @@
-// Raw SDL3 cpuinfo — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-import std.c
-
+// Raw SDL3 cpuinfo — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_GetNumLogicalCPUCores(): c.int
-    fn SDL_GetCPUCacheLineSize(): c.int
-    fn SDL_HasAltiVec(): bool
-    fn SDL_HasMMX(): bool
-    fn SDL_HasSSE(): bool
-    fn SDL_HasSSE2(): bool
-    fn SDL_HasSSE3(): bool
-    fn SDL_HasSSE41(): bool
-    fn SDL_HasSSE42(): bool
-    fn SDL_HasAVX(): bool
-    fn SDL_HasAVX2(): bool
-    fn SDL_HasAVX512F(): bool
-    fn SDL_HasARMSIMD(): bool
-    fn SDL_HasNEON(): bool
-    fn SDL_HasLSX(): bool
-    fn SDL_HasLASX(): bool
-    fn SDL_GetSystemRAM(): c.int
-    fn SDL_GetSIMDAlignment(): c.size_t
-    fn SDL_GetSystemPageSize(): c.int
+    fn SDL_GetNumLogicalCPUCores(): i32
+    fn SDL_GetCPUCacheLineSize(): i32
+    fn SDL_HasAltiVec(): i32
+    fn SDL_HasMMX(): i32
+    fn SDL_HasSSE(): i32
+    fn SDL_HasSSE2(): i32
+    fn SDL_HasSSE3(): i32
+    fn SDL_HasSSE41(): i32
+    fn SDL_HasSSE42(): i32
+    fn SDL_HasAVX(): i32
+    fn SDL_HasAVX2(): i32
+    fn SDL_HasAVX512F(): i32
+    fn SDL_HasARMSIMD(): i32
+    fn SDL_HasNEON(): i32
+    fn SDL_HasLSX(): i32
+    fn SDL_HasLASX(): i32
+    fn SDL_GetSystemRAM(): i32
+    fn SDL_GetSIMDAlignment(): u64
+    fn SDL_GetSystemPageSize(): i32
 }

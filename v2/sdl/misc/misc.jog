@@ -1,7 +1,0 @@
-// Idiomatic v2 wrappers for SDL misc (flat merge; calls SDL_* directly).
-// Variadics / by-value structs omitted — see JogDocs Friction.
-
-fn OpenURL(url: *byte): i32 {
-    return SDL_OpenURL(url)
-}
-

@@ -1,12 +1,11 @@
-// Idiomatic wrappers over sdl3.version.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.version as raw
-import std.c
+// Idiomatic v2 wrappers for SDL version (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GetVersion(): c.int {
-    return raw.SDL_GetVersion()
+fn GetVersion(): i32 {
+    return SDL_GetVersion()
 }
 
-fn GetRevision(): *const c.char {
-    return raw.SDL_GetRevision()
+fn GetRevision(): *byte {
+    return SDL_GetRevision()
 }
+

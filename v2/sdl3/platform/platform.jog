@@ -1,5 +1,0 @@
-// Raw SDL3 platform — v2 flat merge (generated).
-@link("SDL3")
-extern {
-    fn SDL_GetPlatform(): *byte
-}

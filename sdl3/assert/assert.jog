@@ -1,11 +1,9 @@
-// Raw SDL3 assert — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-
+// Raw SDL3 assert — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_SetAssertionHandler(handler: *void, userdata: *void)
-    fn SDL_GetDefaultAssertionHandler(): *void
-    fn SDL_GetAssertionHandler(puserdata: **void): *void
-    fn SDL_GetAssertionReport(): *const void
+    fn SDL_GetAssertionReport(): *byte
     fn SDL_ResetAssertionReport()
+    fn SDL_GetAssertionHandler(puserdata: **byte): *byte
+    fn SDL_GetDefaultAssertionHandler(): *byte
+    fn SDL_SetAssertionHandler(handler: *byte, userdata: *byte): i32
 }

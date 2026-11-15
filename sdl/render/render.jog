@@ -1,20 +1,18 @@
-// Idiomatic renderer / texture wrappers.
-import sdl
-import sdl3.render as raw
-import sdl3.rect
-import sdl3.video
-import std.c
+// Renderer / texture wrappers (v2 flat merge).
 
+/// Opaque renderer handle.
 struct Renderer {
-    ptr: *video.SDL_Renderer?
+    private ptr: *byte
 }
 
+/// Opaque texture handle with logical size.
 struct Texture {
-    ptr: *raw.SDL_Texture?
+    private ptr: *byte
     w: i32
     h: i32
 }
 
+/// Float rectangle for fill/draw calls.
 struct FRect {
     x: f32
     y: f32
@@ -22,130 +20,198 @@ struct FRect {
     h: f32
 }
 
+/// Build an FRect.
 fn frect(x: f32, y: f32, w: f32, h: f32): FRect {
-    var r: FRect
-    r.x = x
-    r.y = y
-    r.w = w
-    r.h = h
-    return r
+    return FRect(x: x, y: y, w: w, h: h)
 }
 
-fn empty_renderer(): Renderer {
-    var ren: Renderer
-    return ren
+/// True when the underlying SDL renderer pointer is non-null.
+fn Renderer.ok(): i32 {
+    if (self.ptr == null) {
+        return 0
+    }
+    return 1
 }
 
-fn empty_texture(): Texture {
-    var tex: Texture
-    return tex
+/// Escape hatch for Friction wasm tick loops that stash opaque pointers.
+fn Renderer.raw_ptr(): *byte {
+    return self.ptr
 }
 
+/**
+ * Destroy this renderer.
+ * @see https://wiki.libsdl.org/SDL3/SDL_DestroyRenderer
+ */
 fn Renderer.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyRenderer(self.ptr!!)
+    if (self.ptr != null) {
+        SDL_DestroyRenderer(self.ptr)
     }
 }
 
-fn Renderer.set_draw_color(r: u8, g: u8, b: u8, a: u8): sdl.SDLError? {
-    if self.ptr == null {
-        return sdl.last_error("SetRenderDrawColor: null renderer")
-    }
-    if !raw.SDL_SetRenderDrawColor(self.ptr!!, r, g, b, a) {
-        return sdl.last_error("SetRenderDrawColor failed")
-    }
-    return null
-}
-
-fn Renderer.clear(): sdl.SDLError? {
-    if self.ptr == null {
-        return sdl.last_error("RenderClear: null renderer")
-    }
-    if !raw.SDL_RenderClear(self.ptr!!) {
-        return sdl.last_error("RenderClear failed")
-    }
-    return null
-}
-
-fn Renderer.fill_rect(rect: FRect): sdl.SDLError? {
-    if self.ptr == null {
-        return sdl.last_error("RenderFillRect: null renderer")
-    }
-    if !raw.SDL_RenderFillRect(self.ptr!!, &rect as *const rect.SDL_FRect) {
-        return sdl.last_error("RenderFillRect failed")
-    }
-    return null
-}
-
-fn Renderer.present(): sdl.SDLError? {
-    if self.ptr == null {
-        return sdl.last_error("RenderPresent: null renderer")
-    }
-    if !raw.SDL_RenderPresent(self.ptr!!) {
-        return sdl.last_error("RenderPresent failed")
+/**
+ * Set the draw color.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_SetRenderDrawColor
+ */
+fn Renderer.set_draw_color(r: u8, g: u8, b: u8, a: u8): SDLError? {
+    if (SDL_SetRenderDrawColor(self.ptr, r, g, b, a) == 0) {
+        return last_error("SetRenderDrawColor failed")
     }
     return null
 }
 
 /**
- * Creates an ARGB8888 streaming texture for software framebuffer blits.
+ * Clear the current render target.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderClear
  */
-fn Renderer.create_streaming_texture(w: i32, h: i32): (Texture, sdl.SDLError?) {
-    if self.ptr == null {
-        var e: sdl.SDLError
-        e.msg = "CreateTexture: null renderer"
-        return empty_texture(), e
-    }
-    val ptr = raw.SDL_CreateTexture(
-        self.ptr!!,
-        sdl.PIXELFORMAT_ARGB8888,
-        sdl.TEXTUREACCESS_STREAMING as c.int,
-        w as c.int,
-        h as c.int
-    )
-    if ptr == null {
-        return empty_texture(), sdl.last_error("CreateTexture failed")
-    }
-    var tex: Texture
-    tex.ptr = ptr
-    tex.w = w
-    tex.h = h
-    return tex, null
-}
-
-/**
- * Draws the full texture to the full render target (null src/dst rects).
- */
-fn Renderer.draw_texture(tex: Texture): sdl.SDLError? {
-    if self.ptr == null {
-        return sdl.last_error("RenderTexture: null renderer")
-    }
-    if tex.ptr == null {
-        return sdl.last_error("RenderTexture: null texture")
-    }
-    if !raw.SDL_RenderTexture(self.ptr!!, tex.ptr!!, null, null) {
-        return sdl.last_error("RenderTexture failed")
+fn Renderer.clear(): SDLError? {
+    if (SDL_RenderClear(self.ptr) == 0) {
+        return last_error("RenderClear failed")
     }
     return null
 }
 
+/**
+ * Present the renderer.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderPresent
+ */
+fn Renderer.present(): SDLError? {
+    if (SDL_RenderPresent(self.ptr) == 0) {
+        return last_error("RenderPresent failed")
+    }
+    return null
+}
+
+/**
+ * Fill a rectangle.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderFillRect
+ */
+fn Renderer.fill_rect(rect: *FRect): SDLError? {
+    if (SDL_RenderFillRect(self.ptr, rect) == 0) {
+        return last_error("RenderFillRect failed")
+    }
+    return null
+}
+
+/**
+ * Create a streaming ARGB8888 texture.
+ * @return (Texture, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_CreateTexture
+ */
+fn Renderer.create_streaming_texture(w: i32, h: i32): (Texture, SDLError?) {
+    val p = SDL_CreateTexture(self.ptr, PIXELFORMAT_ARGB8888, TEXTUREACCESS_STREAMING, w, h)
+    if (p == null) {
+        return (Texture(ptr: null, w: 0, h: 0), last_error("CreateTexture failed"))
+    }
+    return (Texture(ptr: p, w: w, h: h), null)
+}
+
+/**
+ * Draw a texture to the full render target.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderTexture
+ */
+fn Renderer.draw_texture(tex: Texture): SDLError? {
+    if (SDL_RenderTexture(self.ptr, tex.raw_ptr(), null, null) == 0) {
+        return last_error("RenderTexture failed")
+    }
+    return null
+}
+
+/// True when the underlying SDL texture pointer is non-null.
+fn Texture.ok(): i32 {
+    if (self.ptr == null) {
+        return 0
+    }
+    return 1
+}
+
+/// Escape hatch for Friction wasm tick loops that stash opaque pointers.
+fn Texture.raw_ptr(): *byte {
+    return self.ptr
+}
+
+/**
+ * Destroy this texture.
+ * @see https://wiki.libsdl.org/SDL3/SDL_DestroyTexture
+ */
 fn Texture.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyTexture(self.ptr!!)
+    if (self.ptr != null) {
+        SDL_DestroyTexture(self.ptr)
     }
 }
 
 /**
- * Uploads a tightly packed ARGB8888 pixel buffer (pitch = w * 4).
- * pixels is the first byte of a contiguous framebuffer.
+ * Upload pixel bytes (pitch = w*4).
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_UpdateTexture
  */
-fn Texture.update(pixels: *const void): sdl.SDLError? {
-    if self.ptr == null {
-        return sdl.last_error("UpdateTexture: null texture")
-    }
+fn Texture.update(pixels: *byte): SDLError? {
     val pitch = self.w * 4
-    if !raw.SDL_UpdateTexture(self.ptr!!, null, pixels, pitch as c.int) {
-        return sdl.last_error("UpdateTexture failed")
+    if (SDL_UpdateTexture(self.ptr, null, pixels, pitch) == 0) {
+        return last_error("UpdateTexture failed")
+    }
+    return null
+}
+
+// --- Friction escape hatches (wasm tick / no per-frame handle returns) ---
+// See JogDocs bootstrap/Friction: struct returns bump-alloc OOM on hot paths.
+// Prefer Renderer/Texture methods when handles stay on the stack.
+
+/**
+ * Update texture from an opaque pointer (Friction / wasm).
+ * @see https://wiki.libsdl.org/SDL3/SDL_UpdateTexture
+ */
+fn UpdateTextureRaw(tex: *byte, pixels: *byte, pitch: i32): SDLError? {
+    if (SDL_UpdateTexture(tex, null, pixels, pitch) == 0) {
+        return last_error("UpdateTextureRaw failed")
+    }
+    return null
+}
+
+/**
+ * Draw texture from opaque pointers (Friction / wasm).
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderTexture
+ */
+fn DrawTextureRaw(ren: *byte, tex: *byte): SDLError? {
+    if (SDL_RenderTexture(ren, tex, null, null) == 0) {
+        return last_error("DrawTextureRaw failed")
+    }
+    return null
+}
+
+/**
+ * Set draw color from an opaque renderer pointer (Friction / wasm).
+ * @see https://wiki.libsdl.org/SDL3/SDL_SetRenderDrawColor
+ */
+fn SetDrawColorRaw(ren: *byte, r: u8, g: u8, b: u8, a: u8): SDLError? {
+    if (SDL_SetRenderDrawColor(ren, r, g, b, a) == 0) {
+        return last_error("SetDrawColorRaw failed")
+    }
+    return null
+}
+
+/**
+ * Clear from an opaque renderer pointer (Friction / wasm).
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderClear
+ */
+fn ClearRaw(ren: *byte): SDLError? {
+    if (SDL_RenderClear(ren) == 0) {
+        return last_error("ClearRaw failed")
+    }
+    return null
+}
+
+/**
+ * Present from an opaque renderer pointer (Friction / wasm).
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderPresent
+ */
+fn PresentRaw(ren: *byte): SDLError? {
+    if (SDL_RenderPresent(ren) == 0) {
+        return last_error("PresentRaw failed")
     }
     return null
 }

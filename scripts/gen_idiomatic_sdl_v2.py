@@ -23,10 +23,14 @@ SKIP_SYMBOLS = {
 
 EXISTING = {
     "Init", "Quit", "CreateWindow", "Window", "Renderer", "Texture", "FRect", "frect",
-    "Event", "PollEventHas", "EventType", "EventScancode", "KeyboardIsDown",
+    "Event", "EventBuf", "make_event_buf", "PushEvent", "PollEventHas", "EventType",
+    "EventScancode", "KeyboardIsDown",
     "MouseDelta", "GetRelativeMouseDelta", "ReadRelativeMouse", "f32_slot_to_f64",
     "f32bits_to_f64", "UpdateTextureRaw", "DrawTextureRaw", "SetDrawColorRaw",
     "ClearRaw", "PresentRaw", "Delay", "GetTicks",
+    "InitSubSystem", "QuitSubSystem", "WasInit", "IsMainThread",
+    "SetAppMetadata", "SetAppMetadataProperty", "GetAppMetadataProperty", "RunOnMainThread",
+    "InitFlag", "WindowFlag", "EventTypeId", "Scancode", "SDLError", "last_error",
     "INIT_VIDEO", "EVENT_QUIT", "EVENT_WINDOW_CLOSE_REQUESTED", "EVENT_KEY_DOWN",
     "EVENT_KEY_UP", "EVENT_MOUSE_MOTION", "WINDOW_RESIZABLE", "SCANCODE_A",
     "SCANCODE_D", "SCANCODE_E", "SCANCODE_Q", "SCANCODE_S", "SCANCODE_W",

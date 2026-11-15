@@ -1,111 +1,67 @@
-// Idiomatic wrappers over sdl3.storage.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.storage as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL storage (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Storage {
-    ptr: *raw.SDL_Storage?
+fn OpenTitleStorage(override: *byte, props: u32): *byte {
+    return SDL_OpenTitleStorage(override, props)
 }
 
-fn empty_storage(): Storage {
-    var h: Storage
-    return h
+fn OpenUserStorage(org: *byte, app: *byte, props: u32): *byte {
+    return SDL_OpenUserStorage(org, app, props)
 }
 
-fn OpenTitleStorage(override: *const c.char, props: u32): *raw.SDL_Storage {
-    return raw.SDL_OpenTitleStorage(override, props)
+fn OpenFileStorage(path: *byte): *byte {
+    return SDL_OpenFileStorage(path)
 }
 
-fn OpenUserStorage(org: *const c.char, app: *const c.char, props: u32): *raw.SDL_Storage {
-    return raw.SDL_OpenUserStorage(org, app, props)
+fn OpenStorage(iface: *byte, userdata: *byte): *byte {
+    return SDL_OpenStorage(iface, userdata)
 }
 
-fn OpenFileStorage(path: *const c.char): *raw.SDL_Storage {
-    return raw.SDL_OpenFileStorage(path)
+fn CloseStorage(storage: *byte): i32 {
+    return SDL_CloseStorage(storage)
 }
 
-fn OpenStorage(iface: *const void, userdata: *void): *raw.SDL_Storage {
-    return raw.SDL_OpenStorage(iface, userdata)
+fn StorageReady(storage: *byte): i32 {
+    return SDL_StorageReady(storage)
 }
 
-fn CloseStorage(storage: *raw.SDL_Storage): sdl.SDLError? {
-    if !raw.SDL_CloseStorage(storage) {
-        return sdl.last_error("CloseStorage failed")
-    }
-    return null
+fn GetStorageFileSize(storage: *byte, path: *byte, length: *byte): i32 {
+    return SDL_GetStorageFileSize(storage, path, length)
 }
 
-fn StorageReady(storage: *raw.SDL_Storage): sdl.SDLError? {
-    if !raw.SDL_StorageReady(storage) {
-        return sdl.last_error("StorageReady failed")
-    }
-    return null
+fn ReadStorageFile(storage: *byte, path: *byte, destination: *byte, length: u64): i32 {
+    return SDL_ReadStorageFile(storage, path, destination, length)
 }
 
-fn GetStorageFileSize(storage: *raw.SDL_Storage, path: *const c.char, length: *u64): sdl.SDLError? {
-    if !raw.SDL_GetStorageFileSize(storage, path, length) {
-        return sdl.last_error("GetStorageFileSize failed")
-    }
-    return null
+fn WriteStorageFile(storage: *byte, path: *byte, source: *byte, length: u64): i32 {
+    return SDL_WriteStorageFile(storage, path, source, length)
 }
 
-fn ReadStorageFile(storage: *raw.SDL_Storage, path: *const c.char, destination: *void, length: u64): sdl.SDLError? {
-    if !raw.SDL_ReadStorageFile(storage, path, destination, length) {
-        return sdl.last_error("ReadStorageFile failed")
-    }
-    return null
+fn CreateStorageDirectory(storage: *byte, path: *byte): i32 {
+    return SDL_CreateStorageDirectory(storage, path)
 }
 
-fn WriteStorageFile(storage: *raw.SDL_Storage, path: *const c.char, source: *const void, length: u64): sdl.SDLError? {
-    if !raw.SDL_WriteStorageFile(storage, path, source, length) {
-        return sdl.last_error("WriteStorageFile failed")
-    }
-    return null
+fn RemoveStoragePath(storage: *byte, path: *byte): i32 {
+    return SDL_RemoveStoragePath(storage, path)
 }
 
-fn CreateStorageDirectory(storage: *raw.SDL_Storage, path: *const c.char): sdl.SDLError? {
-    if !raw.SDL_CreateStorageDirectory(storage, path) {
-        return sdl.last_error("CreateStorageDirectory failed")
-    }
-    return null
+fn RenameStoragePath(storage: *byte, oldpath: *byte, newpath: *byte): i32 {
+    return SDL_RenameStoragePath(storage, oldpath, newpath)
 }
 
-fn EnumerateStorageDirectory(storage: *raw.SDL_Storage, path: *const c.char, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_EnumerateStorageDirectory(storage, path, callback, userdata) {
-        return sdl.last_error("EnumerateStorageDirectory failed")
-    }
-    return null
+fn CopyStorageFile(storage: *byte, oldpath: *byte, newpath: *byte): i32 {
+    return SDL_CopyStorageFile(storage, oldpath, newpath)
 }
 
-fn RemoveStoragePath(storage: *raw.SDL_Storage, path: *const c.char): sdl.SDLError? {
-    if !raw.SDL_RemoveStoragePath(storage, path) {
-        return sdl.last_error("RemoveStoragePath failed")
-    }
-    return null
+fn GetStoragePathInfo(storage: *byte, path: *byte, info: *byte): i32 {
+    return SDL_GetStoragePathInfo(storage, path, info)
 }
 
-fn RenameStoragePath(storage: *raw.SDL_Storage, oldpath: *const c.char, newpath: *const c.char): sdl.SDLError? {
-    if !raw.SDL_RenameStoragePath(storage, oldpath, newpath) {
-        return sdl.last_error("RenameStoragePath failed")
-    }
-    return null
+fn GetStorageSpaceRemaining(storage: *byte): u64 {
+    return SDL_GetStorageSpaceRemaining(storage)
 }
 
-fn CopyStorageFile(storage: *raw.SDL_Storage, oldpath: *const c.char, newpath: *const c.char): sdl.SDLError? {
-    if !raw.SDL_CopyStorageFile(storage, oldpath, newpath) {
-        return sdl.last_error("CopyStorageFile failed")
-    }
-    return null
+fn EnumerateStorageDirectory(storage: *byte, path: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_EnumerateStorageDirectory(storage, path, callback, userdata)
 }
 
-fn GetStoragePathInfo(storage: *raw.SDL_Storage, path: *const c.char, info: *void): sdl.SDLError? {
-    if !raw.SDL_GetStoragePathInfo(storage, path, info) {
-        return sdl.last_error("GetStoragePathInfo failed")
-    }
-    return null
-}
-
-fn GetStorageSpaceRemaining(storage: *raw.SDL_Storage): u64 {
-    return raw.SDL_GetStorageSpaceRemaining(storage)
-}

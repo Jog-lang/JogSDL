@@ -1,1 +1,3 @@
-// Idiomatic sdl.pen — see sdl3.pen for raw bindings (no short aliases yet).
+// Idiomatic v2 wrappers for SDL pen (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+

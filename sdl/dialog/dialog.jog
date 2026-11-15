@@ -1,21 +1,19 @@
-// Idiomatic wrappers over sdl3.dialog.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.dialog as raw
-import sdl3.video
-import std.c
+// Idiomatic v2 wrappers for SDL dialog (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn ShowOpenFileDialog(callback: *void, userdata: *void, window: *video.SDL_Window, filters: *const void, nfilters: c.int, default_location: *const c.char, allow_many: bool) {
-    raw.SDL_ShowOpenFileDialog(callback, userdata, window, filters, nfilters, default_location, allow_many)
+fn ShowFileDialogWithProperties(type_: u32, callback: *byte, userdata: *byte, props: u32): i32 {
+    return SDL_ShowFileDialogWithProperties(type_, callback, userdata, props)
 }
 
-fn ShowSaveFileDialog(callback: *void, userdata: *void, window: *video.SDL_Window, filters: *const void, nfilters: c.int, default_location: *const c.char) {
-    raw.SDL_ShowSaveFileDialog(callback, userdata, window, filters, nfilters, default_location)
+fn ShowOpenFileDialog(callback: *byte, userdata: *byte, window: *byte, filters: *byte, nfilters: i32, default_location: *byte, allow_many: i32): i32 {
+    return SDL_ShowOpenFileDialog(callback, userdata, window, filters, nfilters, default_location, allow_many)
 }
 
-fn ShowOpenFolderDialog(callback: *void, userdata: *void, window: *video.SDL_Window, default_location: *const c.char, allow_many: bool) {
-    raw.SDL_ShowOpenFolderDialog(callback, userdata, window, default_location, allow_many)
+fn ShowOpenFolderDialog(callback: *byte, userdata: *byte, window: *byte, default_location: *byte, allow_many: i32): i32 {
+    return SDL_ShowOpenFolderDialog(callback, userdata, window, default_location, allow_many)
 }
 
-fn ShowFileDialogWithProperties(type_: u32, callback: *void, userdata: *void, props: u32) {
-    raw.SDL_ShowFileDialogWithProperties(type_, callback, userdata, props)
+fn ShowSaveFileDialog(callback: *byte, userdata: *byte, window: *byte, filters: *byte, nfilters: i32, default_location: *byte): i32 {
+    return SDL_ShowSaveFileDialog(callback, userdata, window, filters, nfilters, default_location)
 }
+

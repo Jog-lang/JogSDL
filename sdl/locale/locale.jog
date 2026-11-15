@@ -1,8 +1,7 @@
-// Idiomatic wrappers over sdl3.locale.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.locale as raw
-import std.c
+// Idiomatic v2 wrappers for SDL locale (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GetPreferredLocales(count: *c.int): **void {
-    return raw.SDL_GetPreferredLocales(count)
+fn GetPreferredLocales(count: *byte): **byte {
+    return SDL_GetPreferredLocales(count)
 }
+

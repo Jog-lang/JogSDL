@@ -1,7 +1,0 @@
-// Idiomatic v2 wrappers for SDL blendmode (flat merge; calls SDL_* directly).
-// Variadics / by-value structs omitted — see JogDocs Friction.
-
-fn ComposeCustomBlendMode(srcColorFactor: u32, dstColorFactor: u32, colorOperation: u32, srcAlphaFactor: u32, dstAlphaFactor: u32, alphaOperation: u32): i32 {
-    return SDL_ComposeCustomBlendMode(srcColorFactor, dstColorFactor, colorOperation, srcAlphaFactor, dstAlphaFactor, alphaOperation)
-}
-

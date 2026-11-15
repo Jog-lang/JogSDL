@@ -1,53 +1,39 @@
-// Idiomatic wrappers over sdl3.time.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.time as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL time (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GetDateTimeLocalePreferences(dateFormat: *u32, timeFormat: *u32): sdl.SDLError? {
-    if !raw.SDL_GetDateTimeLocalePreferences(dateFormat, timeFormat) {
-        return sdl.last_error("GetDateTimeLocalePreferences failed")
-    }
-    return null
+fn GetDateTimeLocalePreferences(dateFormat: *byte, timeFormat: *byte): i32 {
+    return SDL_GetDateTimeLocalePreferences(dateFormat, timeFormat)
 }
 
-fn GetCurrentTime(ticks: *i64): sdl.SDLError? {
-    if !raw.SDL_GetCurrentTime(ticks) {
-        return sdl.last_error("GetCurrentTime failed")
-    }
-    return null
+fn GetCurrentTime(ticks: *byte): i32 {
+    return SDL_GetCurrentTime(ticks)
 }
 
-fn TimeToDateTime(ticks: i64, dt: *void, localTime: bool): sdl.SDLError? {
-    if !raw.SDL_TimeToDateTime(ticks, dt, localTime) {
-        return sdl.last_error("TimeToDateTime failed")
-    }
-    return null
+fn TimeToDateTime(ticks: i64, dt: *byte, localTime: i32): i32 {
+    return SDL_TimeToDateTime(ticks, dt, localTime)
 }
 
-fn DateTimeToTime(dt: *const void, ticks: *i64): sdl.SDLError? {
-    if !raw.SDL_DateTimeToTime(dt, ticks) {
-        return sdl.last_error("DateTimeToTime failed")
-    }
-    return null
+fn DateTimeToTime(dt: *byte, ticks: *byte): i32 {
+    return SDL_DateTimeToTime(dt, ticks)
 }
 
-fn TimeToWindows(ticks: i64, dwLowDateTime: *u32, dwHighDateTime: *u32) {
-    raw.SDL_TimeToWindows(ticks, dwLowDateTime, dwHighDateTime)
+fn TimeToWindows(ticks: i64, dwLowDateTime: *byte, dwHighDateTime: *byte) {
+    SDL_TimeToWindows(ticks, dwLowDateTime, dwHighDateTime)
 }
 
 fn TimeFromWindows(dwLowDateTime: u32, dwHighDateTime: u32): i64 {
-    return raw.SDL_TimeFromWindows(dwLowDateTime, dwHighDateTime)
+    return SDL_TimeFromWindows(dwLowDateTime, dwHighDateTime)
 }
 
-fn GetDaysInMonth(year: c.int, month: c.int): c.int {
-    return raw.SDL_GetDaysInMonth(year, month)
+fn GetDaysInMonth(year: i32, month: i32): i32 {
+    return SDL_GetDaysInMonth(year, month)
 }
 
-fn GetDayOfYear(year: c.int, month: c.int, day: c.int): c.int {
-    return raw.SDL_GetDayOfYear(year, month, day)
+fn GetDayOfYear(year: i32, month: i32, day: i32): i32 {
+    return SDL_GetDayOfYear(year, month, day)
 }
 
-fn GetDayOfWeek(year: c.int, month: c.int, day: c.int): c.int {
-    return raw.SDL_GetDayOfWeek(year, month, day)
+fn GetDayOfWeek(year: i32, month: i32, day: i32): i32 {
+    return SDL_GetDayOfWeek(year, month, day)
 }
+

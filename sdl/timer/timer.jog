@@ -1,11 +1,17 @@
-// Idiomatic timer wrappers.
-import sdl3.timer as raw
+// Timer wrappers (v2 flat merge).
 
+/**
+ * Sleep for approximately `ms` milliseconds.
+ * @see https://wiki.libsdl.org/SDL3/SDL_Delay
+ */
 fn Delay(ms: u32) {
-    raw.SDL_Delay(ms)
+    SDL_Delay(ms)
 }
 
-/** Milliseconds since SDL init. */
+/**
+ * Milliseconds since SDL init (wrapping 64-bit).
+ * @see https://wiki.libsdl.org/SDL3/SDL_GetTicks
+ */
 fn GetTicks(): u64 {
-    return raw.SDL_GetTicks()
+    return SDL_GetTicks()
 }

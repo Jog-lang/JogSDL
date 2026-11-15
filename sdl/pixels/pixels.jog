@@ -1,73 +1,47 @@
-// Idiomatic wrappers over sdl3.pixels.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.pixels as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL pixels (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Palette {
-    ptr: *raw.SDL_Palette?
+fn GetPixelFormatName(format: u32): *byte {
+    return SDL_GetPixelFormatName(format)
 }
 
-fn empty_palette(): Palette {
-    var h: Palette
-    return h
+fn GetMasksForPixelFormat(format: u32, bpp: *byte, Rmask: *byte, Gmask: *byte, Bmask: *byte, Amask: *byte): i32 {
+    return SDL_GetMasksForPixelFormat(format, bpp, Rmask, Gmask, Bmask, Amask)
 }
 
-struct PixelFormatDetails {
-    ptr: *raw.SDL_PixelFormatDetails?
+fn GetPixelFormatForMasks(bpp: i32, Rmask: u32, Gmask: u32, Bmask: u32, Amask: u32): u32 {
+    return SDL_GetPixelFormatForMasks(bpp, Rmask, Gmask, Bmask, Amask)
 }
 
-fn empty_pixelformatdetails(): PixelFormatDetails {
-    var h: PixelFormatDetails
-    return h
+fn GetPixelFormatDetails(format: u32): *byte {
+    return SDL_GetPixelFormatDetails(format)
 }
 
-fn GetPixelFormatName(format: u32): *const c.char {
-    return raw.SDL_GetPixelFormatName(format)
+fn CreatePalette(ncolors: i32): *byte {
+    return SDL_CreatePalette(ncolors)
 }
 
-fn GetMasksForPixelFormat(format: u32, bpp: *c.int, Rmask: *u32, Gmask: *u32, Bmask: *u32, Amask: *u32): sdl.SDLError? {
-    if !raw.SDL_GetMasksForPixelFormat(format, bpp, Rmask, Gmask, Bmask, Amask) {
-        return sdl.last_error("GetMasksForPixelFormat failed")
-    }
-    return null
+fn SetPaletteColors(palette: *byte, colors: *byte, firstcolor: i32, ncolors: i32): i32 {
+    return SDL_SetPaletteColors(palette, colors, firstcolor, ncolors)
 }
 
-fn GetPixelFormatForMasks(bpp: c.int, Rmask: u32, Gmask: u32, Bmask: u32, Amask: u32): u32 {
-    return raw.SDL_GetPixelFormatForMasks(bpp, Rmask, Gmask, Bmask, Amask)
+fn DestroyPalette(palette: *byte) {
+    SDL_DestroyPalette(palette)
 }
 
-fn GetPixelFormatDetails(format: u32): *const void {
-    return raw.SDL_GetPixelFormatDetails(format)
+fn MapRGB(format: *byte, palette: *byte, r: u8, g: u8, b: u8): u32 {
+    return SDL_MapRGB(format, palette, r, g, b)
 }
 
-fn CreatePalette(ncolors: c.int): *void {
-    return raw.SDL_CreatePalette(ncolors)
+fn MapRGBA(format: *byte, palette: *byte, r: u8, g: u8, b: u8, a: u8): u32 {
+    return SDL_MapRGBA(format, palette, r, g, b, a)
 }
 
-fn SetPaletteColors(palette: *void, colors: *const raw.SDL_Color, firstcolor: c.int, ncolors: c.int): sdl.SDLError? {
-    if !raw.SDL_SetPaletteColors(palette, colors, firstcolor, ncolors) {
-        return sdl.last_error("SetPaletteColors failed")
-    }
-    return null
+fn GetRGB(pixelvalue: u32, format: *byte, palette: *byte, r: *byte, g: *byte, b: *byte) {
+    SDL_GetRGB(pixelvalue, format, palette, r, g, b)
 }
 
-fn DestroyPalette(palette: *void) {
-    raw.SDL_DestroyPalette(palette)
+fn GetRGBA(pixelvalue: u32, format: *byte, palette: *byte, r: *byte, g: *byte, b: *byte, a: *byte) {
+    SDL_GetRGBA(pixelvalue, format, palette, r, g, b, a)
 }
 
-fn MapRGB(format: *const void, palette: *const void, r: u8, g: u8, b: u8): u32 {
-    return raw.SDL_MapRGB(format, palette, r, g, b)
-}
-
-fn MapRGBA(format: *const void, palette: *const void, r: u8, g: u8, b: u8, a: u8): u32 {
-    return raw.SDL_MapRGBA(format, palette, r, g, b, a)
-}
-
-fn GetRGB(pixelvalue: u32, format: *const void, palette: *const void, r: *u8, g: *u8, b: *u8) {
-    raw.SDL_GetRGB(pixelvalue, format, palette, r, g, b)
-}
-
-fn GetRGBA(pixelvalue: u32, format: *const void, palette: *const void, r: *u8, g: *u8, b: *u8, a: *u8) {
-    raw.SDL_GetRGBA(pixelvalue, format, palette, r, g, b, a)
-}
