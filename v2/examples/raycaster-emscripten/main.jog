@@ -71,9 +71,13 @@ fn tick(): i32 {
     }
     ReadRelativeMouse(App.mouse_f32, App.mouse_f32 + 4)
     val mx = f32_slot_to_f64(App.mouse_f32)
+    val my = f32_slot_to_f64(App.mouse_f32 + 4)
     yaw = yaw - mx * 0.003
     if (yaw != 0.0) {
         rotate_cam_yaw(yaw)
+    }
+    if (my != 0.0) {
+        add_cam_pitch(0.0 - my * 0.35)
     }
 
     val move = dt * 3.0

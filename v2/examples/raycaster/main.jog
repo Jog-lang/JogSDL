@@ -1,5 +1,5 @@
 // Proto-3D software raycaster on Jog v2 (float camera basis).
-// WASD move/strafe, arrows or mouse-x look, E/Space toggle door ahead.
+// WASD move/strafe, arrows or mouse-x yaw, mouse-y pitch (horizon), E/Space door.
 // Default: interactive until Escape / window close (native while-loop; F16 open).
 // Soft frame cap: JOGSDL_RAYCASTER_SMOKE=1 (or true) for agent/CI.
 // Camera lives in package scalars (world.jog) — no per-frame struct bump allocs.
@@ -119,7 +119,7 @@ fn main() {
         if (key_right != 0) {
             yaw = yaw - dt * 2.5
         }
-        // Mouse X look (relative mode); scale is radians per pixel.
+        // Relative mouse: X → yaw (rad/px), Y → classic pitch (horizon px; clamped).
         ReadRelativeMouse(mouse_f32, mouse_f32 + 4)
         val mx = f32_slot_to_f64(mouse_f32)
         val my = f32_slot_to_f64(mouse_f32 + 4)
@@ -129,6 +129,10 @@ fn main() {
         yaw = yaw - mx * 0.003
         if (yaw != 0.0) {
             rotate_cam_yaw(yaw)
+        }
+        // SDL +Y is down; mouse up (neg my) → look up → positive pitch → horizon lower.
+        if (my != 0.0) {
+            add_cam_pitch(0.0 - my * 0.35)
         }
 
         val move = dt * 3.0
@@ -149,6 +153,10 @@ fn main() {
         }
         key_use_prev = key_use
 
+        if (frames == 0 && smoke != 0) {
+            // Prove horizon shift: look up so ceiling fills more of the frame.
+            set_cam_pitch(30.0)
+        }
         render_frame(pixels, map, FB_W, FB_H)
         if (frames == 0 && smoke != 0) {
             map_cast(map, cam_pos_x, cam_pos_y, cam_dir_x, cam_dir_y)
@@ -157,7 +165,19 @@ fn main() {
             } else {
                 print("map_cast door ahead BAD\n")
             }
+            // Center column, pitch 30 on 100px: horizon≈80; door dist 2.5 → line_h=40
+            // → wall roughly y 60..99; row 0 and row 50 must be ceiling (R=0x19).
+            val mid = (FB_W / 2) * 4
+            val row0 = pixels[mid + 2]
+            val row50 = pixels[(50 * FB_W + FB_W / 2) * 4 + 2]
+            // CEILING_COLOR ARGB 0xff191919 → R channel 25
+            if (row0 == 25 && row50 == 25) {
+                print("pitch horizon shift ok\n")
+            } else {
+                print("pitch horizon shift BAD\n")
+            }
             dump_fb_ppm(pixels, FB_W, FB_H)
+            set_cam_pitch(0.0)
         }
         tex.update(pixels)
         ren.set_draw_color(0, 0, 0, 255)

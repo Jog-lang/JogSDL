@@ -253,6 +253,10 @@ var cam_dir_x: f64 = 1.0
 var cam_dir_y: f64 = 0.0
 var cam_plane_x: f64 = 0.0
 var cam_plane_y: f64 = 0.66
+// Classic raycaster pitch: pixel offset of the horizon from mid-screen.
+// Positive = look up (horizon lower; more ceiling). Not 6DOF — walls stay upright.
+var cam_pitch: f64 = 0.0
+val PITCH_CLAMP: f64 = 40.0
 
 fn set_camera(pos_x: f64, pos_y: f64, dir_x: f64, dir_y: f64, plane_x: f64, plane_y: f64) {
     cam_pos_x = pos_x
@@ -261,6 +265,22 @@ fn set_camera(pos_x: f64, pos_y: f64, dir_x: f64, dir_y: f64, plane_x: f64, plan
     cam_dir_y = dir_y
     cam_plane_x = plane_x
     cam_plane_y = plane_y
+    cam_pitch = 0.0
+}
+
+fn set_cam_pitch(pitch: f64) {
+    var p = pitch
+    if (p > PITCH_CLAMP) {
+        p = PITCH_CLAMP
+    }
+    if (p < 0.0 - PITCH_CLAMP) {
+        p = 0.0 - PITCH_CLAMP
+    }
+    cam_pitch = p
+}
+
+fn add_cam_pitch(delta: f64) {
+    set_cam_pitch(cam_pitch + delta)
 }
 
 fn rotate_cam_yaw(radians: f64) {
@@ -279,6 +299,8 @@ fn rotate_cam_yaw(radians: f64) {
 fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
     val fb_wf = fb_w as f64
     val fb_hf = fb_h as f64
+    // Horizon follows pitch; ceiling/floor split is y < draw_start / y > draw_end.
+    val horizon = fb_hf / 2.0 + cam_pitch
     var x: i64 = 0
     while (x < fb_w) {
         val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
@@ -289,8 +311,8 @@ fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
         if (line_h > fb_hf * 4.0) {
             line_h = fb_hf * 4.0
         }
-        var draw_start = f_to_i(0.0 - line_h / 2.0 + fb_hf / 2.0)
-        var draw_end = f_to_i(line_h / 2.0 + fb_hf / 2.0)
+        var draw_start = f_to_i(0.0 - line_h / 2.0 + horizon)
+        var draw_end = f_to_i(line_h / 2.0 + horizon)
         if (draw_start < 0) {
             draw_start = 0
         }

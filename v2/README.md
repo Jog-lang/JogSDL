@@ -81,6 +81,7 @@ python3 -m http.server -d out 8000
 
 - **W/A/S/D** — move / strafe along view basis
 - **Left/Right** or **mouse X** (relative mode) — yaw (rotates both basis columns)
+- **Mouse Y** (relative mode) — pitch: shifts the horizon / wall strips (classic raycaster look-up/down, not 6DOF); clamped
 - **E** or **Space** — toggle door cell ahead
 - **Escape** / window close — quit
 - Native default stays open for play; set `JOGSDL_RAYCASTER_SMOKE=1` for the ~180-frame agent/CI soft exit
@@ -90,5 +91,5 @@ python3 -m http.server -d out 8000
 - Freestanding `wasm32` (no emcc) is not on v2; browser+SDL is `wasm32-emscripten` only.
 - FRect layout vs `SDL_FRect` packing is still coarse (8-byte field slots); demos still smoke-present (F18).
 - Coroutines/`go` abort under emscripten (no stack switch).
-- Still a 2.5D column caster — not a full 3D transform pipeline / textured world.
+- Still a 2.5D column caster — not a full 3D transform pipeline / textured world. Pitch is horizon shift only.
 - **Raycaster / jog develop:** numeric `as` is convert (JogCompiler #30). Do not revive the old IEEE 2^52 `i_to_f` bitcast helper — after #30 it sitofps `F52+n` and paints a solid door-colored frame. Struct returns still bump-alloc with no free (keep camera/DDA as package scalars). See JogDocs Friction.
