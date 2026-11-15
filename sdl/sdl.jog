@@ -1,63 +1,120 @@
-// Jog-facing SDL3 facade: Init/Quit, shared error helpers, and constants.
-// Domain APIs live in sdl.window / sdl.render / sdl.events / sdl.input / sdl.timer.
-import sdl3.init
-import sdl3.error as sdl_error
-import std.c
+// Jog-facing SDL3 facade (flat merge via jog.mod).
+// Public apps use these Jog types; raw SDL_* live in sdl3/* (unexported implementation).
+// API docs: comments here + https://wiki.libsdl.org/SDL3
 
-val INIT_VIDEO: u32 = 0x00000020
-val EVENT_QUIT: u32 = 0x100
-// SDL3: window-manager close is WINDOW_CLOSE_REQUESTED (0x210); QUIT follows after destroy.
-val EVENT_WINDOW_CLOSE_REQUESTED: u32 = 0x210
-val EVENT_KEY_DOWN: u32 = 0x300
-val EVENT_KEY_UP: u32 = 0x301
-val WINDOW_RESIZABLE: u64 = 0x0000000000000020
-
-// Scancodes used by the raycaster / smoke apps (SDL_scancode.h).
-val SCANCODE_A: u32 = 4
-val SCANCODE_D: u32 = 7
-val SCANCODE_S: u32 = 22
-val SCANCODE_W: u32 = 26
-val SCANCODE_ESCAPE: u32 = 41
-val SCANCODE_RIGHT: u32 = 79
-val SCANCODE_LEFT: u32 = 80
-
-// SDL_PIXELFORMAT_ARGB8888 — pack pixels as 0xAARRGGBB in a native u32.
-val PIXELFORMAT_ARGB8888: u32 = 0x16362004
-val TEXTUREACCESS_STREAMING: i32 = 1
-
-// Concrete error with a message. Callers use if err != null and err!!.message().
+/// SDL failure with a short Jog message (C GetError text when available later).
 struct SDLError {
     msg: str
 }
 
+/// Human-readable message for logging.
 fn SDLError.message(): str {
     return self.msg
 }
 
-fn last_error(fallback: str): SDLError {
-    val p = sdl_error.SDL_GetError()
-    val viewed = c.fromCStr(p)
-    var e: SDLError
-    if viewed.len > 0 {
-        e.msg = c.copyCStr(p)
-    } else {
-        e.msg = fallback
-    }
-    return e
+/// Build an error from a prefix (SDL_GetError wiring is Friction until str views improve).
+fn last_error(prefix: str): SDLError {
+    return SDLError(msg: prefix)
 }
 
+/// Subsystem flags for Init (values match SDL_INIT_*).
+enum InitFlag {
+    Audio = 16
+    Video = 32
+    Joystick = 512
+    Haptic = 4096
+    Gamepad = 8192
+    Events = 16384
+    Sensor = 32768
+    Camera = 65536
+}
+
+/// Window creation flags (values match SDL_WINDOW_*).
+enum WindowFlag {
+    Fullscreen = 1
+    OpenGL = 2
+    Occluded = 4
+    Hidden = 8
+    Borderless = 16
+    Resizable = 32
+    Minimized = 64
+    Maximized = 128
+    MouseGrabbed = 256
+    InputFocus = 512
+    MouseFocus = 1024
+    External = 2048
+    HighPixelDensity = 8192
+}
+
+/// Common event type ids (SDL_EVENT_*).
+enum EventTypeId {
+    Quit = 256
+    WindowCloseRequested = 528
+    KeyDown = 768
+    KeyUp = 769
+    MouseMotion = 1024
+}
+
+/// Keyboard scancodes used by demos (SDL_SCANCODE_*).
+enum Scancode {
+    A = 4
+    D = 7
+    E = 8
+    Q = 20
+    S = 22
+    W = 26
+    Escape = 41
+    Space = 44
+    Right = 79
+    Left = 80
+}
+
+/// Pixel format for streaming textures (SDL_PIXELFORMAT_ARGB8888).
+val PIXELFORMAT_ARGB8888: u32 = 0x16362004
+
+/// Texture access mode: streaming (SDL_TEXTUREACCESS_STREAMING).
+val TEXTUREACCESS_STREAMING: i32 = 1
+
+// Compatibility aliases (prefer enums above).
+val INIT_VIDEO: u32 = 32
+val EVENT_QUIT: u32 = 256
+val EVENT_WINDOW_CLOSE_REQUESTED: u32 = 528
+val EVENT_KEY_DOWN: u32 = 768
+val EVENT_KEY_UP: u32 = 769
+val EVENT_MOUSE_MOTION: u32 = 1024
+val WINDOW_RESIZABLE: u64 = 32
+val SCANCODE_A: u32 = 4
+val SCANCODE_D: u32 = 7
+val SCANCODE_E: u32 = 8
+val SCANCODE_Q: u32 = 20
+val SCANCODE_S: u32 = 22
+val SCANCODE_W: u32 = 26
+val SCANCODE_ESCAPE: u32 = 41
+val SCANCODE_SPACE: u32 = 44
+val SCANCODE_RIGHT: u32 = 79
+val SCANCODE_LEFT: u32 = 80
+
 /**
- * Initializes the SDL library.
- * @param flags: Init flags such as INIT_VIDEO.
- * @return: An error if initialization failed.
+ * Initialize SDL subsystems.
+ * @param flags zero or more InitFlag values (OR'd for SDL_Init)
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_Init
  */
-fn Init(flags: u32): SDLError? {
-    if !init.SDL_Init(flags) {
+fn Init(...InitFlag: flags): SDLError? {
+    var bits: u32 = 0
+    for f in flags {
+        bits = bits | (f as u32)
+    }
+    if (SDL_Init(bits) == 0) {
         return last_error("Init failed")
     }
     return null
 }
 
+/**
+ * Shut down all SDL subsystems.
+ * @see https://wiki.libsdl.org/SDL3/SDL_Quit
+ */
 fn Quit() {
-    init.SDL_Quit()
+    SDL_Quit()
 }

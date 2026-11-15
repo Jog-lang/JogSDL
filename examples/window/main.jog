@@ -1,73 +1,62 @@
-import jog_sdl.sdl
-import jog_sdl.sdl.window
-import jog_sdl.sdl.render
-import jog_sdl.sdl.events
-import jog_sdl.sdl.timer
-import std.mem
+// Window smoke for Jog v2 + local SDL3 prefix (libdir → -L + rpath).
+// Package vals for SDL constants (JOG-89). Platform while-loop keeps the
+// demo robust; jog_host_run_loop works for scalar tick state (see compiler
+// examples/host_run_loop.jog) — SDL handle globals + tick still flaky here
+// (F16). Emscripten uses examples/window-emscripten/ (JOG-90).
 
-var g_running: bool = false
-var g_win: window.Window
-var g_ren: render.Renderer
-
-extern {
-    fn jog_host_run_loop(tick: extern () -> i32)
-}
-
-@export
-fn tick_frame(): i32 {
-    for {
-        val (ev, ok) = events.PollEvent()
-        if !ok {
-            break
-        }
-        // SDL3: close button is WINDOW_CLOSE_REQUESTED; QUIT may also arrive.
-        if ev.kind == sdl.EVENT_QUIT || ev.kind == sdl.EVENT_WINDOW_CLOSE_REQUESTED {
-            g_running = false
-        }
-        if ev.kind == sdl.EVENT_KEY_DOWN && ev.scancode == sdl.SCANCODE_ESCAPE {
-            g_running = false
-        }
-    }
-    if !g_running {
-        return 0
-    }
-
-    // Dark teal clear + a simple filled rect.
-    _ = g_ren.set_draw_color(12, 48, 64, 255)
-    _ = g_ren.clear()
-
-    _ = g_ren.set_draw_color(80, 200, 180, 255)
-    _ = g_ren.fill_rect(render.frect(220.0, 160.0, 200.0, 160.0))
-
-    _ = g_ren.present()
-    timer.Delay(16)
-    return 1
-}
+val LIMIT_MS: u64 = 1500
 
 fn main() {
-    with (mem.heap()) {
-        var err = sdl.Init(sdl.INIT_VIDEO)
-        if err != null {
-            panic("SDL Init failed: ${err!!.message()}")
-        }
-
-        var (win, win_err) = window.CreateWindow("JogSDL", 640, 480, sdl.WINDOW_RESIZABLE)
-        if win_err != null {
-            panic("SDL CreateWindow failed: ${win_err!!.message()}")
-        }
-        g_win = win
-
-        var (ren, ren_err) = g_win.create_renderer()
-        if ren_err != null {
-            panic("SDL CreateRenderer failed: ${ren_err!!.message()}")
-        }
-        g_ren = ren
-        g_running = true
-
-        jog_host_run_loop(tick_frame)
-
-        g_ren.destroy()
-        g_win.destroy()
-        sdl.Quit()
+    if Init(InitFlag.Video) != null {
+        panic("SDL Init failed\n")
     }
+
+    var win = CreateWindow(c"JogSDL v2", 640, 480, WINDOW_RESIZABLE)
+    if (win.ptr == null) {
+        panic("SDL CreateWindow failed\n")
+    }
+
+    var ren = win.create_renderer()
+    if (ren.ptr == null) {
+        panic("SDL CreateRenderer failed\n")
+    }
+
+    val evbuf = alloc(128)
+    var running = 1
+    var rect = frect(220.0 as f32, 160.0 as f32, 200.0 as f32, 160.0 as f32)
+    val start = GetTicks()
+
+    while (running != 0) {
+        while (PollEventHas(evbuf) != 0) {
+            val kind = EventType(evbuf)
+            if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
+                running = 0
+            }
+            if (kind == EVENT_KEY_DOWN) {
+                val sc = EventScancode(evbuf)
+                if (sc == SCANCODE_ESCAPE) {
+                    running = 0
+                }
+            }
+        }
+
+        if (running == 0) {
+            break
+        }
+        if (GetTicks() - start >= LIMIT_MS) {
+            break
+        }
+
+        ren.set_draw_color(12, 48, 64, 255)
+        ren.clear()
+        ren.set_draw_color(80, 200, 180, 255)
+        ren.fill_rect(&rect)
+        ren.present()
+        Delay(16)
+    }
+
+    ren.destroy()
+    win.destroy()
+    Quit()
+    print("window demo exit\n")
 }
