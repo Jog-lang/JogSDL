@@ -46,9 +46,9 @@ fn main() {
             break
         }
 
-        ren.set_draw_color(12, 48, 64, 255)
+        ren.set_draw_color(color(12, 48, 64, 255))
         ren.clear()
-        ren.set_draw_color(80, 200, 180, 255)
+        ren.set_draw_color(color(80, 200, 180, 255))
         ren.fill_rect(&rect)
         ren.present()
         Delay(16)

@@ -69,6 +69,9 @@ fn main() {
     if (pixels == null) {
         panic("alloc framebuffer failed\n")
     }
+    var pix: []u8
+    pix.ptr = pixels
+    pix.len = FB_BYTES
     if (parallel_init(FB_BYTES as i64, FB_W, FB_H) == 0) {
         panic("parallel_init failed\n")
     }
@@ -81,8 +84,6 @@ fn main() {
     var key_use = 0
     var key_use_prev = 0
     var ev = make_event_buf()
-    // SDL writes f32 into these 4-byte cells; promote with f32_slot_to_f64 (not `as f64`).
-    val mouse_f32 = alloc(8)
     var running = 1
     var frames = 0
     var input_keys_seen = 0
@@ -138,9 +139,9 @@ fn main() {
             yaw = yaw - dt * 2.5
         }
         // Relative mouse: X → yaw (rad/px), Y → classic pitch (horizon px; clamped).
-        ReadRelativeMouse(mouse_f32, mouse_f32 + 4)
-        val mx = f32_slot_to_f64(mouse_f32)
-        val my = f32_slot_to_f64(mouse_f32 + 4)
+        val mouse = GetRelativeMouseDelta()
+        val mx = mouse.x
+        val my = mouse.y
         if (mx != 0.0 || my != 0.0) {
             input_mouse_seen = 1
         }
@@ -245,8 +246,8 @@ fn main() {
             parallel_blit_to(pixels)
             mesh_draw(pixels, FB_W, FB_H)
         }
-        tex.update(pixels)
-        ren.set_draw_color(0, 0, 0, 255)
+        tex.update(pix)
+        ren.set_draw_color(color(0, 0, 0, 255))
         ren.clear()
         ren.draw_texture(tex)
         ren.present()
