@@ -12,6 +12,8 @@ v2/
   sdl.jog                       # Window / Renderer / Texture / FRect / mouse / keys
   examples/window/              # native smoke (~1.5s auto-exit, while-loop)
   examples/raycaster/           # proto-3D: float Vec2 + view basis, doors, mouse look
+  examples/raycaster/texture.jog# CPU PPM/ARGB atlas load + sample(u,v) (shared walls/mesh)
+  examples/texture_selftest/    # no-window smoke for texture.jog
   examples/window-emscripten/   # browser window via jog_host_run_loop (JOG-90)
   examples/raycaster-emscripten/# browser proto-3D raycaster (object App state)
 ```
@@ -45,6 +47,14 @@ One-liner from `v2/examples/raycaster/`:
 
 ```bash
 JOG=~/.local/bin/jog-v2 jog-build build -o out/raycaster && ./out/raycaster
+```
+
+CPU texture substrate (no SDL window):
+
+```bash
+cd v2/examples/texture_selftest
+JOG=~/.local/bin/jog-v2 jog-build build -o out/texture_selftest && ./out/texture_selftest
+# writes /tmp/jogsdl_texture_selftest.ppm
 ```
 
 ## Build & run (Emscripten / browser)
