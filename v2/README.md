@@ -11,9 +11,10 @@ v2/
   sdl3.jog                      # @link("SDL3") raw externs (+ relative mouse)
   sdl.jog                       # Window / Renderer / Texture / FRect / mouse / keys
   examples/window/              # native smoke (~1.5s auto-exit, while-loop)
-  examples/raycaster/           # proto-3D: float Vec2 + view basis, doors, mouse look
+  examples/raycaster/           # proto-3D: pitch, textures, soft-raster cube + depth
   examples/raycaster/timing.jog # GetTicks dt + Delay-to-cap ~60 FPS (JogSDL #19)
   examples/raycaster/texture.jog# CPU PPM/ARGB atlas load + sample(u,v) (JogSDL #20)
+  examples/raycaster/mesh.jog   # soft-raster textured cube; depth-test vs walls (JogSDL #22)
   examples/texture_selftest/    # no-window smoke for texture.jog
   examples/window-emscripten/   # browser window via jog_host_run_loop (JOG-90)
   examples/raycaster-emscripten/# browser proto-3D raycaster (object App state)
@@ -102,7 +103,14 @@ python3 -m http.server -d out 8000
 - Native loop uses `SDL_GetTicks` for real `dt` (first frame forced to `0.016`; hitch clamp `(0, 0.05]`).
 - Target ~60 FPS at demo resolution (160×100): `Delay` only when the CPU frame finishes under a 16 ms budget.
 - Every 60 frames, stderr logs `timing fps=… dt_ms=… cpu_ms=…` (Fedora smoke: ~`fps=62 dt_ms=16`; `cpu_ms` often `0` at ms tick resolution for bare walls).
-- Acceptance for the CPU-3D wave: stable ~60 FPS on Fedora once mesh is in; re-measure under mesh+walls load.
+- Acceptance for the CPU-3D wave: stable ~60 FPS on Fedora under mesh+walls; re-check `timing fps=` after #22 merges (160×100).
+
+## Soft-raster cube + depth (JogSDL #22)
+
+- Per-column DDA depth buffer (second pass after walls — avoids Jog package-ptr store issues when interleaved with FB pokes).
+- `mesh.jog`: moving textured cube — yaw/pitch view projection, perspective-correct UV via `texture.jog`, depth-test against wall columns.
+- Animates on real `dt` from timing helpers (orbit + spin); scalar package temps only (no struct returns on the hot path).
+- Smoke (`JOGSDL_RAYCASTER_SMOKE=1`): `mesh cube multi-color ok` + `mesh cube occluded ok`; PPM `/tmp/jogsdl_raycaster_fb.ppm` shows checker red/blue; center-column occlusion behind the door.
 
 ## CPU 3D wave (pitch / texture / mesh / threads)
 
@@ -110,14 +118,14 @@ python3 -m http.server -d out 8000
 |-------|--------|-------|
 | Pitch (mouse Y / horizon) | JogSDL #18 | Classic horizon shift only — not 6DOF |
 | Frame timing / FPS harness | JogSDL #19 | Real dt + Delay-to-cap; see above |
-| CPU texture load/`sample(u,v)` | JogSDL #20 | Shared walls/mesh substrate; walls not wired yet |
-| Soft-raster textured mesh + depth | **TBD** | Moving cube after depth buffer; no PR yet |
-| Column/band `go` Dispatcher | **TBD** | Parallel columns after mesh + timing; wasm stays single-thread (`go` aborts under emscripten) |
+| CPU texture load/`sample(u,v)` | JogSDL #20 | Shared walls/mesh substrate; wall sampling in frame path still optional |
+| Soft-raster textured mesh + depth | JogSDL #22 | Moving cube + per-column wall depth; see above |
+| Column/band `go` Dispatcher | **TBD** | Track E — parallel columns after mesh + timing; no PR yet; wasm stays single-thread (`go` aborts under emscripten) |
 
 ## Limits
 
 - Freestanding `wasm32` (no emcc) is not on v2; browser+SDL is `wasm32-emscripten` only.
 - FRect layout vs `SDL_FRect` packing is still coarse (8-byte field slots); demos still smoke-present (F18).
-- Coroutines/`go` abort under emscripten (no stack switch) — keep a single-thread wasm path when banding lands.
-- Still a 2.5D column caster — pitch is horizon shift only; textured soft-mesh cube and wall sampling are TBD (see table above).
-- **Raycaster / jog develop:** numeric `as` is convert (JogCompiler #30). Do not revive the old IEEE 2^52 `i_to_f` bitcast helper — after #30 it sitofps `F52+n` and paints a solid door-colored frame. Struct returns still bump-alloc with no free (keep camera/DDA as package scalars). See JogDocs Friction ([JogDocs #20](https://github.com/Jog-lang/JogDocs/pull/20) marks raw_ptr extern meta fixed; struct-return OOM remains open).
+- Coroutines/`go` abort under emscripten (no stack switch) — keep a single-thread wasm path when banding (track E) lands.
+- Still a 2.5D column caster + soft-raster cube (not a full 3D engine). Pitch is horizon shift only; mesh uses yaw/pitch projection and per-column wall depth. Wall atlas sampling in `render_frame` is optional beyond the cube.
+- **Raycaster / jog develop:** numeric `as` is convert (JogCompiler #30). Do not revive the old IEEE 2^52 `i_to_f` bitcast helper — after #30 it sitofps `F52+n` and paints a solid door-colored frame. Struct returns still bump-alloc with no free (keep camera/DDA/mesh as package scalars). See JogDocs Friction ([JogDocs #20](https://github.com/Jog-lang/JogDocs/pull/20) marks raw_ptr extern meta fixed; struct-return OOM remains open).
