@@ -1,0 +1,2 @@
+// Idiomatic sdl.video — expand wrappers over sdl3.video as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.video.

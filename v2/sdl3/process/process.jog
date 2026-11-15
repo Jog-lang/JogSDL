@@ -1,0 +1,13 @@
+// Raw SDL3 process — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_CreateProcess(args: **byte, pipe_stdio: i32): *byte
+    fn SDL_CreateProcessWithProperties(props: u32): *byte
+    fn SDL_GetProcessProperties(process: *byte): u32
+    fn SDL_ReadProcess(process: *byte, datasize: *byte, exitcode: *byte): *byte
+    fn SDL_GetProcessInput(process: *byte): *byte
+    fn SDL_GetProcessOutput(process: *byte): *byte
+    fn SDL_KillProcess(process: *byte, force: i32): i32
+    fn SDL_WaitProcess(process: *byte, block: i32, exitcode: *byte): i32
+    fn SDL_DestroyProcess(process: *byte)
+}

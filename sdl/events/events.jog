@@ -1,0 +1,26 @@
+// Idiomatic event polling.
+import sdl
+import sdl3.events as raw
+
+struct Event {
+    kind: u32
+    scancode: u32
+}
+
+/**
+ * Polls one event. Returns (event, true) when an event was available.
+ * Key events expose scancode; other kinds leave scancode at 0.
+ */
+fn PollEvent(): (Event, bool) {
+    var raw_ev = raw.zero_event()
+    if !raw.SDL_PollEvent(&raw_ev) {
+        var empty: Event
+        return empty, false
+    }
+    var ev: Event
+    ev.kind = raw_ev.event_type
+    if raw_ev.event_type == sdl.EVENT_KEY_DOWN || raw_ev.event_type == sdl.EVENT_KEY_UP {
+        ev.scancode = raw_ev.scancode
+    }
+    return ev, true
+}

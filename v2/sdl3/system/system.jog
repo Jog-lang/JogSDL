@@ -1,0 +1,33 @@
+// Raw SDL3 system — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_GetDirect3D9AdapterIndex(displayID: u32): i32
+    fn SDL_GetDXGIOutputInfo(displayID: u32, adapterIndex: *byte, outputIndex: *byte): i32
+    fn SDL_SetLinuxThreadPriority(threadID: i64, priority: i32): i32
+    fn SDL_SetLinuxThreadPriorityAndPolicy(threadID: i64, sdlPriority: i32, schedPolicy: i32): i32
+    fn SDL_SetiOSEventPump(enabled: i32)
+    fn SDL_GetAndroidJNIEnv(): *byte
+    fn SDL_GetAndroidActivity(): *byte
+    fn SDL_GetAndroidSDKVersion(): i32
+    fn SDL_IsChromebook(): i32
+    fn SDL_IsDeXMode(): i32
+    fn SDL_SendAndroidBackButton()
+    fn SDL_GetAndroidInternalStoragePath(): *byte
+    fn SDL_GetAndroidExternalStorageState(): u32
+    fn SDL_GetAndroidExternalStoragePath(): *byte
+    fn SDL_GetAndroidCachePath(): *byte
+    fn SDL_ShowAndroidToast(message: *byte, duration: i32, gravity: i32, xoffset: i32, yoffset: i32): i32
+    fn SDL_SendAndroidMessage(command: u32, param: i32): i32
+    fn SDL_IsTablet(): i32
+    fn SDL_IsTV(): i32
+    fn SDL_OnApplicationWillTerminate()
+    fn SDL_OnApplicationDidReceiveMemoryWarning()
+    fn SDL_OnApplicationWillEnterBackground()
+    fn SDL_OnApplicationDidEnterBackground()
+    fn SDL_OnApplicationWillEnterForeground()
+    fn SDL_OnApplicationDidEnterForeground()
+    fn SDL_OnApplicationDidChangeStatusBarOrientation()
+    fn SDL_GetSandbox(): *byte
+    fn SDL_RequestAndroidPermission(permission: *byte, cb: *byte, userdata: *byte): i32
+    fn SDL_SetiOSAnimationCallback(window: *byte, interval: i32, callback: *byte, callbackParam: *byte): i32
+}

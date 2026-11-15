@@ -1,0 +1,75 @@
+// Raw SDL3 audio — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.iostream
+
+
+struct SDL_AudioSpec {
+    format: u32
+    channels: c.int
+    freq: c.int
+}
+
+@opaque struct SDL_AudioStream
+
+@link("SDL3")
+extern {
+    fn SDL_GetNumAudioDrivers(): c.int
+    fn SDL_GetAudioDriver(index: c.int): *const c.char
+    fn SDL_GetCurrentAudioDriver(): *const c.char
+    fn SDL_GetAudioPlaybackDevices(count: *c.int): *u32
+    fn SDL_GetAudioRecordingDevices(count: *c.int): *u32
+    fn SDL_GetAudioDeviceName(devid: u32): *const c.char
+    fn SDL_GetAudioDeviceFormat(devid: u32, spec: *SDL_AudioSpec, sample_frames: *c.int): bool
+    fn SDL_GetAudioDeviceChannelMap(devid: u32, count: *c.int): *c.int
+    fn SDL_OpenAudioDevice(devid: u32, spec: *const SDL_AudioSpec): u32
+    fn SDL_IsAudioDevicePhysical(devid: u32): bool
+    fn SDL_IsAudioDevicePlayback(devid: u32): bool
+    fn SDL_PauseAudioDevice(devid: u32): bool
+    fn SDL_ResumeAudioDevice(devid: u32): bool
+    fn SDL_AudioDevicePaused(devid: u32): bool
+    fn SDL_GetAudioDeviceGain(devid: u32): f32
+    fn SDL_SetAudioDeviceGain(devid: u32, gain: f32): bool
+    fn SDL_CloseAudioDevice(devid: u32)
+    fn SDL_BindAudioStreams(devid: u32, streams: **SDL_AudioStream, num_streams: c.int): bool
+    fn SDL_BindAudioStream(devid: u32, stream: *SDL_AudioStream): bool
+    fn SDL_UnbindAudioStreams(streams: **SDL_AudioStream, num_streams: c.int)
+    fn SDL_UnbindAudioStream(stream: *SDL_AudioStream)
+    fn SDL_GetAudioStreamDevice(stream: *SDL_AudioStream): u32
+    fn SDL_CreateAudioStream(src_spec: *const SDL_AudioSpec, dst_spec: *const SDL_AudioSpec): *SDL_AudioStream
+    fn SDL_GetAudioStreamProperties(stream: *SDL_AudioStream): u32
+    fn SDL_GetAudioStreamFormat(stream: *SDL_AudioStream, src_spec: *SDL_AudioSpec, dst_spec: *SDL_AudioSpec): bool
+    fn SDL_SetAudioStreamFormat(stream: *SDL_AudioStream, src_spec: *const SDL_AudioSpec, dst_spec: *const SDL_AudioSpec): bool
+    fn SDL_GetAudioStreamFrequencyRatio(stream: *SDL_AudioStream): f32
+    fn SDL_SetAudioStreamFrequencyRatio(stream: *SDL_AudioStream, ratio: f32): bool
+    fn SDL_GetAudioStreamGain(stream: *SDL_AudioStream): f32
+    fn SDL_SetAudioStreamGain(stream: *SDL_AudioStream, gain: f32): bool
+    fn SDL_GetAudioStreamInputChannelMap(stream: *SDL_AudioStream, count: *c.int): *c.int
+    fn SDL_GetAudioStreamOutputChannelMap(stream: *SDL_AudioStream, count: *c.int): *c.int
+    fn SDL_SetAudioStreamInputChannelMap(stream: *SDL_AudioStream, chmap: *const c.int, count: c.int): bool
+    fn SDL_SetAudioStreamOutputChannelMap(stream: *SDL_AudioStream, chmap: *const c.int, count: c.int): bool
+    fn SDL_PutAudioStreamData(stream: *SDL_AudioStream, buf: *const void, len: c.int): bool
+    fn SDL_PutAudioStreamDataNoCopy(stream: *SDL_AudioStream, buf: *const void, len: c.int, callback: *void, userdata: *void): bool
+    fn SDL_PutAudioStreamPlanarData(stream: *SDL_AudioStream, channel_buffers: **void, num_channels: c.int, num_samples: c.int): bool
+    fn SDL_GetAudioStreamData(stream: *SDL_AudioStream, buf: *void, len: c.int): c.int
+    fn SDL_GetAudioStreamAvailable(stream: *SDL_AudioStream): c.int
+    fn SDL_GetAudioStreamQueued(stream: *SDL_AudioStream): c.int
+    fn SDL_FlushAudioStream(stream: *SDL_AudioStream): bool
+    fn SDL_ClearAudioStream(stream: *SDL_AudioStream): bool
+    fn SDL_PauseAudioStreamDevice(stream: *SDL_AudioStream): bool
+    fn SDL_ResumeAudioStreamDevice(stream: *SDL_AudioStream): bool
+    fn SDL_AudioStreamDevicePaused(stream: *SDL_AudioStream): bool
+    fn SDL_LockAudioStream(stream: *SDL_AudioStream): bool
+    fn SDL_UnlockAudioStream(stream: *SDL_AudioStream): bool
+    fn SDL_SetAudioStreamGetCallback(stream: *SDL_AudioStream, callback: *void, userdata: *void): bool
+    fn SDL_SetAudioStreamPutCallback(stream: *SDL_AudioStream, callback: *void, userdata: *void): bool
+    fn SDL_DestroyAudioStream(stream: *SDL_AudioStream)
+    fn SDL_OpenAudioDeviceStream(devid: u32, spec: *const SDL_AudioSpec, callback: *void, userdata: *void): *SDL_AudioStream
+    fn SDL_SetAudioPostmixCallback(devid: u32, callback: *void, userdata: *void): bool
+    fn SDL_LoadWAV_IO(src: *iostream.SDL_IOStream, closeio: bool, spec: *SDL_AudioSpec, audio_buf: **u8, audio_len: *u32): bool
+    fn SDL_LoadWAV(path: *const c.char, spec: *SDL_AudioSpec, audio_buf: **u8, audio_len: *u32): bool
+    fn SDL_MixAudio(dst: *u8, src: *const u8, format: u32, len: u32, volume: f32): bool
+    fn SDL_ConvertAudioSamples(src_spec: *const SDL_AudioSpec, src_data: *const u8, src_len: c.int, dst_spec: *const SDL_AudioSpec, dst_data: **u8, dst_len: *c.int): bool
+    fn SDL_GetAudioFormatName(format: u32): *const c.char
+    fn SDL_GetSilenceValueForFormat(format: u32): c.int
+}

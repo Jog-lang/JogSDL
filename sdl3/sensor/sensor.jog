@@ -1,0 +1,21 @@
+// Raw SDL3 sensor — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@opaque struct SDL_Sensor
+
+@link("SDL3")
+extern {
+    fn SDL_GetSensors(count: *c.int): *u32
+    fn SDL_GetSensorNameForID(instance_id: u32): *const c.char
+    fn SDL_GetSensorNonPortableTypeForID(instance_id: u32): c.int
+    fn SDL_OpenSensor(instance_id: u32): *SDL_Sensor
+    fn SDL_GetSensorFromID(instance_id: u32): *SDL_Sensor
+    fn SDL_GetSensorProperties(sensor: *SDL_Sensor): u32
+    fn SDL_GetSensorName(sensor: *SDL_Sensor): *const c.char
+    fn SDL_GetSensorNonPortableType(sensor: *SDL_Sensor): c.int
+    fn SDL_GetSensorID(sensor: *SDL_Sensor): u32
+    fn SDL_GetSensorData(sensor: *SDL_Sensor, data: *f32, num_values: c.int): bool
+    fn SDL_CloseSensor(sensor: *SDL_Sensor)
+    fn SDL_UpdateSensors()
+}

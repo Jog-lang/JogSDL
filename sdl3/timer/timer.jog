@@ -1,0 +1,16 @@
+// Raw SDL3 timer — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+
+@link("SDL3")
+extern {
+    fn SDL_GetTicks(): u64
+    fn SDL_GetTicksNS(): u64
+    fn SDL_GetPerformanceCounter(): u64
+    fn SDL_GetPerformanceFrequency(): u64
+    fn SDL_Delay(ms: u32)
+    fn SDL_DelayNS(ns: u64)
+    fn SDL_DelayPrecise(ns: u64)
+    fn SDL_AddTimer(interval: u32, callback: *void, userdata: *void): u32
+    fn SDL_AddTimerNS(interval: u64, callback: *void, userdata: *void): u32
+    fn SDL_RemoveTimer(id: u32): bool
+}

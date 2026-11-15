@@ -1,0 +1,2 @@
+// Idiomatic sdl.asyncio — expand wrappers over sdl3.asyncio as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.asyncio.

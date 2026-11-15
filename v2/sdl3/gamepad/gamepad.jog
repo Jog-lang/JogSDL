@@ -1,0 +1,69 @@
+// Raw SDL3 gamepad — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_AddGamepadMapping(mapping: *byte): i32
+    fn SDL_AddGamepadMappingsFromIO(src: *byte, closeio: i32): i32
+    fn SDL_AddGamepadMappingsFromFile(file: *byte): i32
+    fn SDL_ReloadGamepadMappings(): i32
+    fn SDL_GetGamepadMappings(count: *byte): **byte
+    fn SDL_GetGamepadMapping(gamepad: *byte): *byte
+    fn SDL_SetGamepadMapping(instance_id: u32, mapping: *byte): i32
+    fn SDL_HasGamepad(): i32
+    fn SDL_GetGamepads(count: *byte): *byte
+    fn SDL_IsGamepad(instance_id: u32): i32
+    fn SDL_GetGamepadNameForID(instance_id: u32): *byte
+    fn SDL_GetGamepadPathForID(instance_id: u32): *byte
+    fn SDL_GetGamepadPlayerIndexForID(instance_id: u32): i32
+    fn SDL_GetGamepadVendorForID(instance_id: u32): u16
+    fn SDL_GetGamepadProductForID(instance_id: u32): u16
+    fn SDL_GetGamepadProductVersionForID(instance_id: u32): u16
+    fn SDL_GetGamepadMappingForID(instance_id: u32): *byte
+    fn SDL_OpenGamepad(instance_id: u32): *byte
+    fn SDL_GetGamepadFromID(instance_id: u32): *byte
+    fn SDL_GetGamepadFromPlayerIndex(player_index: i32): *byte
+    fn SDL_GetGamepadProperties(gamepad: *byte): u32
+    fn SDL_GetGamepadID(gamepad: *byte): u32
+    fn SDL_GetGamepadName(gamepad: *byte): *byte
+    fn SDL_GetGamepadPath(gamepad: *byte): *byte
+    fn SDL_GetGamepadPlayerIndex(gamepad: *byte): i32
+    fn SDL_SetGamepadPlayerIndex(gamepad: *byte, player_index: i32): i32
+    fn SDL_GetGamepadVendor(gamepad: *byte): u16
+    fn SDL_GetGamepadProduct(gamepad: *byte): u16
+    fn SDL_GetGamepadProductVersion(gamepad: *byte): u16
+    fn SDL_GetGamepadFirmwareVersion(gamepad: *byte): u16
+    fn SDL_GetGamepadSerial(gamepad: *byte): *byte
+    fn SDL_GetGamepadSteamHandle(gamepad: *byte): u64
+    fn SDL_GamepadConnected(gamepad: *byte): i32
+    fn SDL_GetGamepadJoystick(gamepad: *byte): *byte
+    fn SDL_SetGamepadEventsEnabled(enabled: i32)
+    fn SDL_GamepadEventsEnabled(): i32
+    fn SDL_GetGamepadBindings(gamepad: *byte, count: *byte): **byte
+    fn SDL_UpdateGamepads()
+    fn SDL_GetNumGamepadTouchpads(gamepad: *byte): i32
+    fn SDL_GetNumGamepadTouchpadFingers(gamepad: *byte, touchpad: i32): i32
+    fn SDL_GetGamepadTouchpadFinger(gamepad: *byte, touchpad: i32, finger: i32, down: *byte, x: *byte, y: *byte, pressure: *byte): i32
+    fn SDL_RumbleGamepad(gamepad: *byte, low_frequency_rumble: u16, high_frequency_rumble: u16, duration_ms: u32): i32
+    fn SDL_RumbleGamepadTriggers(gamepad: *byte, left_rumble: u16, right_rumble: u16, duration_ms: u32): i32
+    fn SDL_SetGamepadLED(gamepad: *byte, red: u8, green: u8, blue: u8): i32
+    fn SDL_SendGamepadEffect(gamepad: *byte, data: *byte, size: i32): i32
+    fn SDL_CloseGamepad(gamepad: *byte)
+    fn SDL_GamepadHasAxis(gamepad: *byte, axis: u32): i32
+    fn SDL_GamepadHasButton(gamepad: *byte, button: u32): i32
+    fn SDL_GetGamepadAppleSFSymbolsNameForAxis(gamepad: *byte, axis: u32): *byte
+    fn SDL_GetGamepadAppleSFSymbolsNameForButton(gamepad: *byte, button: u32): *byte
+    fn SDL_GetGamepadAxis(gamepad: *byte, axis: u32): *byte
+    fn SDL_GetGamepadAxisFromString(str: *byte): *byte
+    fn SDL_GetGamepadButton(gamepad: *byte, button: u32): *byte
+    fn SDL_GetGamepadButtonFromString(str: *byte): *byte
+    fn SDL_GetGamepadGUIDForID(instance_id: u32): *byte
+    fn SDL_GetGamepadMappingForGUID(guid: i32): *byte
+    fn SDL_GetGamepadPowerInfo(gamepad: *byte, percent: *byte): *byte
+    fn SDL_GetGamepadStringForAxis(axis: u32): *byte
+    fn SDL_GetGamepadStringForButton(button: u32): *byte
+    fn SDL_GetGamepadStringForType(type_: u32): *byte
+    fn SDL_GetGamepadType(gamepad: *byte): *byte
+    fn SDL_GetGamepadTypeForID(instance_id: u32): *byte
+    fn SDL_GetGamepadTypeFromString(str: *byte): *byte
+    fn SDL_GetRealGamepadType(gamepad: *byte): *byte
+    fn SDL_GetRealGamepadTypeForID(instance_id: u32): *byte
+}

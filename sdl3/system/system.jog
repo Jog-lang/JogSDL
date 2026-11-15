@@ -1,0 +1,37 @@
+// Raw SDL3 system — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.video
+
+@link("SDL3")
+extern {
+    fn SDL_GetDirect3D9AdapterIndex(displayID: u32): c.int
+    fn SDL_GetDXGIOutputInfo(displayID: u32, adapterIndex: *c.int, outputIndex: *c.int): bool
+    fn SDL_SetLinuxThreadPriority(threadID: i64, priority: c.int): bool
+    fn SDL_SetLinuxThreadPriorityAndPolicy(threadID: i64, sdlPriority: c.int, schedPolicy: c.int): bool
+    fn SDL_SetiOSAnimationCallback(window: *video.SDL_Window, interval: c.int, callback: *void, callbackParam: *void): bool
+    fn SDL_SetiOSEventPump(enabled: bool)
+    fn SDL_GetAndroidJNIEnv(): *void
+    fn SDL_GetAndroidActivity(): *void
+    fn SDL_GetAndroidSDKVersion(): c.int
+    fn SDL_IsChromebook(): bool
+    fn SDL_IsDeXMode(): bool
+    fn SDL_SendAndroidBackButton()
+    fn SDL_GetAndroidInternalStoragePath(): *const c.char
+    fn SDL_GetAndroidExternalStorageState(): u32
+    fn SDL_GetAndroidExternalStoragePath(): *const c.char
+    fn SDL_GetAndroidCachePath(): *const c.char
+    fn SDL_RequestAndroidPermission(permission: *const c.char, cb: *void, userdata: *void): bool
+    fn SDL_ShowAndroidToast(message: *const c.char, duration: c.int, gravity: c.int, xoffset: c.int, yoffset: c.int): bool
+    fn SDL_SendAndroidMessage(command: u32, param: c.int): bool
+    fn SDL_IsTablet(): bool
+    fn SDL_IsTV(): bool
+    fn SDL_GetSandbox(): u32
+    fn SDL_OnApplicationWillTerminate()
+    fn SDL_OnApplicationDidReceiveMemoryWarning()
+    fn SDL_OnApplicationWillEnterBackground()
+    fn SDL_OnApplicationDidEnterBackground()
+    fn SDL_OnApplicationWillEnterForeground()
+    fn SDL_OnApplicationDidEnterForeground()
+    fn SDL_OnApplicationDidChangeStatusBarOrientation()
+}

@@ -1,0 +1,77 @@
+// Raw SDL3 gamepad — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.guid
+import sdl3.joystick
+import sdl3.iostream
+
+@opaque struct SDL_Gamepad
+
+@link("SDL3")
+extern {
+    fn SDL_AddGamepadMapping(mapping: *const c.char): c.int
+    fn SDL_AddGamepadMappingsFromIO(src: *iostream.SDL_IOStream, closeio: bool): c.int
+    fn SDL_AddGamepadMappingsFromFile(file: *const c.char): c.int
+    fn SDL_ReloadGamepadMappings(): bool
+    fn SDL_GetGamepadMappings(count: *c.int): **c.char
+    fn SDL_GetGamepadMappingForGUID(guid: guid.SDL_GUID): *c.char
+    fn SDL_GetGamepadMapping(gamepad: *SDL_Gamepad): *c.char
+    fn SDL_SetGamepadMapping(instance_id: u32, mapping: *const c.char): bool
+    fn SDL_HasGamepad(): bool
+    fn SDL_GetGamepads(count: *c.int): *u32
+    fn SDL_IsGamepad(instance_id: u32): bool
+    fn SDL_GetGamepadNameForID(instance_id: u32): *const c.char
+    fn SDL_GetGamepadPathForID(instance_id: u32): *const c.char
+    fn SDL_GetGamepadPlayerIndexForID(instance_id: u32): c.int
+    fn SDL_GetGamepadGUIDForID(instance_id: u32): guid.SDL_GUID
+    fn SDL_GetGamepadVendorForID(instance_id: u32): u16
+    fn SDL_GetGamepadProductForID(instance_id: u32): u16
+    fn SDL_GetGamepadProductVersionForID(instance_id: u32): u16
+    fn SDL_GetGamepadTypeForID(instance_id: u32): u32
+    fn SDL_GetRealGamepadTypeForID(instance_id: u32): u32
+    fn SDL_GetGamepadMappingForID(instance_id: u32): *c.char
+    fn SDL_OpenGamepad(instance_id: u32): *SDL_Gamepad
+    fn SDL_GetGamepadFromID(instance_id: u32): *SDL_Gamepad
+    fn SDL_GetGamepadFromPlayerIndex(player_index: c.int): *SDL_Gamepad
+    fn SDL_GetGamepadProperties(gamepad: *SDL_Gamepad): u32
+    fn SDL_GetGamepadID(gamepad: *SDL_Gamepad): u32
+    fn SDL_GetGamepadName(gamepad: *SDL_Gamepad): *const c.char
+    fn SDL_GetGamepadPath(gamepad: *SDL_Gamepad): *const c.char
+    fn SDL_GetGamepadType(gamepad: *SDL_Gamepad): u32
+    fn SDL_GetRealGamepadType(gamepad: *SDL_Gamepad): u32
+    fn SDL_GetGamepadPlayerIndex(gamepad: *SDL_Gamepad): c.int
+    fn SDL_SetGamepadPlayerIndex(gamepad: *SDL_Gamepad, player_index: c.int): bool
+    fn SDL_GetGamepadVendor(gamepad: *SDL_Gamepad): u16
+    fn SDL_GetGamepadProduct(gamepad: *SDL_Gamepad): u16
+    fn SDL_GetGamepadProductVersion(gamepad: *SDL_Gamepad): u16
+    fn SDL_GetGamepadFirmwareVersion(gamepad: *SDL_Gamepad): u16
+    fn SDL_GetGamepadSerial(gamepad: *SDL_Gamepad): *const c.char
+    fn SDL_GetGamepadSteamHandle(gamepad: *SDL_Gamepad): u64
+    fn SDL_GetGamepadPowerInfo(gamepad: *SDL_Gamepad, percent: *c.int): u32
+    fn SDL_GamepadConnected(gamepad: *SDL_Gamepad): bool
+    fn SDL_GetGamepadJoystick(gamepad: *SDL_Gamepad): *joystick.SDL_Joystick
+    fn SDL_SetGamepadEventsEnabled(enabled: bool)
+    fn SDL_GamepadEventsEnabled(): bool
+    fn SDL_GetGamepadBindings(gamepad: *SDL_Gamepad, count: *c.int): **void
+    fn SDL_UpdateGamepads()
+    fn SDL_GetGamepadTypeFromString(str: *const c.char): u32
+    fn SDL_GetGamepadStringForType(type_: u32): *const c.char
+    fn SDL_GetGamepadAxisFromString(str: *const c.char): u32
+    fn SDL_GetGamepadStringForAxis(axis: u32): *const c.char
+    fn SDL_GamepadHasAxis(gamepad: *SDL_Gamepad, axis: u32): bool
+    fn SDL_GetGamepadAxis(gamepad: *SDL_Gamepad, axis: u32): i16
+    fn SDL_GetGamepadButtonFromString(str: *const c.char): u32
+    fn SDL_GetGamepadStringForButton(button: u32): *const c.char
+    fn SDL_GamepadHasButton(gamepad: *SDL_Gamepad, button: u32): bool
+    fn SDL_GetGamepadButton(gamepad: *SDL_Gamepad, button: u32): bool
+    fn SDL_GetNumGamepadTouchpads(gamepad: *SDL_Gamepad): c.int
+    fn SDL_GetNumGamepadTouchpadFingers(gamepad: *SDL_Gamepad, touchpad: c.int): c.int
+    fn SDL_GetGamepadTouchpadFinger(gamepad: *SDL_Gamepad, touchpad: c.int, finger: c.int, down: *bool, x: *f32, y: *f32, pressure: *f32): bool
+    fn SDL_RumbleGamepad(gamepad: *SDL_Gamepad, low_frequency_rumble: u16, high_frequency_rumble: u16, duration_ms: u32): bool
+    fn SDL_RumbleGamepadTriggers(gamepad: *SDL_Gamepad, left_rumble: u16, right_rumble: u16, duration_ms: u32): bool
+    fn SDL_SetGamepadLED(gamepad: *SDL_Gamepad, red: u8, green: u8, blue: u8): bool
+    fn SDL_SendGamepadEffect(gamepad: *SDL_Gamepad, data: *const void, size: c.int): bool
+    fn SDL_CloseGamepad(gamepad: *SDL_Gamepad)
+    fn SDL_GetGamepadAppleSFSymbolsNameForButton(gamepad: *SDL_Gamepad, button: u32): *const c.char
+    fn SDL_GetGamepadAppleSFSymbolsNameForAxis(gamepad: *SDL_Gamepad, axis: u32): *const c.char
+}

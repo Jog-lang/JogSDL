@@ -1,0 +1,5 @@
+// Raw SDL3 locale — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_GetPreferredLocales(count: *byte): **byte
+}

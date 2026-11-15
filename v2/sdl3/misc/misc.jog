@@ -1,0 +1,5 @@
+// Raw SDL3 misc — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_OpenURL(url: *byte): i32
+}

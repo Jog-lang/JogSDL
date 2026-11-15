@@ -1,0 +1,28 @@
+// Raw SDL3 keyboard — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_HasKeyboard(): i32
+    fn SDL_GetKeyboards(count: *byte): *byte
+    fn SDL_GetKeyboardNameForID(instance_id: u32): *byte
+    fn SDL_GetKeyboardFocus(): *byte
+    fn SDL_GetKeyboardState(numkeys: *byte): *byte
+    fn SDL_ResetKeyboard()
+    fn SDL_GetModState(): u16
+    fn SDL_SetModState(modstate: u16)
+    fn SDL_GetKeyFromScancode(scancode: u32, modstate: u16, key_event: i32): u32
+    fn SDL_GetScancodeFromKey(key: u32, modstate: *byte): u32
+    fn SDL_SetScancodeName(scancode: u32, name: *byte): i32
+    fn SDL_GetScancodeName(scancode: u32): *byte
+    fn SDL_GetScancodeFromName(name: *byte): u32
+    fn SDL_GetKeyName(key: u32): *byte
+    fn SDL_GetKeyFromName(name: *byte): u32
+    fn SDL_StartTextInput(window: *byte): i32
+    fn SDL_StartTextInputWithProperties(window: *byte, props: u32): i32
+    fn SDL_TextInputActive(window: *byte): i32
+    fn SDL_StopTextInput(window: *byte): i32
+    fn SDL_ClearComposition(window: *byte): i32
+    fn SDL_SetTextInputArea(window: *byte, rect: *byte, cursor: i32): i32
+    fn SDL_GetTextInputArea(window: *byte, rect: *byte, cursor: *byte): i32
+    fn SDL_HasScreenKeyboardSupport(): i32
+    fn SDL_ScreenKeyboardShown(window: *byte): i32
+}

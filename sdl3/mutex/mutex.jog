@@ -1,0 +1,40 @@
+// Raw SDL3 mutex — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+
+@opaque struct SDL_Mutex
+@opaque struct SDL_RWLock
+@opaque struct SDL_Semaphore
+@opaque struct SDL_Condition
+@opaque struct SDL_InitState
+
+@link("SDL3")
+extern {
+    fn SDL_CreateMutex(): *SDL_Mutex
+    fn SDL_LockMutex(mutex: *SDL_Mutex)
+    fn SDL_TryLockMutex(mutex: *SDL_Mutex): bool
+    fn SDL_UnlockMutex(mutex: *SDL_Mutex)
+    fn SDL_DestroyMutex(mutex: *SDL_Mutex)
+    fn SDL_CreateRWLock(): *SDL_RWLock
+    fn SDL_LockRWLockForReading(rwlock: *SDL_RWLock)
+    fn SDL_LockRWLockForWriting(rwlock: *SDL_RWLock)
+    fn SDL_TryLockRWLockForReading(rwlock: *SDL_RWLock): bool
+    fn SDL_TryLockRWLockForWriting(rwlock: *SDL_RWLock): bool
+    fn SDL_UnlockRWLock(rwlock: *SDL_RWLock)
+    fn SDL_DestroyRWLock(rwlock: *SDL_RWLock)
+    fn SDL_CreateSemaphore(initial_value: u32): *SDL_Semaphore
+    fn SDL_DestroySemaphore(sem: *SDL_Semaphore)
+    fn SDL_WaitSemaphore(sem: *SDL_Semaphore)
+    fn SDL_TryWaitSemaphore(sem: *SDL_Semaphore): bool
+    fn SDL_WaitSemaphoreTimeout(sem: *SDL_Semaphore, timeoutMS: i32): bool
+    fn SDL_SignalSemaphore(sem: *SDL_Semaphore)
+    fn SDL_GetSemaphoreValue(sem: *SDL_Semaphore): u32
+    fn SDL_CreateCondition(): *SDL_Condition
+    fn SDL_DestroyCondition(cond: *SDL_Condition)
+    fn SDL_SignalCondition(cond: *SDL_Condition)
+    fn SDL_BroadcastCondition(cond: *SDL_Condition)
+    fn SDL_WaitCondition(cond: *SDL_Condition, mutex: *SDL_Mutex)
+    fn SDL_WaitConditionTimeout(cond: *SDL_Condition, mutex: *SDL_Mutex, timeoutMS: i32): bool
+    fn SDL_ShouldInit(state: *SDL_InitState): bool
+    fn SDL_ShouldQuit(state: *SDL_InitState): bool
+    fn SDL_SetInitialized(state: *SDL_InitState, initialized: bool)
+}

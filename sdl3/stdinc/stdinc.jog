@@ -1,0 +1,56 @@
+// Raw SDL3 stdinc — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_malloc(size: c.size_t): *void
+    fn SDL_calloc(nmemb: c.size_t, size: c.size_t): *void
+    fn SDL_realloc(mem: *void, size: c.size_t): *void
+    fn SDL_free(mem: *void)
+    fn SDL_aligned_alloc(alignment: c.size_t, size: c.size_t): *void
+    fn SDL_aligned_free(mem: *void)
+    fn SDL_GetNumAllocations(): c.int
+    fn SDL_getenv(name: *const c.char): *const c.char
+    fn SDL_abs(x: c.int): c.int
+    fn SDL_isalpha(x: c.int): c.int
+    fn SDL_isalnum(x: c.int): c.int
+    fn SDL_isdigit(x: c.int): c.int
+    fn SDL_isspace(x: c.int): c.int
+    fn SDL_toupper(x: c.int): c.int
+    fn SDL_tolower(x: c.int): c.int
+    fn SDL_crc16(crc: u16, data: *const void, len: c.size_t): u16
+    fn SDL_crc32(crc: u32, data: *const void, len: c.size_t): u32
+    fn SDL_murmur3_32(data: *const void, len: c.size_t, seed: u32): u32
+    fn SDL_memcpy(dst: *void, src: *void, len: c.size_t): *void
+    fn SDL_memmove(dst: *void, src: *void, len: c.size_t): *void
+    fn SDL_memset(dst: *void, c: c.int, len: c.size_t): *void
+    fn SDL_memcmp(s1: *const void, s2: *const void, len: c.size_t): c.int
+    fn SDL_wcslen(wstr: *const u32): c.size_t
+    fn SDL_wcsnlen(wstr: *const u32, maxlen: c.size_t): c.size_t
+    fn SDL_strlen(str: *const c.char): c.size_t
+    fn SDL_strnlen(str: *const c.char, maxlen: c.size_t): c.size_t
+    fn SDL_strlcpy(dst: *void, src: *const c.char, maxlen: c.size_t): c.size_t
+    fn SDL_strlcat(dst: *void, src: *const c.char, maxlen: c.size_t): c.size_t
+    fn SDL_strdup(str: *const c.char): *c.char
+    fn SDL_strndup(str: *const c.char, maxlen: c.size_t): *c.char
+    fn SDL_strchr(str: *const c.char, c: c.int): *c.char
+    fn SDL_strrchr(str: *const c.char, c: c.int): *c.char
+    fn SDL_strstr(haystack: *const c.char, needle: *const c.char): *c.char
+    fn SDL_utf8strlen(str: *const c.char): c.size_t
+    fn SDL_utf8strnlen(str: *const c.char, bytes: c.size_t): c.size_t
+    fn SDL_atoi(str: *const c.char): c.int
+    fn SDL_atof(str: *const c.char): f64
+    fn SDL_strcmp(str1: *const c.char, str2: *const c.char): c.int
+    fn SDL_strncmp(str1: *const c.char, str2: *const c.char, maxlen: c.size_t): c.int
+    fn SDL_strcasecmp(str1: *const c.char, str2: *const c.char): c.int
+    fn SDL_strncasecmp(str1: *const c.char, str2: *const c.char, maxlen: c.size_t): c.int
+    fn SDL_srand(seed: u64)
+    fn SDL_rand(n: i32): i32
+    fn SDL_randf(): f32
+    fn SDL_rand_bits(): u32
+    fn SDL_rand_r(state: *u64, n: i32): i32
+    fn SDL_randf_r(state: *u64): f32
+    fn SDL_rand_bits_r(state: *u64): u32
+    fn SDL_iconv_string(tocode: *const c.char, fromcode: *const c.char, inbuf: *const c.char, inbytesleft: c.size_t): *c.char
+}

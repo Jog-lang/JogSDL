@@ -1,0 +1,2 @@
+// Idiomatic sdl.dialog — expand wrappers over sdl3.dialog as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.dialog.

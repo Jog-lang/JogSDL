@@ -1,0 +1,9 @@
+// SDL_keycode.h constants (v2).
+val SDLK_UNKNOWN: u32 = 0
+val SDLK_RETURN: u32 = 0x0000000d
+val SDLK_ESCAPE: u32 = 0x0000001b
+val SDLK_SPACE: u32 = 0x00000020
+val SDLK_A: u32 = 0x00000061
+val SDLK_D: u32 = 0x00000064
+val SDLK_S: u32 = 0x00000073
+val SDLK_W: u32 = 0x00000077

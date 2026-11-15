@@ -1,0 +1,24 @@
+// Raw SDL3 log — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_SetLogPriorities(priority: u32)
+    fn SDL_SetLogPriority(category: c.int, priority: u32)
+    fn SDL_GetLogPriority(category: c.int): u32
+    fn SDL_ResetLogPriorities()
+    fn SDL_SetLogPriorityPrefix(priority: u32, prefix: *const c.char): bool
+    fn SDL_Log(fmt: *const c.char, ...)
+    fn SDL_LogTrace(category: c.int, fmt: *const c.char, ...)
+    fn SDL_LogVerbose(category: c.int, fmt: *const c.char, ...)
+    fn SDL_LogDebug(category: c.int, fmt: *const c.char, ...)
+    fn SDL_LogInfo(category: c.int, fmt: *const c.char, ...)
+    fn SDL_LogWarn(category: c.int, fmt: *const c.char, ...)
+    fn SDL_LogError(category: c.int, fmt: *const c.char, ...)
+    fn SDL_LogCritical(category: c.int, fmt: *const c.char, ...)
+    fn SDL_LogMessage(category: c.int, priority: u32, fmt: *const c.char, ...)
+    fn SDL_GetDefaultLogOutputFunction(): *void
+    fn SDL_GetLogOutputFunction(callback: *void, userdata: **void)
+    fn SDL_SetLogOutputFunction(callback: *void, userdata: *void)
+}

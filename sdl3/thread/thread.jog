@@ -1,0 +1,23 @@
+// Raw SDL3 thread — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@opaque struct SDL_Thread
+
+@link("SDL3")
+extern {
+    fn SDL_CreateThread(fn_: *void, name: *const c.char, data: *void): *SDL_Thread
+    fn SDL_CreateThreadWithProperties(props: u32): *SDL_Thread
+    fn SDL_CreateThreadRuntime(fn_: *void, name: *const c.char, data: *void, pfnBeginThread: *void, pfnEndThread: *void): *SDL_Thread
+    fn SDL_CreateThreadWithPropertiesRuntime(props: u32, pfnBeginThread: *void, pfnEndThread: *void): *SDL_Thread
+    fn SDL_GetThreadName(thread: *SDL_Thread): *const c.char
+    fn SDL_GetCurrentThreadID(): u64
+    fn SDL_GetThreadID(thread: *SDL_Thread): u64
+    fn SDL_SetCurrentThreadPriority(priority: u32): bool
+    fn SDL_WaitThread(thread: *SDL_Thread, status: *c.int)
+    fn SDL_GetThreadState(thread: *SDL_Thread): u32
+    fn SDL_DetachThread(thread: *SDL_Thread)
+    fn SDL_GetTLS(id: *void): *void
+    fn SDL_SetTLS(id: *void, value: *const void, destructor: *void): bool
+    fn SDL_CleanupTLS()
+}

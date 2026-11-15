@@ -1,9 +1,13 @@
 import jog_sdl.sdl
+import jog_sdl.sdl.window
+import jog_sdl.sdl.render
+import jog_sdl.sdl.events
+import jog_sdl.sdl.timer
 import std.mem
 
 var g_running: bool = false
-var g_win: sdl.Window
-var g_ren: sdl.Renderer
+var g_win: window.Window
+var g_ren: render.Renderer
 
 extern {
     fn jog_host_run_loop(tick: extern () -> i32)
@@ -12,7 +16,7 @@ extern {
 @export
 fn tick_frame(): i32 {
     for {
-        val (ev, ok) = sdl.PollEvent()
+        val (ev, ok) = events.PollEvent()
         if !ok {
             break
         }
@@ -33,10 +37,10 @@ fn tick_frame(): i32 {
     _ = g_ren.clear()
 
     _ = g_ren.set_draw_color(80, 200, 180, 255)
-    _ = g_ren.fill_rect(sdl.frect(220.0, 160.0, 200.0, 160.0))
+    _ = g_ren.fill_rect(render.frect(220.0, 160.0, 200.0, 160.0))
 
     _ = g_ren.present()
-    sdl.Delay(16)
+    timer.Delay(16)
     return 1
 }
 
@@ -47,7 +51,7 @@ fn main() {
             panic("SDL Init failed: ${err!!.message()}")
         }
 
-        var (win, win_err) = sdl.CreateWindow("JogSDL", 640, 480, sdl.WINDOW_RESIZABLE)
+        var (win, win_err) = window.CreateWindow("JogSDL", 640, 480, sdl.WINDOW_RESIZABLE)
         if win_err != null {
             panic("SDL CreateWindow failed: ${win_err!!.message()}")
         }

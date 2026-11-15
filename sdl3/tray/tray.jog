@@ -1,0 +1,34 @@
+// Raw SDL3 tray — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.surface
+
+@opaque struct SDL_Tray
+@opaque struct SDL_TrayMenu
+@opaque struct SDL_TrayEntry
+
+@link("SDL3")
+extern {
+    fn SDL_CreateTray(icon: *surface.SDL_Surface, tooltip: *const c.char): *SDL_Tray
+    fn SDL_SetTrayIcon(tray: *SDL_Tray, icon: *surface.SDL_Surface)
+    fn SDL_SetTrayTooltip(tray: *SDL_Tray, tooltip: *const c.char)
+    fn SDL_CreateTrayMenu(tray: *SDL_Tray): *SDL_TrayMenu
+    fn SDL_CreateTraySubmenu(entry: *SDL_TrayEntry): *SDL_TrayMenu
+    fn SDL_GetTrayMenu(tray: *SDL_Tray): *SDL_TrayMenu
+    fn SDL_GetTraySubmenu(entry: *SDL_TrayEntry): *SDL_TrayMenu
+    fn SDL_GetTrayEntries(menu: *SDL_TrayMenu, count: *c.int): **SDL_TrayEntry
+    fn SDL_RemoveTrayEntry(entry: *SDL_TrayEntry)
+    fn SDL_SetTrayEntryLabel(entry: *SDL_TrayEntry, label: *const c.char)
+    fn SDL_GetTrayEntryLabel(entry: *SDL_TrayEntry): *const c.char
+    fn SDL_SetTrayEntryChecked(entry: *SDL_TrayEntry, checked: bool)
+    fn SDL_GetTrayEntryChecked(entry: *SDL_TrayEntry): bool
+    fn SDL_SetTrayEntryEnabled(entry: *SDL_TrayEntry, enabled: bool)
+    fn SDL_GetTrayEntryEnabled(entry: *SDL_TrayEntry): bool
+    fn SDL_SetTrayEntryCallback(entry: *SDL_TrayEntry, callback: *void, userdata: *void)
+    fn SDL_ClickTrayEntry(entry: *SDL_TrayEntry)
+    fn SDL_DestroyTray(tray: *SDL_Tray)
+    fn SDL_GetTrayEntryParent(entry: *SDL_TrayEntry): *SDL_TrayMenu
+    fn SDL_GetTrayMenuParentEntry(menu: *SDL_TrayMenu): *SDL_TrayEntry
+    fn SDL_GetTrayMenuParentTray(menu: *SDL_TrayMenu): *SDL_Tray
+    fn SDL_UpdateTrays()
+}

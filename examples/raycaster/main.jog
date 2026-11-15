@@ -1,4 +1,9 @@
 import jog_sdl.sdl
+import jog_sdl.sdl.window
+import jog_sdl.sdl.render
+import jog_sdl.sdl.events
+import jog_sdl.sdl.input
+import jog_sdl.sdl.timer
 import std.math
 import std.mem
 
@@ -9,9 +14,9 @@ val ROT_SPEED: f64 = 2.0
 
 // Frame state at package scope so the @export tick can see it.
 var g_running: bool = false
-var g_win: sdl.Window
-var g_ren: sdl.Renderer
-var g_tex: sdl.Texture
+var g_win: window.Window
+var g_ren: render.Renderer
+var g_tex: render.Texture
 var g_pixels: []u32
 var g_map: Map
 var g_pos_x: f64 = 2.5
@@ -32,7 +37,7 @@ extern {
 @export
 fn tick_frame(): i32 {
     for {
-        val (ev, ok) = sdl.PollEvent()
+        val (ev, ok) = events.PollEvent()
         if !ok {
             break
         }
@@ -47,14 +52,14 @@ fn tick_frame(): i32 {
         return 0
     }
 
-    val now = sdl.GetTicks()
+    val now = timer.GetTicks()
     var dt = (now - g_last_ticks) as f64 / 1000.0
     g_last_ticks = now
     if dt > 0.05 {
         dt = 0.05
     }
 
-    if sdl.KeyboardIsDown(sdl.SCANCODE_LEFT) {
+    if input.KeyboardIsDown(sdl.SCANCODE_LEFT) {
         val rot = ROT_SPEED * dt
         val old_dir_x = g_dir_x
         g_dir_x = g_dir_x * math.cos(rot) - g_dir_y * math.sin(rot)
@@ -63,7 +68,7 @@ fn tick_frame(): i32 {
         g_plane_x = g_plane_x * math.cos(rot) - g_plane_y * math.sin(rot)
         g_plane_y = old_plane_x * math.sin(rot) + g_plane_y * math.cos(rot)
     }
-    if sdl.KeyboardIsDown(sdl.SCANCODE_RIGHT) {
+    if input.KeyboardIsDown(sdl.SCANCODE_RIGHT) {
         val rot = -ROT_SPEED * dt
         val old_dir_x = g_dir_x
         g_dir_x = g_dir_x * math.cos(rot) - g_dir_y * math.sin(rot)
@@ -74,7 +79,7 @@ fn tick_frame(): i32 {
     }
 
     val move = MOVE_SPEED * dt
-    if sdl.KeyboardIsDown(sdl.SCANCODE_W) {
+    if input.KeyboardIsDown(sdl.SCANCODE_W) {
         val nx = g_pos_x + g_dir_x * move
         val ny = g_pos_y + g_dir_y * move
         if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
@@ -84,7 +89,7 @@ fn tick_frame(): i32 {
             g_pos_y = ny
         }
     }
-    if sdl.KeyboardIsDown(sdl.SCANCODE_S) {
+    if input.KeyboardIsDown(sdl.SCANCODE_S) {
         val nx = g_pos_x - g_dir_x * move
         val ny = g_pos_y - g_dir_y * move
         if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
@@ -94,7 +99,7 @@ fn tick_frame(): i32 {
             g_pos_y = ny
         }
     }
-    if sdl.KeyboardIsDown(sdl.SCANCODE_A) {
+    if input.KeyboardIsDown(sdl.SCANCODE_A) {
         val nx = g_pos_x - g_plane_x * move
         val ny = g_pos_y - g_plane_y * move
         if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
@@ -104,7 +109,7 @@ fn tick_frame(): i32 {
             g_pos_y = ny
         }
     }
-    if sdl.KeyboardIsDown(sdl.SCANCODE_D) {
+    if input.KeyboardIsDown(sdl.SCANCODE_D) {
         val nx = g_pos_x + g_plane_x * move
         val ny = g_pos_y + g_plane_y * move
         if !g_map.solid(math.floor(nx) as i32, math.floor(g_pos_y) as i32) {
@@ -132,7 +137,7 @@ fn main() {
             panic("SDL Init failed: ${err!!.message()}")
         }
 
-        var (win, ren, create_err) = sdl.CreateWindowAndRenderer(
+        var (win, ren, create_err) = window.CreateWindowAndRenderer(
             "JogSDL raycaster",
             SCREEN_W,
             SCREEN_H,
@@ -152,7 +157,7 @@ fn main() {
 
         g_pixels = mem.newSlice<u32>((SCREEN_W * SCREEN_H) as usize)
         g_map = demo_map()
-        g_last_ticks = sdl.GetTicks()
+        g_last_ticks = timer.GetTicks()
         g_running = true
 
         // Desktop: while-iterate. Emscripten: requestAnimationFrame via emcc.

@@ -1,0 +1,56 @@
+// Raw SDL3 iostream — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@opaque struct SDL_IOStream
+
+@link("SDL3")
+extern {
+    fn SDL_IOFromFile(file: *const c.char, mode: *const c.char): *SDL_IOStream
+    fn SDL_IOFromMem(mem: *void, size: c.size_t): *SDL_IOStream
+    fn SDL_IOFromConstMem(mem: *const void, size: c.size_t): *SDL_IOStream
+    fn SDL_IOFromDynamicMem(): *SDL_IOStream
+    fn SDL_OpenIO(iface: *const void, userdata: *void): *SDL_IOStream
+    fn SDL_CloseIO(context: *SDL_IOStream): bool
+    fn SDL_GetIOProperties(context: *SDL_IOStream): u32
+    fn SDL_GetIOStatus(context: *SDL_IOStream): u32
+    fn SDL_GetIOSize(context: *SDL_IOStream): i64
+    fn SDL_SeekIO(context: *SDL_IOStream, offset: i64, whence: u32): i64
+    fn SDL_TellIO(context: *SDL_IOStream): i64
+    fn SDL_ReadIO(context: *SDL_IOStream, ptr: *void, size: c.size_t): c.size_t
+    fn SDL_WriteIO(context: *SDL_IOStream, ptr: *const void, size: c.size_t): c.size_t
+    fn SDL_IOprintf(context: *SDL_IOStream, fmt: *const c.char, ...): c.size_t
+    fn SDL_FlushIO(context: *SDL_IOStream): bool
+    fn SDL_LoadFile_IO(src: *SDL_IOStream, datasize: *c.size_t, closeio: bool): *void
+    fn SDL_LoadFile(file: *const c.char, datasize: *c.size_t): *void
+    fn SDL_SaveFile_IO(src: *SDL_IOStream, data: *const void, datasize: c.size_t, closeio: bool): bool
+    fn SDL_SaveFile(file: *const c.char, data: *const void, datasize: c.size_t): bool
+    fn SDL_ReadU8(src: *SDL_IOStream, value: *u8): bool
+    fn SDL_ReadS8(src: *SDL_IOStream, value: *i8): bool
+    fn SDL_ReadU16LE(src: *SDL_IOStream, value: *u16): bool
+    fn SDL_ReadS16LE(src: *SDL_IOStream, value: *i16): bool
+    fn SDL_ReadU16BE(src: *SDL_IOStream, value: *u16): bool
+    fn SDL_ReadS16BE(src: *SDL_IOStream, value: *i16): bool
+    fn SDL_ReadU32LE(src: *SDL_IOStream, value: *u32): bool
+    fn SDL_ReadS32LE(src: *SDL_IOStream, value: *i32): bool
+    fn SDL_ReadU32BE(src: *SDL_IOStream, value: *u32): bool
+    fn SDL_ReadS32BE(src: *SDL_IOStream, value: *i32): bool
+    fn SDL_ReadU64LE(src: *SDL_IOStream, value: *u64): bool
+    fn SDL_ReadS64LE(src: *SDL_IOStream, value: *i64): bool
+    fn SDL_ReadU64BE(src: *SDL_IOStream, value: *u64): bool
+    fn SDL_ReadS64BE(src: *SDL_IOStream, value: *i64): bool
+    fn SDL_WriteU8(dst: *SDL_IOStream, value: u8): bool
+    fn SDL_WriteS8(dst: *SDL_IOStream, value: i8): bool
+    fn SDL_WriteU16LE(dst: *SDL_IOStream, value: u16): bool
+    fn SDL_WriteS16LE(dst: *SDL_IOStream, value: i16): bool
+    fn SDL_WriteU16BE(dst: *SDL_IOStream, value: u16): bool
+    fn SDL_WriteS16BE(dst: *SDL_IOStream, value: i16): bool
+    fn SDL_WriteU32LE(dst: *SDL_IOStream, value: u32): bool
+    fn SDL_WriteS32LE(dst: *SDL_IOStream, value: i32): bool
+    fn SDL_WriteU32BE(dst: *SDL_IOStream, value: u32): bool
+    fn SDL_WriteS32BE(dst: *SDL_IOStream, value: i32): bool
+    fn SDL_WriteU64LE(dst: *SDL_IOStream, value: u64): bool
+    fn SDL_WriteS64LE(dst: *SDL_IOStream, value: i64): bool
+    fn SDL_WriteU64BE(dst: *SDL_IOStream, value: u64): bool
+    fn SDL_WriteS64BE(dst: *SDL_IOStream, value: i64): bool
+}

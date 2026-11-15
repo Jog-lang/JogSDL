@@ -1,0 +1,53 @@
+// Raw SDL3 stdinc — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_malloc(size: u64): *byte
+    fn SDL_calloc(nmemb: u64, size: u64): *byte
+    fn SDL_realloc(mem: *byte, size: u64): *byte
+    fn SDL_free(mem: *byte)
+    fn SDL_aligned_alloc(alignment: u64, size: u64): *byte
+    fn SDL_aligned_free(mem: *byte)
+    fn SDL_GetNumAllocations(): i32
+    fn SDL_getenv(name: *byte): *byte
+    fn SDL_abs(x: i32): i32
+    fn SDL_isalpha(x: i32): i32
+    fn SDL_isalnum(x: i32): i32
+    fn SDL_isdigit(x: i32): i32
+    fn SDL_isspace(x: i32): i32
+    fn SDL_toupper(x: i32): i32
+    fn SDL_tolower(x: i32): i32
+    fn SDL_crc16(crc: u16, data: *byte, len: u64): u16
+    fn SDL_crc32(crc: u32, data: *byte, len: u64): u32
+    fn SDL_murmur3_32(data: *byte, len: u64, seed: u32): u32
+    fn SDL_memcpy(dst: *byte, src: *byte, len: u64): *byte
+    fn SDL_memmove(dst: *byte, src: *byte, len: u64): *byte
+    fn SDL_memset(dst: *byte, c: i32, len: u64): *byte
+    fn SDL_memcmp(s1: *byte, s2: *byte, len: u64): i32
+    fn SDL_wcslen(wstr: *byte): u64
+    fn SDL_wcsnlen(wstr: *byte, maxlen: u64): u64
+    fn SDL_strlen(str: *byte): u64
+    fn SDL_strnlen(str: *byte, maxlen: u64): u64
+    fn SDL_strlcpy(dst: *byte, src: *byte, maxlen: u64): u64
+    fn SDL_strlcat(dst: *byte, src: *byte, maxlen: u64): u64
+    fn SDL_strdup(str: *byte): *byte
+    fn SDL_strndup(str: *byte, maxlen: u64): *byte
+    fn SDL_strchr(str: *byte, c: i32): *byte
+    fn SDL_strrchr(str: *byte, c: i32): *byte
+    fn SDL_strstr(haystack: *byte, needle: *byte): *byte
+    fn SDL_utf8strlen(str: *byte): u64
+    fn SDL_utf8strnlen(str: *byte, bytes: u64): u64
+    fn SDL_atoi(str: *byte): i32
+    fn SDL_atof(str: *byte): f64
+    fn SDL_strcmp(str1: *byte, str2: *byte): i32
+    fn SDL_strncmp(str1: *byte, str2: *byte, maxlen: u64): i32
+    fn SDL_strcasecmp(str1: *byte, str2: *byte): i32
+    fn SDL_strncasecmp(str1: *byte, str2: *byte, maxlen: u64): i32
+    fn SDL_srand(seed: u64)
+    fn SDL_rand(n: i32): i32
+    fn SDL_randf(): f32
+    fn SDL_rand_bits(): u32
+    fn SDL_rand_r(state: *byte, n: i32): i32
+    fn SDL_randf_r(state: *byte): f32
+    fn SDL_rand_bits_r(state: *byte): u32
+    fn SDL_iconv_string(tocode: *byte, fromcode: *byte, inbuf: *byte, inbytesleft: u64): *byte
+}

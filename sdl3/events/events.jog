@@ -1,0 +1,42 @@
+// Raw SDL3 events — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.video
+
+
+// Layout matches SDL_Event (128 bytes). Leading fields align with SDL_KeyboardEvent
+// so key polls can read scancode without a separate union view.
+struct SDL_Event {
+    event_type: u32
+    reserved: u32
+    timestamp: u64
+    window_id: u32
+    which: u32
+    scancode: u32
+    _pad: [100]u8
+}
+
+fn zero_event(): SDL_Event {
+    var e: SDL_Event
+    return e
+}
+
+@link("SDL3")
+extern {
+    fn SDL_PumpEvents()
+    fn SDL_PeepEvents(events: *SDL_Event, numevents: c.int, action: u32, minType: u32, maxType: u32): c.int
+    fn SDL_HasEvent(type_: u32): bool
+    fn SDL_HasEvents(minType: u32, maxType: u32): bool
+    fn SDL_FlushEvent(type_: u32)
+    fn SDL_FlushEvents(minType: u32, maxType: u32)
+    fn SDL_PollEvent(event: *SDL_Event): bool
+    fn SDL_WaitEvent(event: *SDL_Event): bool
+    fn SDL_WaitEventTimeout(event: *SDL_Event, timeoutMS: i32): bool
+    fn SDL_PushEvent(event: *SDL_Event): bool
+    fn SDL_GetEventFilter(filter: *void, userdata: **void): bool
+    fn SDL_SetEventEnabled(type_: u32, enabled: bool)
+    fn SDL_EventEnabled(type_: u32): bool
+    fn SDL_RegisterEvents(numevents: c.int): u32
+    fn SDL_GetWindowFromEvent(event: *const SDL_Event): *video.SDL_Window
+    fn SDL_GetEventDescription(event: *const SDL_Event, buf: *c.char, buflen: c.int): c.int
+}

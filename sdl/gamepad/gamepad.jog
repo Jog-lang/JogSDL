@@ -1,0 +1,2 @@
+// Idiomatic sdl.gamepad — expand wrappers over sdl3.gamepad as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.gamepad.

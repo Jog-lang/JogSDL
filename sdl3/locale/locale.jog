@@ -1,0 +1,8 @@
+// Raw SDL3 locale — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetPreferredLocales(count: *c.int): **void
+}

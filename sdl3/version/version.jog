@@ -1,0 +1,9 @@
+// Raw SDL3 version — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetVersion(): c.int
+    fn SDL_GetRevision(): *const c.char
+}

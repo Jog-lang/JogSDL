@@ -4,13 +4,17 @@
 module raycaster_emscripten
 version 0.1.0
 root main.jog
+require jog_sdl ../..
 source ../raycaster/math2d.jog
 source ../raycaster/world.jog
+<<<<<<< HEAD
 source ../raycaster/texture.jog
 source ../raycaster/mesh.jog
 source ../raycaster/parallel.jog
 source ../raycaster/timing.jog
 source ../../sdl.jog
 source ../../sdl3.jog
+=======
+>>>>>>> 02281f3 (Wave 0: split SDL3 bindings into header-mirrored subpackages.)
 link.emscripten SDL3
 libdir.emscripten ../../../prefix-emscripten/lib

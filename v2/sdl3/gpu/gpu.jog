@@ -1,0 +1,101 @@
+// Raw SDL3 gpu — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_GPUSupportsProperties(props: u32): i32
+    fn SDL_CreateGPUDeviceWithProperties(props: u32): *byte
+    fn SDL_DestroyGPUDevice(device: *byte)
+    fn SDL_GetNumGPUDrivers(): i32
+    fn SDL_GetGPUDriver(index: i32): *byte
+    fn SDL_GetGPUDeviceDriver(device: *byte): *byte
+    fn SDL_GetGPUDeviceProperties(device: *byte): u32
+    fn SDL_CreateGPUComputePipeline(device: *byte, createinfo: *byte): *byte
+    fn SDL_CreateGPUGraphicsPipeline(device: *byte, createinfo: *byte): *byte
+    fn SDL_CreateGPUSampler(device: *byte, createinfo: *byte): *byte
+    fn SDL_CreateGPUShader(device: *byte, createinfo: *byte): *byte
+    fn SDL_CreateGPUTexture(device: *byte, createinfo: *byte): *byte
+    fn SDL_CreateGPUBuffer(device: *byte, createinfo: *byte): *byte
+    fn SDL_CreateGPUTransferBuffer(device: *byte, createinfo: *byte): *byte
+    fn SDL_SetGPUBufferName(device: *byte, buffer: *byte, text: *byte)
+    fn SDL_SetGPUTextureName(device: *byte, texture: *byte, text: *byte)
+    fn SDL_InsertGPUDebugLabel(command_buffer: *byte, text: *byte)
+    fn SDL_PushGPUDebugGroup(command_buffer: *byte, name: *byte)
+    fn SDL_PopGPUDebugGroup(command_buffer: *byte)
+    fn SDL_ReleaseGPUTexture(device: *byte, texture: *byte)
+    fn SDL_ReleaseGPUSampler(device: *byte, sampler: *byte)
+    fn SDL_ReleaseGPUBuffer(device: *byte, buffer: *byte)
+    fn SDL_ReleaseGPUTransferBuffer(device: *byte, transfer_buffer: *byte)
+    fn SDL_ReleaseGPUComputePipeline(device: *byte, compute_pipeline: *byte)
+    fn SDL_ReleaseGPUShader(device: *byte, shader: *byte)
+    fn SDL_ReleaseGPUGraphicsPipeline(device: *byte, graphics_pipeline: *byte)
+    fn SDL_AcquireGPUCommandBuffer(device: *byte): *byte
+    fn SDL_PushGPUVertexUniformData(command_buffer: *byte, slot_index: u32, data: *byte, length: u32)
+    fn SDL_PushGPUFragmentUniformData(command_buffer: *byte, slot_index: u32, data: *byte, length: u32)
+    fn SDL_PushGPUComputeUniformData(command_buffer: *byte, slot_index: u32, data: *byte, length: u32)
+    fn SDL_BeginGPURenderPass(command_buffer: *byte, color_target_infos: *byte, num_color_targets: u32, depth_stencil_target_info: *byte): *byte
+    fn SDL_BindGPUGraphicsPipeline(render_pass: *byte, graphics_pipeline: *byte)
+    fn SDL_SetGPUViewport(render_pass: *byte, viewport: *byte)
+    fn SDL_SetGPUScissor(render_pass: *byte, scissor: *byte)
+    fn SDL_SetGPUStencilReference(render_pass: *byte, reference: u8)
+    fn SDL_BindGPUVertexBuffers(render_pass: *byte, first_slot: u32, bindings: *byte, num_bindings: u32)
+    fn SDL_BindGPUVertexSamplers(render_pass: *byte, first_slot: u32, texture_sampler_bindings: *byte, num_bindings: u32)
+    fn SDL_BindGPUVertexStorageTextures(render_pass: *byte, first_slot: u32, storage_textures: **byte, num_bindings: u32)
+    fn SDL_BindGPUVertexStorageBuffers(render_pass: *byte, first_slot: u32, storage_buffers: **byte, num_bindings: u32)
+    fn SDL_BindGPUFragmentSamplers(render_pass: *byte, first_slot: u32, texture_sampler_bindings: *byte, num_bindings: u32)
+    fn SDL_BindGPUFragmentStorageTextures(render_pass: *byte, first_slot: u32, storage_textures: **byte, num_bindings: u32)
+    fn SDL_BindGPUFragmentStorageBuffers(render_pass: *byte, first_slot: u32, storage_buffers: **byte, num_bindings: u32)
+    fn SDL_DrawGPUIndexedPrimitives(render_pass: *byte, num_indices: u32, num_instances: u32, first_index: u32, vertex_offset: i32, first_instance: u32)
+    fn SDL_DrawGPUPrimitives(render_pass: *byte, num_vertices: u32, num_instances: u32, first_vertex: u32, first_instance: u32)
+    fn SDL_DrawGPUPrimitivesIndirect(render_pass: *byte, buffer: *byte, offset: u32, draw_count: u32)
+    fn SDL_DrawGPUIndexedPrimitivesIndirect(render_pass: *byte, buffer: *byte, offset: u32, draw_count: u32)
+    fn SDL_EndGPURenderPass(render_pass: *byte)
+    fn SDL_BeginGPUComputePass(command_buffer: *byte, storage_texture_bindings: *byte, num_storage_texture_bindings: u32, storage_buffer_bindings: *byte, num_storage_buffer_bindings: u32): *byte
+    fn SDL_BindGPUComputePipeline(compute_pass: *byte, compute_pipeline: *byte)
+    fn SDL_BindGPUComputeSamplers(compute_pass: *byte, first_slot: u32, texture_sampler_bindings: *byte, num_bindings: u32)
+    fn SDL_BindGPUComputeStorageTextures(compute_pass: *byte, first_slot: u32, storage_textures: **byte, num_bindings: u32)
+    fn SDL_BindGPUComputeStorageBuffers(compute_pass: *byte, first_slot: u32, storage_buffers: **byte, num_bindings: u32)
+    fn SDL_DispatchGPUCompute(compute_pass: *byte, groupcount_x: u32, groupcount_y: u32, groupcount_z: u32)
+    fn SDL_DispatchGPUComputeIndirect(compute_pass: *byte, buffer: *byte, offset: u32)
+    fn SDL_EndGPUComputePass(compute_pass: *byte)
+    fn SDL_MapGPUTransferBuffer(device: *byte, transfer_buffer: *byte, cycle: i32): *byte
+    fn SDL_UnmapGPUTransferBuffer(device: *byte, transfer_buffer: *byte)
+    fn SDL_BeginGPUCopyPass(command_buffer: *byte): *byte
+    fn SDL_UploadToGPUTexture(copy_pass: *byte, source: *byte, destination: *byte, cycle: i32)
+    fn SDL_UploadToGPUBuffer(copy_pass: *byte, source: *byte, destination: *byte, cycle: i32)
+    fn SDL_CopyGPUTextureToTexture(copy_pass: *byte, source: *byte, destination: *byte, w: u32, h: u32, d: u32, cycle: i32)
+    fn SDL_CopyGPUBufferToBuffer(copy_pass: *byte, source: *byte, destination: *byte, size: u32, cycle: i32)
+    fn SDL_DownloadFromGPUTexture(copy_pass: *byte, source: *byte, destination: *byte)
+    fn SDL_DownloadFromGPUBuffer(copy_pass: *byte, source: *byte, destination: *byte)
+    fn SDL_EndGPUCopyPass(copy_pass: *byte)
+    fn SDL_GenerateMipmapsForGPUTexture(command_buffer: *byte, texture: *byte)
+    fn SDL_BlitGPUTexture(command_buffer: *byte, info: *byte)
+    fn SDL_ClaimWindowForGPUDevice(device: *byte, window: *byte): i32
+    fn SDL_ReleaseWindowFromGPUDevice(device: *byte, window: *byte)
+    fn SDL_SetGPUAllowedFramesInFlight(device: *byte, allowed_frames_in_flight: u32): i32
+    fn SDL_AcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32
+    fn SDL_WaitForGPUSwapchain(device: *byte, window: *byte): i32
+    fn SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32
+    fn SDL_SubmitGPUCommandBuffer(command_buffer: *byte): i32
+    fn SDL_SubmitGPUCommandBufferAndAcquireFence(command_buffer: *byte): *byte
+    fn SDL_CancelGPUCommandBuffer(command_buffer: *byte): i32
+    fn SDL_WaitForGPUIdle(device: *byte): i32
+    fn SDL_WaitForGPUFences(device: *byte, wait_all: i32, fences: **byte, num_fences: u32): i32
+    fn SDL_QueryGPUFence(device: *byte, fence: *byte): i32
+    fn SDL_ReleaseGPUFence(device: *byte, fence: *byte)
+    fn SDL_BindGPUIndexBuffer(render_pass: *byte, binding: *byte, index_element_size: u32): i32
+    fn SDL_CalculateGPUTextureFormatSize(format: u32, width: u32, height: u32, depth_or_layer_count: u32): i32
+    fn SDL_CreateGPUDevice(format_flags: u32, debug_mode: i32, name: *byte): i32
+    fn SDL_GPUSupportsShaderFormats(format_flags: u32, name: *byte): i32
+    fn SDL_GPUTextureFormatTexelBlockSize(format: u32): i32
+    fn SDL_GPUTextureSupportsFormat(device: *byte, format: u32, type_: u32, usage: u32): i32
+    fn SDL_GPUTextureSupportsSampleCount(device: *byte, format: u32, sample_count: u32): i32
+    fn SDL_GetGPUShaderFormats(device: *byte): *byte
+    fn SDL_GetGPUSwapchainTextureFormat(device: *byte, window: *byte): *byte
+    fn SDL_GetGPUTextureFormatFromPixelFormat(format: u32): *byte
+    fn SDL_GetPixelFormatFromGPUTextureFormat(format: u32): *byte
+    fn SDL_SetGPUBlendConstants(render_pass: *byte, blend_constants: i32): i32
+    fn SDL_SetGPUSwapchainParameters(device: *byte, window: *byte, swapchain_composition: u32, present_mode: u32): i32
+    fn SDL_WindowSupportsGPUPresentMode(device: *byte, window: *byte, present_mode: u32): i32
+    fn SDL_WindowSupportsGPUSwapchainComposition(device: *byte, window: *byte, swapchain_composition: u32): i32
+    fn SDL_GDKResumeGPU(device: *byte): i32
+    fn SDL_GDKSuspendGPU(device: *byte)
+}

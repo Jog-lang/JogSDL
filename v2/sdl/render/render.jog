@@ -1,0 +1,89 @@
+// Renderer / texture wrappers (v2 flat merge).
+
+struct Renderer {
+    ptr: *byte
+}
+
+struct Texture {
+    ptr: *byte
+    w: i32
+    h: i32
+}
+
+struct FRect {
+    x: f32
+    y: f32
+    w: f32
+    h: f32
+}
+
+fn frect(x: f32, y: f32, w: f32, h: f32): FRect {
+    return FRect(x: x, y: y, w: w, h: h)
+}
+
+fn Renderer.destroy() {
+    if (self.ptr != null) {
+        SDL_DestroyRenderer(self.ptr)
+    }
+}
+
+fn Renderer.set_draw_color(r: u8, g: u8, b: u8, a: u8): i32 {
+    return SDL_SetRenderDrawColor(self.ptr, r, g, b, a)
+}
+
+fn Renderer.clear(): i32 {
+    return SDL_RenderClear(self.ptr)
+}
+
+fn Renderer.present(): i32 {
+    return SDL_RenderPresent(self.ptr)
+}
+
+fn Renderer.fill_rect(rect: *FRect): i32 {
+    return SDL_RenderFillRect(self.ptr, rect)
+}
+
+fn Renderer.create_streaming_texture(w: i32, h: i32): Texture {
+    var tex = Texture(ptr: null, w: 0, h: 0)
+    tex.ptr = SDL_CreateTexture(self.ptr, PIXELFORMAT_ARGB8888, TEXTUREACCESS_STREAMING, w, h)
+    tex.w = w
+    tex.h = h
+    return tex
+}
+
+fn Renderer.draw_texture(tex: Texture): i32 {
+    return SDL_RenderTexture(self.ptr, tex.ptr, null, null)
+}
+
+fn Texture.destroy() {
+    if (self.ptr != null) {
+        SDL_DestroyTexture(self.ptr)
+    }
+}
+
+fn Texture.update(pixels: *byte): i32 {
+    val pitch = self.w * 4
+    return SDL_UpdateTexture(self.ptr, null, pixels, pitch)
+}
+
+// Raw present helpers for loops that already hold opaque SDL pointers
+// (avoids per-frame Texture / Renderer struct returns).
+fn UpdateTextureRaw(tex: *byte, pixels: *byte, pitch: i32): i32 {
+    return SDL_UpdateTexture(tex, null, pixels, pitch)
+}
+
+fn DrawTextureRaw(ren: *byte, tex: *byte): i32 {
+    return SDL_RenderTexture(ren, tex, null, null)
+}
+
+fn SetDrawColorRaw(ren: *byte, r: u8, g: u8, b: u8, a: u8): i32 {
+    return SDL_SetRenderDrawColor(ren, r, g, b, a)
+}
+
+fn ClearRaw(ren: *byte): i32 {
+    return SDL_RenderClear(ren)
+}
+
+fn PresentRaw(ren: *byte): i32 {
+    return SDL_RenderPresent(ren)
+}

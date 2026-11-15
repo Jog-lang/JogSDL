@@ -1,0 +1,20 @@
+// Raw SDL3 storage — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_OpenTitleStorage(override: *byte, props: u32): *byte
+    fn SDL_OpenUserStorage(org: *byte, app: *byte, props: u32): *byte
+    fn SDL_OpenFileStorage(path: *byte): *byte
+    fn SDL_OpenStorage(iface: *byte, userdata: *byte): *byte
+    fn SDL_CloseStorage(storage: *byte): i32
+    fn SDL_StorageReady(storage: *byte): i32
+    fn SDL_GetStorageFileSize(storage: *byte, path: *byte, length: *byte): i32
+    fn SDL_ReadStorageFile(storage: *byte, path: *byte, destination: *byte, length: u64): i32
+    fn SDL_WriteStorageFile(storage: *byte, path: *byte, source: *byte, length: u64): i32
+    fn SDL_CreateStorageDirectory(storage: *byte, path: *byte): i32
+    fn SDL_RemoveStoragePath(storage: *byte, path: *byte): i32
+    fn SDL_RenameStoragePath(storage: *byte, oldpath: *byte, newpath: *byte): i32
+    fn SDL_CopyStorageFile(storage: *byte, oldpath: *byte, newpath: *byte): i32
+    fn SDL_GetStoragePathInfo(storage: *byte, path: *byte, info: *byte): i32
+    fn SDL_GetStorageSpaceRemaining(storage: *byte): u64
+    fn SDL_EnumerateStorageDirectory(storage: *byte, path: *byte, callback: *byte, userdata: *byte): i32
+}
