@@ -7,27 +7,24 @@ struct MouseDelta {
 }
 
 /**
- * True (1) when the scancode is currently down in the keyboard state array.
+ * True when the scancode is currently down in the keyboard state array.
  * @param scancode physical key (SDL_Scancode value)
- * @return 1 if down, 0 if up or out of range
+ * @return true if down, false if up or out of range
  * @see https://wiki.libsdl.org/SDL3/SDL_GetKeyboardState
  */
-fn KeyboardIsDown(scancode: Scancode): i32 {
+fn KeyboardIsDown(scancode: Scancode): bool {
     var n: i32 = 0
     // Must annotate `*byte`: untyped extern returns were inferred as scalar `byte`,
     // so `state[sc]` used stride-8 downward index and never saw real keys.
     val state: *byte = SDL_GetKeyboardState(&n)
     if (state == null) {
-        return 0
+        return false
     }
     val sc = scancode as u32
     if ((sc as i32) < 0 || (sc as i32) >= n) {
-        return 0
+        return false
     }
-    if (state[sc] != 0) {
-        return 1
-    }
-    return 0
+    return state[sc] != 0
 }
 
 /**

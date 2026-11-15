@@ -119,7 +119,7 @@ fn smoke_frame0() {
 
 @export
 fn tick(): i32 {
-    while (PollEventHas(App.evbuf) != 0) {
+    while (PollEventHas(App.evbuf)) {
         val kind = EventType(App.evbuf)
         if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
             App.running = 0
@@ -154,15 +154,15 @@ fn tick(): i32 {
     val key_d = KeyboardIsDown(Scancode.D)
     val key_left = KeyboardIsDown(Scancode.Left)
     val key_right = KeyboardIsDown(Scancode.Right)
-    if (key_w + key_s + key_a + key_d + key_left + key_right != 0) {
+    if (key_w || key_s || key_a || key_d || key_left || key_right) {
         App.input_keys_seen = 1
     }
 
     var yaw = 0.0
-    if (key_left != 0) {
+    if (key_left) {
         yaw = yaw + dt * 2.5
     }
-    if (key_right != 0) {
+    if (key_right) {
         yaw = yaw - dt * 2.5
     }
     ReadRelativeMouse(App.mouse_f32, App.mouse_f32 + 4)
@@ -180,16 +180,16 @@ fn tick(): i32 {
     }
 
     val move = dt * 3.0
-    if (key_w != 0) {
+    if (key_w) {
         parallel_try_move(cam_dir_x * move, cam_dir_y * move)
     }
-    if (key_s != 0) {
+    if (key_s) {
         parallel_try_move(cam_dir_x * (0.0 - move), cam_dir_y * (0.0 - move))
     }
-    if (key_a != 0) {
+    if (key_a) {
         parallel_try_move(cam_plane_x * (0.0 - move), cam_plane_y * (0.0 - move))
     }
-    if (key_d != 0) {
+    if (key_d) {
         parallel_try_move(cam_plane_x * move, cam_plane_y * move)
     }
     if (App.key_use != 0 && App.key_use_prev == 0) {
@@ -233,20 +233,20 @@ fn main() {
     }
 
     val (win, win_err) = CreateWindow(c"JogSDL raycaster wasm CPU-3D", WIN_W, WIN_H, WindowFlag.Resizable)
-    if (win_err != null || win.ok() == 0) {
+    if (win_err != null || !win.ok()) {
         panic("CreateWindow failed\n")
     }
     App.win_ptr = win.raw_ptr()
-    win.set_relative_mouse(1)
+    win.set_relative_mouse(true)
 
     val (ren, ren_err) = win.create_renderer()
-    if (ren_err != null || ren.ok() == 0) {
+    if (ren_err != null || !ren.ok()) {
         panic("CreateRenderer failed\n")
     }
     App.ren_ptr = ren.raw_ptr()
 
     val (tex, tex_err) = ren.create_streaming_texture(FB_W32, FB_H32)
-    if (tex_err != null || tex.ok() == 0) {
+    if (tex_err != null || !tex.ok()) {
         panic("CreateTexture failed\n")
     }
     App.tex_ptr = tex.raw_ptr()
@@ -277,7 +277,7 @@ fn main() {
     jog_host_run_loop(tick)
 
     timing_flush()
-    win.set_relative_mouse(0)
+    win.set_relative_mouse(false)
     tex.destroy()
     ren.destroy()
     win.destroy()
