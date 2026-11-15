@@ -13,7 +13,9 @@
 ## This repo
 
 - Hand-written SDL3 bindings and demos for Jog. Fedora path: `~/Documents/Projects/Jog/JogSDL`.
-- Root `sdl/` + `examples/` target develop/`jogc`. JogCompiler v2 demos live under `v2/`.
-- Public apps import `jog_sdl.sdl` only; raw `SDL_*` lives in unexported `sdl3`.
-- Ivan writes the Jog bindings and demos by hand. Do not implement Jog features here unless asked; explain, review, and point at the spec.
-- Build/smoke with the local `jog` / `jog-v2` / `jog-build` Ivan already uses; see `README.md`.
+- **Supported toolchain: jog-v2 only** (`~/.local/bin/jog-v2`). Seed C `jog` and develop/`jogc` are history/lookup only — do not target them for demos or new bindings.
+- Flat layout: `sdl/` (public), `sdl3/` (unexported raw `@link`), `examples/` at repo root. There is no nested `v2/` tree.
+- Public apps import `jog_sdl.sdl` / `sdl.*` only; raw `SDL_*` lives in unexported `sdl3`.
+- If jog-v2 lacks a feature that blocks idiomatic `sdl.*` (packs, enums, handles, errors, …): note it in JogDocs `bootstrap/Friction.md`, fix the compiler, then resume — do not invent JogSDL workarounds.
+- Ivan writes the Jog bindings and demos by hand. Do not invent Jog language features here; explain, review, and point at the spec.
+- Build/smoke with `jog-v2` / `jog-build`; see `README.md`.

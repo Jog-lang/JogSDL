@@ -1,294 +1,191 @@
-// Idiomatic wrappers over sdl3.iostream.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.iostream as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL iostream (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct IOStream {
-    ptr: *raw.SDL_IOStream?
+fn IOFromFile(file: *byte, mode: *byte): *byte {
+    return SDL_IOFromFile(file, mode)
 }
 
-fn empty_iostream(): IOStream {
-    var h: IOStream
-    return h
+fn IOFromMem(mem: *byte, size: u64): *byte {
+    return SDL_IOFromMem(mem, size)
 }
 
-fn IOFromFile(file: *const c.char, mode: *const c.char): *raw.SDL_IOStream {
-    return raw.SDL_IOFromFile(file, mode)
+fn IOFromConstMem(mem: *byte, size: u64): *byte {
+    return SDL_IOFromConstMem(mem, size)
 }
 
-fn IOFromMem(mem: *void, size: c.size_t): *raw.SDL_IOStream {
-    return raw.SDL_IOFromMem(mem, size)
+fn IOFromDynamicMem(): *byte {
+    return SDL_IOFromDynamicMem()
 }
 
-fn IOFromConstMem(mem: *const void, size: c.size_t): *raw.SDL_IOStream {
-    return raw.SDL_IOFromConstMem(mem, size)
+fn OpenIO(iface: *byte, userdata: *byte): *byte {
+    return SDL_OpenIO(iface, userdata)
 }
 
-fn IOFromDynamicMem(): *raw.SDL_IOStream {
-    return raw.SDL_IOFromDynamicMem()
+fn CloseIO(context_: *byte): i32 {
+    return SDL_CloseIO(context_)
 }
 
-fn OpenIO(iface: *const void, userdata: *void): *raw.SDL_IOStream {
-    return raw.SDL_OpenIO(iface, userdata)
+fn GetIOProperties(context_: *byte): u32 {
+    return SDL_GetIOProperties(context_)
 }
 
-fn CloseIO(context_: *raw.SDL_IOStream): sdl.SDLError? {
-    if !raw.SDL_CloseIO(context_) {
-        return sdl.last_error("CloseIO failed")
-    }
-    return null
+fn GetIOSize(context_: *byte): i64 {
+    return SDL_GetIOSize(context_)
 }
 
-fn GetIOProperties(context_: *raw.SDL_IOStream): u32 {
-    return raw.SDL_GetIOProperties(context_)
+fn TellIO(context_: *byte): i64 {
+    return SDL_TellIO(context_)
 }
 
-fn GetIOStatus(context_: *raw.SDL_IOStream): u32 {
-    return raw.SDL_GetIOStatus(context_)
+fn ReadIO(context_: *byte, ptr: *byte, size: u64): u64 {
+    return SDL_ReadIO(context_, ptr, size)
 }
 
-fn GetIOSize(context_: *raw.SDL_IOStream): i64 {
-    return raw.SDL_GetIOSize(context_)
+fn WriteIO(context_: *byte, ptr: *byte, size: u64): u64 {
+    return SDL_WriteIO(context_, ptr, size)
 }
 
-fn SeekIO(context_: *raw.SDL_IOStream, offset: i64, whence: u32): i64 {
-    return raw.SDL_SeekIO(context_, offset, whence)
+fn FlushIO(context_: *byte): i32 {
+    return SDL_FlushIO(context_)
 }
 
-fn TellIO(context_: *raw.SDL_IOStream): i64 {
-    return raw.SDL_TellIO(context_)
+fn LoadFile_IO(src: *byte, datasize: *byte, closeio: i32): *byte {
+    return SDL_LoadFile_IO(src, datasize, closeio)
 }
 
-fn ReadIO(context_: *raw.SDL_IOStream, ptr: *void, size: c.size_t): c.size_t {
-    return raw.SDL_ReadIO(context_, ptr, size)
+fn LoadFile(file: *byte, datasize: *byte): *byte {
+    return SDL_LoadFile(file, datasize)
 }
 
-fn WriteIO(context_: *raw.SDL_IOStream, ptr: *const void, size: c.size_t): c.size_t {
-    return raw.SDL_WriteIO(context_, ptr, size)
+fn SaveFile_IO(src: *byte, data: *byte, datasize: u64, closeio: i32): i32 {
+    return SDL_SaveFile_IO(src, data, datasize, closeio)
 }
 
-fn FlushIO(context_: *raw.SDL_IOStream): sdl.SDLError? {
-    if !raw.SDL_FlushIO(context_) {
-        return sdl.last_error("FlushIO failed")
-    }
-    return null
+fn SaveFile(file: *byte, data: *byte, datasize: u64): i32 {
+    return SDL_SaveFile(file, data, datasize)
 }
 
-fn LoadFile_IO(src: *raw.SDL_IOStream, datasize: *c.size_t, closeio: bool): *void {
-    return raw.SDL_LoadFile_IO(src, datasize, closeio)
+fn ReadU8(src: *byte, value: *byte): i32 {
+    return SDL_ReadU8(src, value)
 }
 
-fn LoadFile(file: *const c.char, datasize: *c.size_t): *void {
-    return raw.SDL_LoadFile(file, datasize)
+fn ReadS8(src: *byte, value: *byte): i32 {
+    return SDL_ReadS8(src, value)
 }
 
-fn SaveFile_IO(src: *raw.SDL_IOStream, data: *const void, datasize: c.size_t, closeio: bool): sdl.SDLError? {
-    if !raw.SDL_SaveFile_IO(src, data, datasize, closeio) {
-        return sdl.last_error("SaveFile_IO failed")
-    }
-    return null
+fn ReadU16LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU16LE(src, value)
 }
 
-fn SaveFile(file: *const c.char, data: *const void, datasize: c.size_t): sdl.SDLError? {
-    if !raw.SDL_SaveFile(file, data, datasize) {
-        return sdl.last_error("SaveFile failed")
-    }
-    return null
+fn ReadS16LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS16LE(src, value)
 }
 
-fn ReadU8(src: *raw.SDL_IOStream, value: *u8): sdl.SDLError? {
-    if !raw.SDL_ReadU8(src, value) {
-        return sdl.last_error("ReadU8 failed")
-    }
-    return null
+fn ReadU16BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU16BE(src, value)
 }
 
-fn ReadS8(src: *raw.SDL_IOStream, value: *i8): sdl.SDLError? {
-    if !raw.SDL_ReadS8(src, value) {
-        return sdl.last_error("ReadS8 failed")
-    }
-    return null
+fn ReadS16BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS16BE(src, value)
 }
 
-fn ReadU16LE(src: *raw.SDL_IOStream, value: *u16): sdl.SDLError? {
-    if !raw.SDL_ReadU16LE(src, value) {
-        return sdl.last_error("ReadU16LE failed")
-    }
-    return null
+fn ReadU32LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU32LE(src, value)
 }
 
-fn ReadS16LE(src: *raw.SDL_IOStream, value: *i16): sdl.SDLError? {
-    if !raw.SDL_ReadS16LE(src, value) {
-        return sdl.last_error("ReadS16LE failed")
-    }
-    return null
+fn ReadS32LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS32LE(src, value)
 }
 
-fn ReadU16BE(src: *raw.SDL_IOStream, value: *u16): sdl.SDLError? {
-    if !raw.SDL_ReadU16BE(src, value) {
-        return sdl.last_error("ReadU16BE failed")
-    }
-    return null
+fn ReadU32BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU32BE(src, value)
 }
 
-fn ReadS16BE(src: *raw.SDL_IOStream, value: *i16): sdl.SDLError? {
-    if !raw.SDL_ReadS16BE(src, value) {
-        return sdl.last_error("ReadS16BE failed")
-    }
-    return null
+fn ReadS32BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS32BE(src, value)
 }
 
-fn ReadU32LE(src: *raw.SDL_IOStream, value: *u32): sdl.SDLError? {
-    if !raw.SDL_ReadU32LE(src, value) {
-        return sdl.last_error("ReadU32LE failed")
-    }
-    return null
+fn ReadU64LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU64LE(src, value)
 }
 
-fn ReadS32LE(src: *raw.SDL_IOStream, value: *i32): sdl.SDLError? {
-    if !raw.SDL_ReadS32LE(src, value) {
-        return sdl.last_error("ReadS32LE failed")
-    }
-    return null
+fn ReadS64LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS64LE(src, value)
 }
 
-fn ReadU32BE(src: *raw.SDL_IOStream, value: *u32): sdl.SDLError? {
-    if !raw.SDL_ReadU32BE(src, value) {
-        return sdl.last_error("ReadU32BE failed")
-    }
-    return null
+fn ReadU64BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU64BE(src, value)
 }
 
-fn ReadS32BE(src: *raw.SDL_IOStream, value: *i32): sdl.SDLError? {
-    if !raw.SDL_ReadS32BE(src, value) {
-        return sdl.last_error("ReadS32BE failed")
-    }
-    return null
+fn ReadS64BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS64BE(src, value)
 }
 
-fn ReadU64LE(src: *raw.SDL_IOStream, value: *u64): sdl.SDLError? {
-    if !raw.SDL_ReadU64LE(src, value) {
-        return sdl.last_error("ReadU64LE failed")
-    }
-    return null
+fn WriteU8(dst: *byte, value: u8): i32 {
+    return SDL_WriteU8(dst, value)
 }
 
-fn ReadS64LE(src: *raw.SDL_IOStream, value: *i64): sdl.SDLError? {
-    if !raw.SDL_ReadS64LE(src, value) {
-        return sdl.last_error("ReadS64LE failed")
-    }
-    return null
+fn WriteS8(dst: *byte, value: i8): i32 {
+    return SDL_WriteS8(dst, value)
 }
 
-fn ReadU64BE(src: *raw.SDL_IOStream, value: *u64): sdl.SDLError? {
-    if !raw.SDL_ReadU64BE(src, value) {
-        return sdl.last_error("ReadU64BE failed")
-    }
-    return null
+fn WriteU16LE(dst: *byte, value: u16): i32 {
+    return SDL_WriteU16LE(dst, value)
 }
 
-fn ReadS64BE(src: *raw.SDL_IOStream, value: *i64): sdl.SDLError? {
-    if !raw.SDL_ReadS64BE(src, value) {
-        return sdl.last_error("ReadS64BE failed")
-    }
-    return null
+fn WriteS16LE(dst: *byte, value: i16): i32 {
+    return SDL_WriteS16LE(dst, value)
 }
 
-fn WriteU8(dst: *raw.SDL_IOStream, value: u8): sdl.SDLError? {
-    if !raw.SDL_WriteU8(dst, value) {
-        return sdl.last_error("WriteU8 failed")
-    }
-    return null
+fn WriteU16BE(dst: *byte, value: u16): i32 {
+    return SDL_WriteU16BE(dst, value)
 }
 
-fn WriteS8(dst: *raw.SDL_IOStream, value: i8): sdl.SDLError? {
-    if !raw.SDL_WriteS8(dst, value) {
-        return sdl.last_error("WriteS8 failed")
-    }
-    return null
+fn WriteS16BE(dst: *byte, value: i16): i32 {
+    return SDL_WriteS16BE(dst, value)
 }
 
-fn WriteU16LE(dst: *raw.SDL_IOStream, value: u16): sdl.SDLError? {
-    if !raw.SDL_WriteU16LE(dst, value) {
-        return sdl.last_error("WriteU16LE failed")
-    }
-    return null
+fn WriteU32LE(dst: *byte, value: u32): i32 {
+    return SDL_WriteU32LE(dst, value)
 }
 
-fn WriteS16LE(dst: *raw.SDL_IOStream, value: i16): sdl.SDLError? {
-    if !raw.SDL_WriteS16LE(dst, value) {
-        return sdl.last_error("WriteS16LE failed")
-    }
-    return null
+fn WriteS32LE(dst: *byte, value: i32): i32 {
+    return SDL_WriteS32LE(dst, value)
 }
 
-fn WriteU16BE(dst: *raw.SDL_IOStream, value: u16): sdl.SDLError? {
-    if !raw.SDL_WriteU16BE(dst, value) {
-        return sdl.last_error("WriteU16BE failed")
-    }
-    return null
+fn WriteU32BE(dst: *byte, value: u32): i32 {
+    return SDL_WriteU32BE(dst, value)
 }
 
-fn WriteS16BE(dst: *raw.SDL_IOStream, value: i16): sdl.SDLError? {
-    if !raw.SDL_WriteS16BE(dst, value) {
-        return sdl.last_error("WriteS16BE failed")
-    }
-    return null
+fn WriteS32BE(dst: *byte, value: i32): i32 {
+    return SDL_WriteS32BE(dst, value)
 }
 
-fn WriteU32LE(dst: *raw.SDL_IOStream, value: u32): sdl.SDLError? {
-    if !raw.SDL_WriteU32LE(dst, value) {
-        return sdl.last_error("WriteU32LE failed")
-    }
-    return null
+fn WriteU64LE(dst: *byte, value: u64): i32 {
+    return SDL_WriteU64LE(dst, value)
 }
 
-fn WriteS32LE(dst: *raw.SDL_IOStream, value: i32): sdl.SDLError? {
-    if !raw.SDL_WriteS32LE(dst, value) {
-        return sdl.last_error("WriteS32LE failed")
-    }
-    return null
+fn WriteS64LE(dst: *byte, value: i64): i32 {
+    return SDL_WriteS64LE(dst, value)
 }
 
-fn WriteU32BE(dst: *raw.SDL_IOStream, value: u32): sdl.SDLError? {
-    if !raw.SDL_WriteU32BE(dst, value) {
-        return sdl.last_error("WriteU32BE failed")
-    }
-    return null
+fn WriteU64BE(dst: *byte, value: u64): i32 {
+    return SDL_WriteU64BE(dst, value)
 }
 
-fn WriteS32BE(dst: *raw.SDL_IOStream, value: i32): sdl.SDLError? {
-    if !raw.SDL_WriteS32BE(dst, value) {
-        return sdl.last_error("WriteS32BE failed")
-    }
-    return null
+fn WriteS64BE(dst: *byte, value: i64): i32 {
+    return SDL_WriteS64BE(dst, value)
 }
 
-fn WriteU64LE(dst: *raw.SDL_IOStream, value: u64): sdl.SDLError? {
-    if !raw.SDL_WriteU64LE(dst, value) {
-        return sdl.last_error("WriteU64LE failed")
-    }
-    return null
+fn GetIOStatus(context_: *byte): *byte {
+    return SDL_GetIOStatus(context_)
 }
 
-fn WriteS64LE(dst: *raw.SDL_IOStream, value: i64): sdl.SDLError? {
-    if !raw.SDL_WriteS64LE(dst, value) {
-        return sdl.last_error("WriteS64LE failed")
-    }
-    return null
+fn IOprintf(context_: *byte, fmt: *byte): i32 {
+    return SDL_IOprintf(context_, fmt)
 }
 
-fn WriteU64BE(dst: *raw.SDL_IOStream, value: u64): sdl.SDLError? {
-    if !raw.SDL_WriteU64BE(dst, value) {
-        return sdl.last_error("WriteU64BE failed")
-    }
-    return null
+fn SeekIO(context_: *byte, offset: i64, whence: u32): i32 {
+    return SDL_SeekIO(context_, offset, whence)
 }
 
-fn WriteS64BE(dst: *raw.SDL_IOStream, value: i64): sdl.SDLError? {
-    if !raw.SDL_WriteS64BE(dst, value) {
-        return sdl.last_error("WriteS64BE failed")
-    }
-    return null
-}

@@ -1,193 +1,115 @@
-// Idiomatic wrappers over sdl3.mutex.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.mutex as raw
-import sdl
+// Idiomatic v2 wrappers for SDL mutex (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Mutex {
-    ptr: *raw.SDL_Mutex?
+fn CreateMutex(): *byte {
+    return SDL_CreateMutex()
 }
 
-fn empty_mutex(): Mutex {
-    var h: Mutex
-    return h
+fn LockMutex(mutex: *byte) {
+    SDL_LockMutex(mutex)
 }
 
-struct RWLock {
-    ptr: *raw.SDL_RWLock?
+fn TryLockMutex(mutex: *byte): i32 {
+    return SDL_TryLockMutex(mutex)
 }
 
-fn empty_rwlock(): RWLock {
-    var h: RWLock
-    return h
+fn UnlockMutex(mutex: *byte) {
+    SDL_UnlockMutex(mutex)
 }
 
-struct Semaphore {
-    ptr: *raw.SDL_Semaphore?
+fn DestroyMutex(mutex: *byte) {
+    SDL_DestroyMutex(mutex)
 }
 
-fn empty_semaphore(): Semaphore {
-    var h: Semaphore
-    return h
+fn CreateRWLock(): *byte {
+    return SDL_CreateRWLock()
 }
 
-struct Condition {
-    ptr: *raw.SDL_Condition?
+fn LockRWLockForReading(rwlock: *byte) {
+    SDL_LockRWLockForReading(rwlock)
 }
 
-fn empty_condition(): Condition {
-    var h: Condition
-    return h
+fn LockRWLockForWriting(rwlock: *byte) {
+    SDL_LockRWLockForWriting(rwlock)
 }
 
-struct InitState {
-    ptr: *raw.SDL_InitState?
+fn TryLockRWLockForReading(rwlock: *byte): i32 {
+    return SDL_TryLockRWLockForReading(rwlock)
 }
 
-fn empty_initstate(): InitState {
-    var h: InitState
-    return h
+fn TryLockRWLockForWriting(rwlock: *byte): i32 {
+    return SDL_TryLockRWLockForWriting(rwlock)
 }
 
-fn CreateMutex(): *raw.SDL_Mutex {
-    return raw.SDL_CreateMutex()
+fn UnlockRWLock(rwlock: *byte) {
+    SDL_UnlockRWLock(rwlock)
 }
 
-fn LockMutex(mutex: *raw.SDL_Mutex) {
-    raw.SDL_LockMutex(mutex)
+fn DestroyRWLock(rwlock: *byte) {
+    SDL_DestroyRWLock(rwlock)
 }
 
-fn TryLockMutex(mutex: *raw.SDL_Mutex): sdl.SDLError? {
-    if !raw.SDL_TryLockMutex(mutex) {
-        return sdl.last_error("TryLockMutex failed")
-    }
-    return null
+fn CreateSemaphore(initial_value: u32): *byte {
+    return SDL_CreateSemaphore(initial_value)
 }
 
-fn UnlockMutex(mutex: *raw.SDL_Mutex) {
-    raw.SDL_UnlockMutex(mutex)
+fn DestroySemaphore(sem: *byte) {
+    SDL_DestroySemaphore(sem)
 }
 
-fn Mutex.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyMutex(self.ptr!!)
-    }
+fn WaitSemaphore(sem: *byte) {
+    SDL_WaitSemaphore(sem)
 }
 
-fn CreateRWLock(): *raw.SDL_RWLock {
-    return raw.SDL_CreateRWLock()
+fn TryWaitSemaphore(sem: *byte): i32 {
+    return SDL_TryWaitSemaphore(sem)
 }
 
-fn LockRWLockForReading(rwlock: *raw.SDL_RWLock) {
-    raw.SDL_LockRWLockForReading(rwlock)
+fn WaitSemaphoreTimeout(sem: *byte, timeoutMS: i32): i32 {
+    return SDL_WaitSemaphoreTimeout(sem, timeoutMS)
 }
 
-fn LockRWLockForWriting(rwlock: *raw.SDL_RWLock) {
-    raw.SDL_LockRWLockForWriting(rwlock)
+fn SignalSemaphore(sem: *byte) {
+    SDL_SignalSemaphore(sem)
 }
 
-fn TryLockRWLockForReading(rwlock: *raw.SDL_RWLock): sdl.SDLError? {
-    if !raw.SDL_TryLockRWLockForReading(rwlock) {
-        return sdl.last_error("TryLockRWLockForReading failed")
-    }
-    return null
+fn GetSemaphoreValue(sem: *byte): u32 {
+    return SDL_GetSemaphoreValue(sem)
 }
 
-fn TryLockRWLockForWriting(rwlock: *raw.SDL_RWLock): sdl.SDLError? {
-    if !raw.SDL_TryLockRWLockForWriting(rwlock) {
-        return sdl.last_error("TryLockRWLockForWriting failed")
-    }
-    return null
+fn CreateCondition(): *byte {
+    return SDL_CreateCondition()
 }
 
-fn UnlockRWLock(rwlock: *raw.SDL_RWLock) {
-    raw.SDL_UnlockRWLock(rwlock)
+fn DestroyCondition(cond: *byte) {
+    SDL_DestroyCondition(cond)
 }
 
-fn RWLock.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyRWLock(self.ptr!!)
-    }
+fn SignalCondition(cond: *byte) {
+    SDL_SignalCondition(cond)
 }
 
-fn CreateSemaphore(initial_value: u32): *raw.SDL_Semaphore {
-    return raw.SDL_CreateSemaphore(initial_value)
+fn BroadcastCondition(cond: *byte) {
+    SDL_BroadcastCondition(cond)
 }
 
-fn Semaphore.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroySemaphore(self.ptr!!)
-    }
+fn WaitCondition(cond: *byte, mutex: *byte) {
+    SDL_WaitCondition(cond, mutex)
 }
 
-fn WaitSemaphore(sem: *raw.SDL_Semaphore) {
-    raw.SDL_WaitSemaphore(sem)
+fn WaitConditionTimeout(cond: *byte, mutex: *byte, timeoutMS: i32): i32 {
+    return SDL_WaitConditionTimeout(cond, mutex, timeoutMS)
 }
 
-fn TryWaitSemaphore(sem: *raw.SDL_Semaphore): sdl.SDLError? {
-    if !raw.SDL_TryWaitSemaphore(sem) {
-        return sdl.last_error("TryWaitSemaphore failed")
-    }
-    return null
+fn ShouldInit(state: *byte): i32 {
+    return SDL_ShouldInit(state)
 }
 
-fn WaitSemaphoreTimeout(sem: *raw.SDL_Semaphore, timeoutMS: i32): sdl.SDLError? {
-    if !raw.SDL_WaitSemaphoreTimeout(sem, timeoutMS) {
-        return sdl.last_error("WaitSemaphoreTimeout failed")
-    }
-    return null
+fn ShouldQuit(state: *byte): i32 {
+    return SDL_ShouldQuit(state)
 }
 
-fn SignalSemaphore(sem: *raw.SDL_Semaphore) {
-    raw.SDL_SignalSemaphore(sem)
+fn SetInitialized(state: *byte, initialized: i32) {
+    SDL_SetInitialized(state, initialized)
 }
 
-fn GetSemaphoreValue(sem: *raw.SDL_Semaphore): u32 {
-    return raw.SDL_GetSemaphoreValue(sem)
-}
-
-fn CreateCondition(): *raw.SDL_Condition {
-    return raw.SDL_CreateCondition()
-}
-
-fn Condition.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyCondition(self.ptr!!)
-    }
-}
-
-fn SignalCondition(cond: *raw.SDL_Condition) {
-    raw.SDL_SignalCondition(cond)
-}
-
-fn BroadcastCondition(cond: *raw.SDL_Condition) {
-    raw.SDL_BroadcastCondition(cond)
-}
-
-fn WaitCondition(cond: *raw.SDL_Condition, mutex: *raw.SDL_Mutex) {
-    raw.SDL_WaitCondition(cond, mutex)
-}
-
-fn WaitConditionTimeout(cond: *raw.SDL_Condition, mutex: *raw.SDL_Mutex, timeoutMS: i32): sdl.SDLError? {
-    if !raw.SDL_WaitConditionTimeout(cond, mutex, timeoutMS) {
-        return sdl.last_error("WaitConditionTimeout failed")
-    }
-    return null
-}
-
-fn ShouldInit(state: *raw.SDL_InitState): sdl.SDLError? {
-    if !raw.SDL_ShouldInit(state) {
-        return sdl.last_error("ShouldInit failed")
-    }
-    return null
-}
-
-fn ShouldQuit(state: *raw.SDL_InitState): sdl.SDLError? {
-    if !raw.SDL_ShouldQuit(state) {
-        return sdl.last_error("ShouldQuit failed")
-    }
-    return null
-}
-
-fn SetInitialized(state: *raw.SDL_InitState, initialized: bool) {
-    raw.SDL_SetInitialized(state, initialized)
-}

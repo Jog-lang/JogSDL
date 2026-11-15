@@ -1,23 +1,20 @@
-// Raw SDL3 atomic — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-import std.c
-
+// Raw SDL3 atomic — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_TryLockSpinlock(lock: *void): bool
-    fn SDL_LockSpinlock(lock: *void)
-    fn SDL_UnlockSpinlock(lock: *void)
+    fn SDL_TryLockSpinlock(lock: *byte): i32
+    fn SDL_LockSpinlock(lock: *byte)
+    fn SDL_UnlockSpinlock(lock: *byte)
     fn SDL_MemoryBarrierReleaseFunction()
     fn SDL_MemoryBarrierAcquireFunction()
-    fn SDL_CompareAndSwapAtomicInt(a: *void, oldval: c.int, newval: c.int): bool
-    fn SDL_SetAtomicInt(a: *void, v: c.int): c.int
-    fn SDL_GetAtomicInt(a: *void): c.int
-    fn SDL_AddAtomicInt(a: *void, v: c.int): c.int
-    fn SDL_CompareAndSwapAtomicU32(a: *void, oldval: u32, newval: u32): bool
-    fn SDL_SetAtomicU32(a: *void, v: u32): u32
-    fn SDL_GetAtomicU32(a: *void): u32
-    fn SDL_AddAtomicU32(a: *void, v: c.int): u32
-    fn SDL_CompareAndSwapAtomicPointer(a: **void, oldval: *void, newval: *void): bool
-    fn SDL_SetAtomicPointer(a: **void, v: *void): *void
-    fn SDL_GetAtomicPointer(a: **void): *void
+    fn SDL_CompareAndSwapAtomicInt(a: *byte, oldval: i32, newval: i32): i32
+    fn SDL_SetAtomicInt(a: *byte, v: i32): i32
+    fn SDL_GetAtomicInt(a: *byte): i32
+    fn SDL_AddAtomicInt(a: *byte, v: i32): i32
+    fn SDL_CompareAndSwapAtomicU32(a: *byte, oldval: u32, newval: u32): i32
+    fn SDL_SetAtomicU32(a: *byte, v: u32): u32
+    fn SDL_GetAtomicU32(a: *byte): u32
+    fn SDL_AddAtomicU32(a: *byte, v: i32): u32
+    fn SDL_CompareAndSwapAtomicPointer(a: **byte, oldval: *byte, newval: *byte): i32
+    fn SDL_SetAtomicPointer(a: **byte, v: *byte): *byte
+    fn SDL_GetAtomicPointer(a: **byte): *byte
 }

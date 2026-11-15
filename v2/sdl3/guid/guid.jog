@@ -1,7 +1,0 @@
-// Raw SDL3 guid — v2 flat merge (generated).
-@link("SDL3")
-extern {
-
-    fn SDL_GUIDToString(guid: i32, pszGUID: *byte, cbGUID: i32): i32
-    fn SDL_StringToGUID(pchGUID: *byte): i32
-}

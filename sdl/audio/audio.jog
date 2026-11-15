@@ -1,345 +1,235 @@
-// Idiomatic wrappers over sdl3.audio.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.audio as raw
-import sdl3.iostream
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL audio (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct AudioStream {
-    ptr: *raw.SDL_AudioStream?
+fn GetNumAudioDrivers(): i32 {
+    return SDL_GetNumAudioDrivers()
 }
 
-fn empty_audiostream(): AudioStream {
-    var h: AudioStream
-    return h
+fn GetAudioDriver(index: i32): *byte {
+    return SDL_GetAudioDriver(index)
 }
 
-fn GetNumAudioDrivers(): c.int {
-    return raw.SDL_GetNumAudioDrivers()
+fn GetCurrentAudioDriver(): *byte {
+    return SDL_GetCurrentAudioDriver()
 }
 
-fn GetAudioDriver(index: c.int): *const c.char {
-    return raw.SDL_GetAudioDriver(index)
+fn GetAudioPlaybackDevices(count: *byte): *byte {
+    return SDL_GetAudioPlaybackDevices(count)
 }
 
-fn GetCurrentAudioDriver(): *const c.char {
-    return raw.SDL_GetCurrentAudioDriver()
+fn GetAudioRecordingDevices(count: *byte): *byte {
+    return SDL_GetAudioRecordingDevices(count)
 }
 
-fn GetAudioPlaybackDevices(count: *c.int): *u32 {
-    return raw.SDL_GetAudioPlaybackDevices(count)
+fn GetAudioDeviceName(devid: u32): *byte {
+    return SDL_GetAudioDeviceName(devid)
 }
 
-fn GetAudioRecordingDevices(count: *c.int): *u32 {
-    return raw.SDL_GetAudioRecordingDevices(count)
+fn GetAudioDeviceFormat(devid: u32, spec: *byte, sample_frames: *byte): i32 {
+    return SDL_GetAudioDeviceFormat(devid, spec, sample_frames)
 }
 
-fn GetAudioDeviceName(devid: u32): *const c.char {
-    return raw.SDL_GetAudioDeviceName(devid)
+fn GetAudioDeviceChannelMap(devid: u32, count: *byte): *byte {
+    return SDL_GetAudioDeviceChannelMap(devid, count)
 }
 
-fn GetAudioDeviceFormat(devid: u32, spec: *raw.SDL_AudioSpec, sample_frames: *c.int): sdl.SDLError? {
-    if !raw.SDL_GetAudioDeviceFormat(devid, spec, sample_frames) {
-        return sdl.last_error("GetAudioDeviceFormat failed")
-    }
-    return null
+fn OpenAudioDevice(devid: u32, spec: *byte): u32 {
+    return SDL_OpenAudioDevice(devid, spec)
 }
 
-fn GetAudioDeviceChannelMap(devid: u32, count: *c.int): *c.int {
-    return raw.SDL_GetAudioDeviceChannelMap(devid, count)
+fn IsAudioDevicePhysical(devid: u32): i32 {
+    return SDL_IsAudioDevicePhysical(devid)
 }
 
-fn OpenAudioDevice(devid: u32, spec: *const raw.SDL_AudioSpec): u32 {
-    return raw.SDL_OpenAudioDevice(devid, spec)
+fn IsAudioDevicePlayback(devid: u32): i32 {
+    return SDL_IsAudioDevicePlayback(devid)
 }
 
-fn IsAudioDevicePhysical(devid: u32): sdl.SDLError? {
-    if !raw.SDL_IsAudioDevicePhysical(devid) {
-        return sdl.last_error("IsAudioDevicePhysical failed")
-    }
-    return null
+fn PauseAudioDevice(devid: u32): i32 {
+    return SDL_PauseAudioDevice(devid)
 }
 
-fn IsAudioDevicePlayback(devid: u32): sdl.SDLError? {
-    if !raw.SDL_IsAudioDevicePlayback(devid) {
-        return sdl.last_error("IsAudioDevicePlayback failed")
-    }
-    return null
+fn ResumeAudioDevice(devid: u32): i32 {
+    return SDL_ResumeAudioDevice(devid)
 }
 
-fn PauseAudioDevice(devid: u32): sdl.SDLError? {
-    if !raw.SDL_PauseAudioDevice(devid) {
-        return sdl.last_error("PauseAudioDevice failed")
-    }
-    return null
-}
-
-fn ResumeAudioDevice(devid: u32): sdl.SDLError? {
-    if !raw.SDL_ResumeAudioDevice(devid) {
-        return sdl.last_error("ResumeAudioDevice failed")
-    }
-    return null
-}
-
-fn AudioDevicePaused(devid: u32): sdl.SDLError? {
-    if !raw.SDL_AudioDevicePaused(devid) {
-        return sdl.last_error("AudioDevicePaused failed")
-    }
-    return null
+fn AudioDevicePaused(devid: u32): i32 {
+    return SDL_AudioDevicePaused(devid)
 }
 
 fn GetAudioDeviceGain(devid: u32): f32 {
-    return raw.SDL_GetAudioDeviceGain(devid)
+    return SDL_GetAudioDeviceGain(devid)
 }
 
-fn SetAudioDeviceGain(devid: u32, gain: f32): sdl.SDLError? {
-    if !raw.SDL_SetAudioDeviceGain(devid, gain) {
-        return sdl.last_error("SetAudioDeviceGain failed")
-    }
-    return null
+fn SetAudioDeviceGain(devid: u32, gain: f32): i32 {
+    return SDL_SetAudioDeviceGain(devid, gain)
 }
 
 fn CloseAudioDevice(devid: u32) {
-    raw.SDL_CloseAudioDevice(devid)
+    SDL_CloseAudioDevice(devid)
 }
 
-fn BindAudioStreams(devid: u32, streams: **raw.SDL_AudioStream, num_streams: c.int): sdl.SDLError? {
-    if !raw.SDL_BindAudioStreams(devid, streams, num_streams) {
-        return sdl.last_error("BindAudioStreams failed")
-    }
-    return null
+fn BindAudioStreams(devid: u32, streams: **byte, num_streams: i32): i32 {
+    return SDL_BindAudioStreams(devid, streams, num_streams)
 }
 
-fn BindAudioStream(devid: u32, stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_BindAudioStream(devid, stream) {
-        return sdl.last_error("BindAudioStream failed")
-    }
-    return null
+fn BindAudioStream(devid: u32, stream: *byte): i32 {
+    return SDL_BindAudioStream(devid, stream)
 }
 
-fn UnbindAudioStreams(streams: **raw.SDL_AudioStream, num_streams: c.int) {
-    raw.SDL_UnbindAudioStreams(streams, num_streams)
+fn UnbindAudioStreams(streams: **byte, num_streams: i32) {
+    SDL_UnbindAudioStreams(streams, num_streams)
 }
 
-fn UnbindAudioStream(stream: *raw.SDL_AudioStream) {
-    raw.SDL_UnbindAudioStream(stream)
+fn UnbindAudioStream(stream: *byte) {
+    SDL_UnbindAudioStream(stream)
 }
 
-fn GetAudioStreamDevice(stream: *raw.SDL_AudioStream): u32 {
-    return raw.SDL_GetAudioStreamDevice(stream)
+fn GetAudioStreamDevice(stream: *byte): u32 {
+    return SDL_GetAudioStreamDevice(stream)
 }
 
-fn CreateAudioStream(src_spec: *const raw.SDL_AudioSpec, dst_spec: *const raw.SDL_AudioSpec): *raw.SDL_AudioStream {
-    return raw.SDL_CreateAudioStream(src_spec, dst_spec)
+fn CreateAudioStream(src_spec: *byte, dst_spec: *byte): *byte {
+    return SDL_CreateAudioStream(src_spec, dst_spec)
 }
 
-fn GetAudioStreamProperties(stream: *raw.SDL_AudioStream): u32 {
-    return raw.SDL_GetAudioStreamProperties(stream)
+fn GetAudioStreamProperties(stream: *byte): u32 {
+    return SDL_GetAudioStreamProperties(stream)
 }
 
-fn GetAudioStreamFormat(stream: *raw.SDL_AudioStream, src_spec: *raw.SDL_AudioSpec, dst_spec: *raw.SDL_AudioSpec): sdl.SDLError? {
-    if !raw.SDL_GetAudioStreamFormat(stream, src_spec, dst_spec) {
-        return sdl.last_error("GetAudioStreamFormat failed")
-    }
-    return null
+fn GetAudioStreamFormat(stream: *byte, src_spec: *byte, dst_spec: *byte): i32 {
+    return SDL_GetAudioStreamFormat(stream, src_spec, dst_spec)
 }
 
-fn SetAudioStreamFormat(stream: *raw.SDL_AudioStream, src_spec: *const raw.SDL_AudioSpec, dst_spec: *const raw.SDL_AudioSpec): sdl.SDLError? {
-    if !raw.SDL_SetAudioStreamFormat(stream, src_spec, dst_spec) {
-        return sdl.last_error("SetAudioStreamFormat failed")
-    }
-    return null
+fn SetAudioStreamFormat(stream: *byte, src_spec: *byte, dst_spec: *byte): i32 {
+    return SDL_SetAudioStreamFormat(stream, src_spec, dst_spec)
 }
 
-fn GetAudioStreamFrequencyRatio(stream: *raw.SDL_AudioStream): f32 {
-    return raw.SDL_GetAudioStreamFrequencyRatio(stream)
+fn GetAudioStreamFrequencyRatio(stream: *byte): f32 {
+    return SDL_GetAudioStreamFrequencyRatio(stream)
 }
 
-fn SetAudioStreamFrequencyRatio(stream: *raw.SDL_AudioStream, ratio: f32): sdl.SDLError? {
-    if !raw.SDL_SetAudioStreamFrequencyRatio(stream, ratio) {
-        return sdl.last_error("SetAudioStreamFrequencyRatio failed")
-    }
-    return null
+fn SetAudioStreamFrequencyRatio(stream: *byte, ratio: f32): i32 {
+    return SDL_SetAudioStreamFrequencyRatio(stream, ratio)
 }
 
-fn GetAudioStreamGain(stream: *raw.SDL_AudioStream): f32 {
-    return raw.SDL_GetAudioStreamGain(stream)
+fn GetAudioStreamGain(stream: *byte): f32 {
+    return SDL_GetAudioStreamGain(stream)
 }
 
-fn SetAudioStreamGain(stream: *raw.SDL_AudioStream, gain: f32): sdl.SDLError? {
-    if !raw.SDL_SetAudioStreamGain(stream, gain) {
-        return sdl.last_error("SetAudioStreamGain failed")
-    }
-    return null
+fn SetAudioStreamGain(stream: *byte, gain: f32): i32 {
+    return SDL_SetAudioStreamGain(stream, gain)
 }
 
-fn GetAudioStreamInputChannelMap(stream: *raw.SDL_AudioStream, count: *c.int): *c.int {
-    return raw.SDL_GetAudioStreamInputChannelMap(stream, count)
+fn GetAudioStreamInputChannelMap(stream: *byte, count: *byte): *byte {
+    return SDL_GetAudioStreamInputChannelMap(stream, count)
 }
 
-fn GetAudioStreamOutputChannelMap(stream: *raw.SDL_AudioStream, count: *c.int): *c.int {
-    return raw.SDL_GetAudioStreamOutputChannelMap(stream, count)
+fn GetAudioStreamOutputChannelMap(stream: *byte, count: *byte): *byte {
+    return SDL_GetAudioStreamOutputChannelMap(stream, count)
 }
 
-fn SetAudioStreamInputChannelMap(stream: *raw.SDL_AudioStream, chmap: *const c.int, count: c.int): sdl.SDLError? {
-    if !raw.SDL_SetAudioStreamInputChannelMap(stream, chmap, count) {
-        return sdl.last_error("SetAudioStreamInputChannelMap failed")
-    }
-    return null
+fn SetAudioStreamInputChannelMap(stream: *byte, chmap: *byte, count: i32): i32 {
+    return SDL_SetAudioStreamInputChannelMap(stream, chmap, count)
 }
 
-fn SetAudioStreamOutputChannelMap(stream: *raw.SDL_AudioStream, chmap: *const c.int, count: c.int): sdl.SDLError? {
-    if !raw.SDL_SetAudioStreamOutputChannelMap(stream, chmap, count) {
-        return sdl.last_error("SetAudioStreamOutputChannelMap failed")
-    }
-    return null
+fn SetAudioStreamOutputChannelMap(stream: *byte, chmap: *byte, count: i32): i32 {
+    return SDL_SetAudioStreamOutputChannelMap(stream, chmap, count)
 }
 
-fn PutAudioStreamData(stream: *raw.SDL_AudioStream, buf: *const void, len: c.int): sdl.SDLError? {
-    if !raw.SDL_PutAudioStreamData(stream, buf, len) {
-        return sdl.last_error("PutAudioStreamData failed")
-    }
-    return null
+fn PutAudioStreamData(stream: *byte, buf: *byte, len: i32): i32 {
+    return SDL_PutAudioStreamData(stream, buf, len)
 }
 
-fn PutAudioStreamDataNoCopy(stream: *raw.SDL_AudioStream, buf: *const void, len: c.int, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_PutAudioStreamDataNoCopy(stream, buf, len, callback, userdata) {
-        return sdl.last_error("PutAudioStreamDataNoCopy failed")
-    }
-    return null
+fn PutAudioStreamPlanarData(stream: *byte, channel_buffers: **byte, num_channels: i32, num_samples: i32): i32 {
+    return SDL_PutAudioStreamPlanarData(stream, channel_buffers, num_channels, num_samples)
 }
 
-fn PutAudioStreamPlanarData(stream: *raw.SDL_AudioStream, channel_buffers: **void, num_channels: c.int, num_samples: c.int): sdl.SDLError? {
-    if !raw.SDL_PutAudioStreamPlanarData(stream, channel_buffers, num_channels, num_samples) {
-        return sdl.last_error("PutAudioStreamPlanarData failed")
-    }
-    return null
+fn GetAudioStreamData(stream: *byte, buf: *byte, len: i32): i32 {
+    return SDL_GetAudioStreamData(stream, buf, len)
 }
 
-fn GetAudioStreamData(stream: *raw.SDL_AudioStream, buf: *void, len: c.int): c.int {
-    return raw.SDL_GetAudioStreamData(stream, buf, len)
+fn GetAudioStreamAvailable(stream: *byte): i32 {
+    return SDL_GetAudioStreamAvailable(stream)
 }
 
-fn GetAudioStreamAvailable(stream: *raw.SDL_AudioStream): c.int {
-    return raw.SDL_GetAudioStreamAvailable(stream)
+fn GetAudioStreamQueued(stream: *byte): i32 {
+    return SDL_GetAudioStreamQueued(stream)
 }
 
-fn GetAudioStreamQueued(stream: *raw.SDL_AudioStream): c.int {
-    return raw.SDL_GetAudioStreamQueued(stream)
+fn FlushAudioStream(stream: *byte): i32 {
+    return SDL_FlushAudioStream(stream)
 }
 
-fn FlushAudioStream(stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_FlushAudioStream(stream) {
-        return sdl.last_error("FlushAudioStream failed")
-    }
-    return null
+fn ClearAudioStream(stream: *byte): i32 {
+    return SDL_ClearAudioStream(stream)
 }
 
-fn ClearAudioStream(stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_ClearAudioStream(stream) {
-        return sdl.last_error("ClearAudioStream failed")
-    }
-    return null
+fn PauseAudioStreamDevice(stream: *byte): i32 {
+    return SDL_PauseAudioStreamDevice(stream)
 }
 
-fn PauseAudioStreamDevice(stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_PauseAudioStreamDevice(stream) {
-        return sdl.last_error("PauseAudioStreamDevice failed")
-    }
-    return null
+fn ResumeAudioStreamDevice(stream: *byte): i32 {
+    return SDL_ResumeAudioStreamDevice(stream)
 }
 
-fn ResumeAudioStreamDevice(stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_ResumeAudioStreamDevice(stream) {
-        return sdl.last_error("ResumeAudioStreamDevice failed")
-    }
-    return null
+fn AudioStreamDevicePaused(stream: *byte): i32 {
+    return SDL_AudioStreamDevicePaused(stream)
 }
 
-fn AudioStreamDevicePaused(stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_AudioStreamDevicePaused(stream) {
-        return sdl.last_error("AudioStreamDevicePaused failed")
-    }
-    return null
+fn LockAudioStream(stream: *byte): i32 {
+    return SDL_LockAudioStream(stream)
 }
 
-fn LockAudioStream(stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_LockAudioStream(stream) {
-        return sdl.last_error("LockAudioStream failed")
-    }
-    return null
+fn UnlockAudioStream(stream: *byte): i32 {
+    return SDL_UnlockAudioStream(stream)
 }
 
-fn UnlockAudioStream(stream: *raw.SDL_AudioStream): sdl.SDLError? {
-    if !raw.SDL_UnlockAudioStream(stream) {
-        return sdl.last_error("UnlockAudioStream failed")
-    }
-    return null
+fn DestroyAudioStream(stream: *byte) {
+    SDL_DestroyAudioStream(stream)
 }
 
-fn SetAudioStreamGetCallback(stream: *raw.SDL_AudioStream, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_SetAudioStreamGetCallback(stream, callback, userdata) {
-        return sdl.last_error("SetAudioStreamGetCallback failed")
-    }
-    return null
+fn LoadWAV_IO(src: *byte, closeio: i32, spec: *byte, audio_buf: **byte, audio_len: *byte): i32 {
+    return SDL_LoadWAV_IO(src, closeio, spec, audio_buf, audio_len)
 }
 
-fn SetAudioStreamPutCallback(stream: *raw.SDL_AudioStream, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_SetAudioStreamPutCallback(stream, callback, userdata) {
-        return sdl.last_error("SetAudioStreamPutCallback failed")
-    }
-    return null
+fn LoadWAV(path: *byte, spec: *byte, audio_buf: **byte, audio_len: *byte): i32 {
+    return SDL_LoadWAV(path, spec, audio_buf, audio_len)
 }
 
-fn AudioStream.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyAudioStream(self.ptr!!)
-    }
+fn ConvertAudioSamples(src_spec: *byte, src_data: *byte, src_len: i32, dst_spec: *byte, dst_data: **byte, dst_len: *byte): i32 {
+    return SDL_ConvertAudioSamples(src_spec, src_data, src_len, dst_spec, dst_data, dst_len)
 }
 
-fn OpenAudioDeviceStream(devid: u32, spec: *const raw.SDL_AudioSpec, callback: *void, userdata: *void): *raw.SDL_AudioStream {
-    return raw.SDL_OpenAudioDeviceStream(devid, spec, callback, userdata)
+fn GetAudioFormatName(format: u32): *byte {
+    return SDL_GetAudioFormatName(format)
 }
 
-fn SetAudioPostmixCallback(devid: u32, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_SetAudioPostmixCallback(devid, callback, userdata) {
-        return sdl.last_error("SetAudioPostmixCallback failed")
-    }
-    return null
+fn GetSilenceValueForFormat(format: u32): *byte {
+    return SDL_GetSilenceValueForFormat(format)
 }
 
-fn LoadWAV_IO(src: *iostream.SDL_IOStream, closeio: bool, spec: *raw.SDL_AudioSpec, audio_buf: **u8, audio_len: *u32): sdl.SDLError? {
-    if !raw.SDL_LoadWAV_IO(src, closeio, spec, audio_buf, audio_len) {
-        return sdl.last_error("LoadWAV_IO failed")
-    }
-    return null
+fn MixAudio(dst: *byte, src: *byte, format: u32, len: u32, volume: f32): i32 {
+    return SDL_MixAudio(dst, src, format, len, volume)
 }
 
-fn LoadWAV(path: *const c.char, spec: *raw.SDL_AudioSpec, audio_buf: **u8, audio_len: *u32): sdl.SDLError? {
-    if !raw.SDL_LoadWAV(path, spec, audio_buf, audio_len) {
-        return sdl.last_error("LoadWAV failed")
-    }
-    return null
+fn OpenAudioDeviceStream(devid: u32, spec: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_OpenAudioDeviceStream(devid, spec, callback, userdata)
 }
 
-fn MixAudio(dst: *u8, src: *const u8, format: u32, len: u32, volume: f32): sdl.SDLError? {
-    if !raw.SDL_MixAudio(dst, src, format, len, volume) {
-        return sdl.last_error("MixAudio failed")
-    }
-    return null
+fn PutAudioStreamDataNoCopy(stream: *byte, buf: *byte, len: i32, callback: *byte, userdata: *byte): i32 {
+    return SDL_PutAudioStreamDataNoCopy(stream, buf, len, callback, userdata)
 }
 
-fn ConvertAudioSamples(src_spec: *const raw.SDL_AudioSpec, src_data: *const u8, src_len: c.int, dst_spec: *const raw.SDL_AudioSpec, dst_data: **u8, dst_len: *c.int): sdl.SDLError? {
-    if !raw.SDL_ConvertAudioSamples(src_spec, src_data, src_len, dst_spec, dst_data, dst_len) {
-        return sdl.last_error("ConvertAudioSamples failed")
-    }
-    return null
+fn SetAudioPostmixCallback(devid: u32, callback: *byte, userdata: *byte): i32 {
+    return SDL_SetAudioPostmixCallback(devid, callback, userdata)
 }
 
-fn GetAudioFormatName(format: u32): *const c.char {
-    return raw.SDL_GetAudioFormatName(format)
+fn SetAudioStreamGetCallback(stream: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_SetAudioStreamGetCallback(stream, callback, userdata)
 }
 
-fn GetSilenceValueForFormat(format: u32): c.int {
-    return raw.SDL_GetSilenceValueForFormat(format)
+fn SetAudioStreamPutCallback(stream: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_SetAudioStreamPutCallback(stream, callback, userdata)
 }
+

@@ -1,65 +1,51 @@
-// Idiomatic wrappers over sdl3.sensor.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.sensor as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL sensor (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Sensor {
-    ptr: *raw.SDL_Sensor?
+fn GetSensors(count: *byte): *byte {
+    return SDL_GetSensors(count)
 }
 
-fn empty_sensor(): Sensor {
-    var h: Sensor
-    return h
+fn GetSensorNameForID(instance_id: u32): *byte {
+    return SDL_GetSensorNameForID(instance_id)
 }
 
-fn GetSensors(count: *c.int): *u32 {
-    return raw.SDL_GetSensors(count)
+fn GetSensorNonPortableTypeForID(instance_id: u32): i32 {
+    return SDL_GetSensorNonPortableTypeForID(instance_id)
 }
 
-fn GetSensorNameForID(instance_id: u32): *const c.char {
-    return raw.SDL_GetSensorNameForID(instance_id)
+fn OpenSensor(instance_id: u32): *byte {
+    return SDL_OpenSensor(instance_id)
 }
 
-fn GetSensorNonPortableTypeForID(instance_id: u32): c.int {
-    return raw.SDL_GetSensorNonPortableTypeForID(instance_id)
+fn GetSensorFromID(instance_id: u32): *byte {
+    return SDL_GetSensorFromID(instance_id)
 }
 
-fn OpenSensor(instance_id: u32): *raw.SDL_Sensor {
-    return raw.SDL_OpenSensor(instance_id)
+fn GetSensorProperties(sensor: *byte): u32 {
+    return SDL_GetSensorProperties(sensor)
 }
 
-fn GetSensorFromID(instance_id: u32): *raw.SDL_Sensor {
-    return raw.SDL_GetSensorFromID(instance_id)
+fn GetSensorName(sensor: *byte): *byte {
+    return SDL_GetSensorName(sensor)
 }
 
-fn GetSensorProperties(sensor: *raw.SDL_Sensor): u32 {
-    return raw.SDL_GetSensorProperties(sensor)
+fn GetSensorNonPortableType(sensor: *byte): i32 {
+    return SDL_GetSensorNonPortableType(sensor)
 }
 
-fn GetSensorName(sensor: *raw.SDL_Sensor): *const c.char {
-    return raw.SDL_GetSensorName(sensor)
+fn GetSensorID(sensor: *byte): u32 {
+    return SDL_GetSensorID(sensor)
 }
 
-fn GetSensorNonPortableType(sensor: *raw.SDL_Sensor): c.int {
-    return raw.SDL_GetSensorNonPortableType(sensor)
+fn GetSensorData(sensor: *byte, data: *byte, num_values: i32): i32 {
+    return SDL_GetSensorData(sensor, data, num_values)
 }
 
-fn GetSensorID(sensor: *raw.SDL_Sensor): u32 {
-    return raw.SDL_GetSensorID(sensor)
-}
-
-fn GetSensorData(sensor: *raw.SDL_Sensor, data: *f32, num_values: c.int): sdl.SDLError? {
-    if !raw.SDL_GetSensorData(sensor, data, num_values) {
-        return sdl.last_error("GetSensorData failed")
-    }
-    return null
-}
-
-fn CloseSensor(sensor: *raw.SDL_Sensor) {
-    raw.SDL_CloseSensor(sensor)
+fn CloseSensor(sensor: *byte) {
+    SDL_CloseSensor(sensor)
 }
 
 fn UpdateSensors() {
-    raw.SDL_UpdateSensors()
+    SDL_UpdateSensors()
 }
+

@@ -1,123 +1,79 @@
-// Idiomatic wrappers over sdl3.cpuinfo.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.cpuinfo as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL cpuinfo (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GetNumLogicalCPUCores(): c.int {
-    return raw.SDL_GetNumLogicalCPUCores()
+fn GetNumLogicalCPUCores(): i32 {
+    return SDL_GetNumLogicalCPUCores()
 }
 
-fn GetCPUCacheLineSize(): c.int {
-    return raw.SDL_GetCPUCacheLineSize()
+fn GetCPUCacheLineSize(): i32 {
+    return SDL_GetCPUCacheLineSize()
 }
 
-fn HasAltiVec(): sdl.SDLError? {
-    if !raw.SDL_HasAltiVec() {
-        return sdl.last_error("HasAltiVec failed")
-    }
-    return null
+fn HasAltiVec(): i32 {
+    return SDL_HasAltiVec()
 }
 
-fn HasMMX(): sdl.SDLError? {
-    if !raw.SDL_HasMMX() {
-        return sdl.last_error("HasMMX failed")
-    }
-    return null
+fn HasMMX(): i32 {
+    return SDL_HasMMX()
 }
 
-fn HasSSE(): sdl.SDLError? {
-    if !raw.SDL_HasSSE() {
-        return sdl.last_error("HasSSE failed")
-    }
-    return null
+fn HasSSE(): i32 {
+    return SDL_HasSSE()
 }
 
-fn HasSSE2(): sdl.SDLError? {
-    if !raw.SDL_HasSSE2() {
-        return sdl.last_error("HasSSE2 failed")
-    }
-    return null
+fn HasSSE2(): i32 {
+    return SDL_HasSSE2()
 }
 
-fn HasSSE3(): sdl.SDLError? {
-    if !raw.SDL_HasSSE3() {
-        return sdl.last_error("HasSSE3 failed")
-    }
-    return null
+fn HasSSE3(): i32 {
+    return SDL_HasSSE3()
 }
 
-fn HasSSE41(): sdl.SDLError? {
-    if !raw.SDL_HasSSE41() {
-        return sdl.last_error("HasSSE41 failed")
-    }
-    return null
+fn HasSSE41(): i32 {
+    return SDL_HasSSE41()
 }
 
-fn HasSSE42(): sdl.SDLError? {
-    if !raw.SDL_HasSSE42() {
-        return sdl.last_error("HasSSE42 failed")
-    }
-    return null
+fn HasSSE42(): i32 {
+    return SDL_HasSSE42()
 }
 
-fn HasAVX(): sdl.SDLError? {
-    if !raw.SDL_HasAVX() {
-        return sdl.last_error("HasAVX failed")
-    }
-    return null
+fn HasAVX(): i32 {
+    return SDL_HasAVX()
 }
 
-fn HasAVX2(): sdl.SDLError? {
-    if !raw.SDL_HasAVX2() {
-        return sdl.last_error("HasAVX2 failed")
-    }
-    return null
+fn HasAVX2(): i32 {
+    return SDL_HasAVX2()
 }
 
-fn HasAVX512F(): sdl.SDLError? {
-    if !raw.SDL_HasAVX512F() {
-        return sdl.last_error("HasAVX512F failed")
-    }
-    return null
+fn HasAVX512F(): i32 {
+    return SDL_HasAVX512F()
 }
 
-fn HasARMSIMD(): sdl.SDLError? {
-    if !raw.SDL_HasARMSIMD() {
-        return sdl.last_error("HasARMSIMD failed")
-    }
-    return null
+fn HasARMSIMD(): i32 {
+    return SDL_HasARMSIMD()
 }
 
-fn HasNEON(): sdl.SDLError? {
-    if !raw.SDL_HasNEON() {
-        return sdl.last_error("HasNEON failed")
-    }
-    return null
+fn HasNEON(): i32 {
+    return SDL_HasNEON()
 }
 
-fn HasLSX(): sdl.SDLError? {
-    if !raw.SDL_HasLSX() {
-        return sdl.last_error("HasLSX failed")
-    }
-    return null
+fn HasLSX(): i32 {
+    return SDL_HasLSX()
 }
 
-fn HasLASX(): sdl.SDLError? {
-    if !raw.SDL_HasLASX() {
-        return sdl.last_error("HasLASX failed")
-    }
-    return null
+fn HasLASX(): i32 {
+    return SDL_HasLASX()
 }
 
-fn GetSystemRAM(): c.int {
-    return raw.SDL_GetSystemRAM()
+fn GetSystemRAM(): i32 {
+    return SDL_GetSystemRAM()
 }
 
-fn GetSIMDAlignment(): c.size_t {
-    return raw.SDL_GetSIMDAlignment()
+fn GetSIMDAlignment(): u64 {
+    return SDL_GetSIMDAlignment()
 }
 
-fn GetSystemPageSize(): c.int {
-    return raw.SDL_GetSystemPageSize()
+fn GetSystemPageSize(): i32 {
+    return SDL_GetSystemPageSize()
 }
+

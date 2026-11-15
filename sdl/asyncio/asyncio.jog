@@ -1,87 +1,47 @@
-// Idiomatic wrappers over sdl3.asyncio.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.asyncio as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL asyncio (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct AsyncIO {
-    ptr: *raw.SDL_AsyncIO?
+fn AsyncIOFromFile(file: *byte, mode: *byte): *byte {
+    return SDL_AsyncIOFromFile(file, mode)
 }
 
-fn empty_asyncio(): AsyncIO {
-    var h: AsyncIO
-    return h
+fn GetAsyncIOSize(asyncio: *byte): i64 {
+    return SDL_GetAsyncIOSize(asyncio)
 }
 
-struct AsyncIOQueue {
-    ptr: *raw.SDL_AsyncIOQueue?
+fn ReadAsyncIO(asyncio: *byte, ptr: *byte, offset: u64, size: u64, queue: *byte, userdata: *byte): i32 {
+    return SDL_ReadAsyncIO(asyncio, ptr, offset, size, queue, userdata)
 }
 
-fn empty_asyncioqueue(): AsyncIOQueue {
-    var h: AsyncIOQueue
-    return h
+fn WriteAsyncIO(asyncio: *byte, ptr: *byte, offset: u64, size: u64, queue: *byte, userdata: *byte): i32 {
+    return SDL_WriteAsyncIO(asyncio, ptr, offset, size, queue, userdata)
 }
 
-fn AsyncIOFromFile(file: *const c.char, mode: *const c.char): *raw.SDL_AsyncIO {
-    return raw.SDL_AsyncIOFromFile(file, mode)
+fn CloseAsyncIO(asyncio: *byte, flush: i32, queue: *byte, userdata: *byte): i32 {
+    return SDL_CloseAsyncIO(asyncio, flush, queue, userdata)
 }
 
-fn GetAsyncIOSize(asyncio: *raw.SDL_AsyncIO): i64 {
-    return raw.SDL_GetAsyncIOSize(asyncio)
+fn CreateAsyncIOQueue(): *byte {
+    return SDL_CreateAsyncIOQueue()
 }
 
-fn ReadAsyncIO(asyncio: *raw.SDL_AsyncIO, ptr: *void, offset: u64, size: u64, queue: *raw.SDL_AsyncIOQueue, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_ReadAsyncIO(asyncio, ptr, offset, size, queue, userdata) {
-        return sdl.last_error("ReadAsyncIO failed")
-    }
-    return null
+fn DestroyAsyncIOQueue(queue: *byte) {
+    SDL_DestroyAsyncIOQueue(queue)
 }
 
-fn WriteAsyncIO(asyncio: *raw.SDL_AsyncIO, ptr: *void, offset: u64, size: u64, queue: *raw.SDL_AsyncIOQueue, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_WriteAsyncIO(asyncio, ptr, offset, size, queue, userdata) {
-        return sdl.last_error("WriteAsyncIO failed")
-    }
-    return null
+fn GetAsyncIOResult(queue: *byte, outcome: *byte): i32 {
+    return SDL_GetAsyncIOResult(queue, outcome)
 }
 
-fn CloseAsyncIO(asyncio: *raw.SDL_AsyncIO, flush: bool, queue: *raw.SDL_AsyncIOQueue, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_CloseAsyncIO(asyncio, flush, queue, userdata) {
-        return sdl.last_error("CloseAsyncIO failed")
-    }
-    return null
+fn WaitAsyncIOResult(queue: *byte, outcome: *byte, timeoutMS: i32): i32 {
+    return SDL_WaitAsyncIOResult(queue, outcome, timeoutMS)
 }
 
-fn CreateAsyncIOQueue(): *raw.SDL_AsyncIOQueue {
-    return raw.SDL_CreateAsyncIOQueue()
+fn SignalAsyncIOQueue(queue: *byte) {
+    SDL_SignalAsyncIOQueue(queue)
 }
 
-fn AsyncIOQueue.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyAsyncIOQueue(self.ptr!!)
-    }
+fn LoadFileAsync(file: *byte, queue: *byte, userdata: *byte): i32 {
+    return SDL_LoadFileAsync(file, queue, userdata)
 }
 
-fn GetAsyncIOResult(queue: *raw.SDL_AsyncIOQueue, outcome: *void): sdl.SDLError? {
-    if !raw.SDL_GetAsyncIOResult(queue, outcome) {
-        return sdl.last_error("GetAsyncIOResult failed")
-    }
-    return null
-}
-
-fn WaitAsyncIOResult(queue: *raw.SDL_AsyncIOQueue, outcome: *void, timeoutMS: i32): sdl.SDLError? {
-    if !raw.SDL_WaitAsyncIOResult(queue, outcome, timeoutMS) {
-        return sdl.last_error("WaitAsyncIOResult failed")
-    }
-    return null
-}
-
-fn SignalAsyncIOQueue(queue: *raw.SDL_AsyncIOQueue) {
-    raw.SDL_SignalAsyncIOQueue(queue)
-}
-
-fn LoadFileAsync(file: *const c.char, queue: *raw.SDL_AsyncIOQueue, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_LoadFileAsync(file, queue, userdata) {
-        return sdl.last_error("LoadFileAsync failed")
-    }
-    return null
-}

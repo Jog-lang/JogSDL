@@ -1,26 +1,22 @@
-// Idiomatic event polling.
-import sdl
-import sdl3.events as raw
+// Event helpers (v2 flat merge).
 
 struct Event {
     kind: u32
     scancode: u32
 }
 
-/**
- * Polls one event. Returns (event, true) when an event was available.
- * Key events expose scancode; other kinds leave scancode at 0.
- */
-fn PollEvent(): (Event, bool) {
-    var raw_ev = raw.zero_event()
-    if !raw.SDL_PollEvent(&raw_ev) {
-        var empty: Event
-        return empty, false
-    }
-    var ev: Event
-    ev.kind = raw_ev.event_type
-    if raw_ev.event_type == sdl.EVENT_KEY_DOWN || raw_ev.event_type == sdl.EVENT_KEY_UP {
-        ev.scancode = raw_ev.scancode
-    }
-    return ev, true
+fn PollEventHas(buf: *byte): i32 {
+    return SDL_PollEvent(buf)
+}
+
+// SDL_Event.type is u32 at offset 0; Jog `*buf` is an 8-byte load (type+reserved).
+fn EventType(buf: *byte): u32 {
+    val q = *buf
+    return (q & 4294967295) as u32
+}
+
+// SDL_KeyboardEvent.scancode is u32 at offset 24; next field is keycode — mask to u32.
+fn EventScancode(buf: *byte): u32 {
+    val q = *(buf + 24)
+    return (q & 4294967295) as u32
 }

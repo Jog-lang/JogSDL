@@ -1,63 +1,35 @@
-// Idiomatic wrappers over sdl3.init.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.init as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL init (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn Init(flags: u32): sdl.SDLError? {
-    if !raw.SDL_Init(flags) {
-        return sdl.last_error("Init failed")
-    }
-    return null
-}
-
-fn InitSubSystem(flags: u32): sdl.SDLError? {
-    if !raw.SDL_InitSubSystem(flags) {
-        return sdl.last_error("InitSubSystem failed")
-    }
-    return null
+fn InitSubSystem(flags: u32): i32 {
+    return SDL_InitSubSystem(flags)
 }
 
 fn QuitSubSystem(flags: u32) {
-    raw.SDL_QuitSubSystem(flags)
+    SDL_QuitSubSystem(flags)
 }
 
 fn WasInit(flags: u32): u32 {
-    return raw.SDL_WasInit(flags)
+    return SDL_WasInit(flags)
 }
 
-fn Quit() {
-    raw.SDL_Quit()
+fn IsMainThread(): i32 {
+    return SDL_IsMainThread()
 }
 
-fn IsMainThread(): sdl.SDLError? {
-    if !raw.SDL_IsMainThread() {
-        return sdl.last_error("IsMainThread failed")
-    }
-    return null
+fn SetAppMetadata(appname: *byte, appversion: *byte, appidentifier: *byte): i32 {
+    return SDL_SetAppMetadata(appname, appversion, appidentifier)
 }
 
-fn RunOnMainThread(callback: *void, userdata: *void, wait_complete: bool): sdl.SDLError? {
-    if !raw.SDL_RunOnMainThread(callback, userdata, wait_complete) {
-        return sdl.last_error("RunOnMainThread failed")
-    }
-    return null
+fn SetAppMetadataProperty(name: *byte, value: *byte): i32 {
+    return SDL_SetAppMetadataProperty(name, value)
 }
 
-fn SetAppMetadata(appname: *const c.char, appversion: *const c.char, appidentifier: *const c.char): sdl.SDLError? {
-    if !raw.SDL_SetAppMetadata(appname, appversion, appidentifier) {
-        return sdl.last_error("SetAppMetadata failed")
-    }
-    return null
+fn GetAppMetadataProperty(name: *byte): *byte {
+    return SDL_GetAppMetadataProperty(name)
 }
 
-fn SetAppMetadataProperty(name: *const c.char, value: *const c.char): sdl.SDLError? {
-    if !raw.SDL_SetAppMetadataProperty(name, value) {
-        return sdl.last_error("SetAppMetadataProperty failed")
-    }
-    return null
+fn RunOnMainThread(callback: *byte, userdata: *byte, wait_complete: i32): i32 {
+    return SDL_RunOnMainThread(callback, userdata, wait_complete)
 }
 
-fn GetAppMetadataProperty(name: *const c.char): *const c.char {
-    return raw.SDL_GetAppMetadataProperty(name)
-}

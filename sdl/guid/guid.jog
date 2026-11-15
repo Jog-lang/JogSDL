@@ -1,12 +1,11 @@
-// Idiomatic wrappers over sdl3.guid.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.guid as raw
-import std.c
+// Idiomatic v2 wrappers for SDL guid (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GUIDToString(guid: raw.SDL_GUID, pszGUID: *c.char, cbGUID: c.int) {
-    raw.SDL_GUIDToString(guid, pszGUID, cbGUID)
+fn GUIDToString(guid: i32, pszGUID: *byte, cbGUID: i32): i32 {
+    return SDL_GUIDToString(guid, pszGUID, cbGUID)
 }
 
-fn StringToGUID(pchGUID: *const c.char): raw.SDL_GUID {
-    return raw.SDL_StringToGUID(pchGUID)
+fn StringToGUID(pchGUID: *byte): i32 {
+    return SDL_StringToGUID(pchGUID)
 }
+

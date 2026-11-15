@@ -1,63 +1,43 @@
-// Idiomatic wrappers over sdl3.filesystem.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.filesystem as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL filesystem (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn GetBasePath(): *const c.char {
-    return raw.SDL_GetBasePath()
+fn GetBasePath(): *byte {
+    return SDL_GetBasePath()
 }
 
-fn GetPrefPath(org: *const c.char, app: *const c.char): *c.char {
-    return raw.SDL_GetPrefPath(org, app)
+fn GetPrefPath(org: *byte, app: *byte): *byte {
+    return SDL_GetPrefPath(org, app)
 }
 
-fn GetUserFolder(folder: u32): *const c.char {
-    return raw.SDL_GetUserFolder(folder)
+fn CreateDirectory(path: *byte): i32 {
+    return SDL_CreateDirectory(path)
 }
 
-fn CreateDirectory(path: *const c.char): sdl.SDLError? {
-    if !raw.SDL_CreateDirectory(path) {
-        return sdl.last_error("CreateDirectory failed")
-    }
-    return null
+fn RemovePath(path: *byte): i32 {
+    return SDL_RemovePath(path)
 }
 
-fn EnumerateDirectory(path: *const c.char, callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_EnumerateDirectory(path, callback, userdata) {
-        return sdl.last_error("EnumerateDirectory failed")
-    }
-    return null
+fn RenamePath(oldpath: *byte, newpath: *byte): i32 {
+    return SDL_RenamePath(oldpath, newpath)
 }
 
-fn RemovePath(path: *const c.char): sdl.SDLError? {
-    if !raw.SDL_RemovePath(path) {
-        return sdl.last_error("RemovePath failed")
-    }
-    return null
+fn CopyFile(oldpath: *byte, newpath: *byte): i32 {
+    return SDL_CopyFile(oldpath, newpath)
 }
 
-fn RenamePath(oldpath: *const c.char, newpath: *const c.char): sdl.SDLError? {
-    if !raw.SDL_RenamePath(oldpath, newpath) {
-        return sdl.last_error("RenamePath failed")
-    }
-    return null
+fn GetPathInfo(path: *byte, info: *byte): i32 {
+    return SDL_GetPathInfo(path, info)
 }
 
-fn CopyFile(oldpath: *const c.char, newpath: *const c.char): sdl.SDLError? {
-    if !raw.SDL_CopyFile(oldpath, newpath) {
-        return sdl.last_error("CopyFile failed")
-    }
-    return null
+fn GetCurrentDirectory(): *byte {
+    return SDL_GetCurrentDirectory()
 }
 
-fn GetPathInfo(path: *const c.char, info: *void): sdl.SDLError? {
-    if !raw.SDL_GetPathInfo(path, info) {
-        return sdl.last_error("GetPathInfo failed")
-    }
-    return null
+fn EnumerateDirectory(path: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_EnumerateDirectory(path, callback, userdata)
 }
 
-fn GetCurrentDirectory(): *c.char {
-    return raw.SDL_GetCurrentDirectory()
+fn GetUserFolder(folder: u32): *byte {
+    return SDL_GetUserFolder(folder)
 }
+

@@ -1,15 +1,17 @@
-# Wolfenstein-style software raycaster demo (flat-colored DDA walls).
+# Proto-3D raycaster: float Vec2 + view basis, doors, mouse look (JOG-105).
+# Browser build: see ../raycaster-emscripten (JOG-90).
 module raycaster
 version 0.1.0
-kind executable
-jog 0.0.1
-
+root main.jog
 require jog_sdl ../..
-
-# std.math @link("m") does not yet flow into the consumer link line (Friction).
-link.linux m
-link.macos m
-link.emscripten m
-
-# Smoke require.test resolution (test-only; ignored by build/run).
-require.test mock_noop ./mocks/mock_noop
+source math2d.jog
+source world.jog
+source texture.jog
+source mesh.jog
+source parallel.jog
+source timing.jog
+link.linux SDL3
+link.emscripten SDL3
+libdir.linux ../../prefix/lib64
+libdir.linux ../../prefix/lib
+libdir.emscripten ../../prefix-emscripten/lib

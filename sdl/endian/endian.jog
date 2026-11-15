@@ -1,1 +1,3 @@
-// Idiomatic sdl.endian — see sdl3.endian for raw bindings (no short aliases yet).
+// Idiomatic v2 wrappers for SDL endian (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+

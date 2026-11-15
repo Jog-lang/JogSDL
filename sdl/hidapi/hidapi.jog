@@ -1,105 +1,95 @@
-// Idiomatic wrappers over sdl3.hidapi.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.hidapi as raw
-import std.c
+// Idiomatic v2 wrappers for SDL hidapi (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct HidDevice {
-    ptr: *raw.SDL_hid_device?
+fn hid_init(): i32 {
+    return SDL_hid_init()
 }
 
-fn empty_hiddevice(): HidDevice {
-    var h: HidDevice
-    return h
-}
-
-fn hid_init(): c.int {
-    return raw.SDL_hid_init()
-}
-
-fn hid_exit(): c.int {
-    return raw.SDL_hid_exit()
+fn hid_exit(): i32 {
+    return SDL_hid_exit()
 }
 
 fn hid_device_change_count(): u32 {
-    return raw.SDL_hid_device_change_count()
+    return SDL_hid_device_change_count()
 }
 
-fn hid_enumerate(vendor_id: u16, product_id: u16): *void {
-    return raw.SDL_hid_enumerate(vendor_id, product_id)
+fn hid_enumerate(vendor_id: u8, product_id: u8): *byte {
+    return SDL_hid_enumerate(vendor_id, product_id)
 }
 
-fn hid_free_enumeration(devs: *void) {
-    raw.SDL_hid_free_enumeration(devs)
+fn hid_free_enumeration(devs: *byte) {
+    SDL_hid_free_enumeration(devs)
 }
 
-fn hid_open(vendor_id: u16, product_id: u16, serial_number: *const u32): *raw.SDL_hid_device {
-    return raw.SDL_hid_open(vendor_id, product_id, serial_number)
+fn hid_open(vendor_id: u8, product_id: u8, serial_number: *byte): *byte {
+    return SDL_hid_open(vendor_id, product_id, serial_number)
 }
 
-fn hid_open_path(path: *const c.char): *raw.SDL_hid_device {
-    return raw.SDL_hid_open_path(path)
+fn hid_open_path(path: *byte): *byte {
+    return SDL_hid_open_path(path)
 }
 
-fn hid_get_properties(dev: *raw.SDL_hid_device): u32 {
-    return raw.SDL_hid_get_properties(dev)
+fn hid_get_properties(dev: *byte): u32 {
+    return SDL_hid_get_properties(dev)
 }
 
-fn hid_write(dev: *raw.SDL_hid_device, data: *const u8, length: c.size_t): c.int {
-    return raw.SDL_hid_write(dev, data, length)
+fn hid_write(dev: *byte, data: *byte, length: u64): i32 {
+    return SDL_hid_write(dev, data, length)
 }
 
-fn hid_read_timeout(dev: *raw.SDL_hid_device, data: *u8, length: c.size_t, milliseconds: c.int): c.int {
-    return raw.SDL_hid_read_timeout(dev, data, length, milliseconds)
+fn hid_read_timeout(dev: *byte, data: *byte, length: u64, milliseconds: i32): i32 {
+    return SDL_hid_read_timeout(dev, data, length, milliseconds)
 }
 
-fn hid_read(dev: *raw.SDL_hid_device, data: *u8, length: c.size_t): c.int {
-    return raw.SDL_hid_read(dev, data, length)
+fn hid_read(dev: *byte, data: *byte, length: u64): i32 {
+    return SDL_hid_read(dev, data, length)
 }
 
-fn hid_set_nonblocking(dev: *raw.SDL_hid_device, nonblock: c.int): c.int {
-    return raw.SDL_hid_set_nonblocking(dev, nonblock)
+fn hid_set_nonblocking(dev: *byte, nonblock: i32): i32 {
+    return SDL_hid_set_nonblocking(dev, nonblock)
 }
 
-fn hid_send_feature_report(dev: *raw.SDL_hid_device, data: *const u8, length: c.size_t): c.int {
-    return raw.SDL_hid_send_feature_report(dev, data, length)
+fn hid_send_feature_report(dev: *byte, data: *byte, length: u64): i32 {
+    return SDL_hid_send_feature_report(dev, data, length)
 }
 
-fn hid_get_feature_report(dev: *raw.SDL_hid_device, data: *u8, length: c.size_t): c.int {
-    return raw.SDL_hid_get_feature_report(dev, data, length)
+fn hid_get_feature_report(dev: *byte, data: *byte, length: u64): i32 {
+    return SDL_hid_get_feature_report(dev, data, length)
 }
 
-fn hid_get_input_report(dev: *raw.SDL_hid_device, data: *u8, length: c.size_t): c.int {
-    return raw.SDL_hid_get_input_report(dev, data, length)
+fn hid_get_input_report(dev: *byte, data: *byte, length: u64): i32 {
+    return SDL_hid_get_input_report(dev, data, length)
 }
 
-fn hid_close(dev: *raw.SDL_hid_device): c.int {
-    return raw.SDL_hid_close(dev)
+fn hid_close(dev: *byte): i32 {
+    return SDL_hid_close(dev)
 }
 
-fn hid_get_manufacturer_string(dev: *raw.SDL_hid_device, string: *u32, maxlen: c.size_t): c.int {
-    return raw.SDL_hid_get_manufacturer_string(dev, string, maxlen)
+fn hid_get_manufacturer_string(dev: *byte, string: *byte, maxlen: u64): i32 {
+    return SDL_hid_get_manufacturer_string(dev, string, maxlen)
 }
 
-fn hid_get_product_string(dev: *raw.SDL_hid_device, string: *u32, maxlen: c.size_t): c.int {
-    return raw.SDL_hid_get_product_string(dev, string, maxlen)
+fn hid_get_product_string(dev: *byte, string: *byte, maxlen: u64): i32 {
+    return SDL_hid_get_product_string(dev, string, maxlen)
 }
 
-fn hid_get_serial_number_string(dev: *raw.SDL_hid_device, string: *u32, maxlen: c.size_t): c.int {
-    return raw.SDL_hid_get_serial_number_string(dev, string, maxlen)
+fn hid_get_serial_number_string(dev: *byte, string: *byte, maxlen: u64): i32 {
+    return SDL_hid_get_serial_number_string(dev, string, maxlen)
 }
 
-fn hid_get_indexed_string(dev: *raw.SDL_hid_device, string_index: c.int, string: *u32, maxlen: c.size_t): c.int {
-    return raw.SDL_hid_get_indexed_string(dev, string_index, string, maxlen)
+fn hid_get_indexed_string(dev: *byte, string_index: i32, string: *byte, maxlen: u64): i32 {
+    return SDL_hid_get_indexed_string(dev, string_index, string, maxlen)
 }
 
-fn hid_get_device_info(dev: *raw.SDL_hid_device): *void {
-    return raw.SDL_hid_get_device_info(dev)
+fn hid_get_device_info(dev: *byte): *byte {
+    return SDL_hid_get_device_info(dev)
 }
 
-fn hid_get_report_descriptor(dev: *raw.SDL_hid_device, buf: *u8, buf_size: c.size_t): c.int {
-    return raw.SDL_hid_get_report_descriptor(dev, buf, buf_size)
+fn hid_get_report_descriptor(dev: *byte, buf: *byte, buf_size: u64): i32 {
+    return SDL_hid_get_report_descriptor(dev, buf, buf_size)
 }
 
-fn hid_ble_scan(active: bool) {
-    raw.SDL_hid_ble_scan(active)
+fn hid_ble_scan(active: i32) {
+    SDL_hid_ble_scan(active)
 }
+

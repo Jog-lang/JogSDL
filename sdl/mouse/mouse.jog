@@ -1,128 +1,79 @@
-// Idiomatic wrappers over sdl3.mouse.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.mouse as raw
-import sdl3.surface
-import sdl3.video
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL mouse (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Cursor {
-    ptr: *raw.SDL_Cursor?
+fn GetRelativeMouseState(x: *byte, y: *byte): u32 {
+    return SDL_GetRelativeMouseState(x, y)
 }
 
-fn empty_cursor(): Cursor {
-    var h: Cursor
-    return h
+fn HasMouse(): i32 {
+    return SDL_HasMouse()
 }
 
-fn GetRelativeMouseState(x: *f32, y: *f32): u32 {
-    return raw.SDL_GetRelativeMouseState(x, y)
+fn GetMice(count: *byte): *byte {
+    return SDL_GetMice(count)
 }
 
-fn HasMouse(): sdl.SDLError? {
-    if !raw.SDL_HasMouse() {
-        return sdl.last_error("HasMouse failed")
-    }
-    return null
+fn GetMouseNameForID(instance_id: u32): *byte {
+    return SDL_GetMouseNameForID(instance_id)
 }
 
-fn GetMice(count: *c.int): *u32 {
-    return raw.SDL_GetMice(count)
+fn GetMouseFocus(): *byte {
+    return SDL_GetMouseFocus()
 }
 
-fn GetMouseNameForID(instance_id: u32): *const c.char {
-    return raw.SDL_GetMouseNameForID(instance_id)
+fn WarpMouseInWindow(window: *byte, x: f32, y: f32) {
+    SDL_WarpMouseInWindow(window, x, y)
 }
 
-fn GetMouseFocus(): *video.SDL_Window {
-    return raw.SDL_GetMouseFocus()
+fn WarpMouseGlobal(x: f32, y: f32): i32 {
+    return SDL_WarpMouseGlobal(x, y)
 }
 
-fn WarpMouseInWindow(window: *video.SDL_Window, x: f32, y: f32) {
-    raw.SDL_WarpMouseInWindow(window, x, y)
+fn GetWindowRelativeMouseMode(window: *byte): i32 {
+    return SDL_GetWindowRelativeMouseMode(window)
 }
 
-fn WarpMouseGlobal(x: f32, y: f32): sdl.SDLError? {
-    if !raw.SDL_WarpMouseGlobal(x, y) {
-        return sdl.last_error("WarpMouseGlobal failed")
-    }
-    return null
+fn CaptureMouse(enabled: i32): i32 {
+    return SDL_CaptureMouse(enabled)
 }
 
-fn SetRelativeMouseTransform(callback: *void, userdata: *void): sdl.SDLError? {
-    if !raw.SDL_SetRelativeMouseTransform(callback, userdata) {
-        return sdl.last_error("SetRelativeMouseTransform failed")
-    }
-    return null
+fn CreateCursor(data: *byte, mask: *byte, w: i32, h: i32, hot_x: i32, hot_y: i32): *byte {
+    return SDL_CreateCursor(data, mask, w, h, hot_x, hot_y)
 }
 
-fn SetWindowRelativeMouseMode(window: *video.SDL_Window, enabled: bool): sdl.SDLError? {
-    if !raw.SDL_SetWindowRelativeMouseMode(window, enabled) {
-        return sdl.last_error("SetWindowRelativeMouseMode failed")
-    }
-    return null
+fn CreateColorCursor(surface: *byte, hot_x: i32, hot_y: i32): *byte {
+    return SDL_CreateColorCursor(surface, hot_x, hot_y)
 }
 
-fn GetWindowRelativeMouseMode(window: *video.SDL_Window): sdl.SDLError? {
-    if !raw.SDL_GetWindowRelativeMouseMode(window) {
-        return sdl.last_error("GetWindowRelativeMouseMode failed")
-    }
-    return null
+fn SetCursor(cursor: *byte): i32 {
+    return SDL_SetCursor(cursor)
 }
 
-fn CaptureMouse(enabled: bool): sdl.SDLError? {
-    if !raw.SDL_CaptureMouse(enabled) {
-        return sdl.last_error("CaptureMouse failed")
-    }
-    return null
+fn GetCursor(): *byte {
+    return SDL_GetCursor()
 }
 
-fn CreateCursor(data: *const u8, mask: *const u8, w: c.int, h: c.int, hot_x: c.int, hot_y: c.int): *raw.SDL_Cursor {
-    return raw.SDL_CreateCursor(data, mask, w, h, hot_x, hot_y)
+fn GetDefaultCursor(): *byte {
+    return SDL_GetDefaultCursor()
 }
 
-fn CreateColorCursor(surface: *surface.SDL_Surface, hot_x: c.int, hot_y: c.int): *raw.SDL_Cursor {
-    return raw.SDL_CreateColorCursor(surface, hot_x, hot_y)
+fn DestroyCursor(cursor: *byte) {
+    SDL_DestroyCursor(cursor)
 }
 
-fn SetCursor(cursor: *raw.SDL_Cursor): sdl.SDLError? {
-    if !raw.SDL_SetCursor(cursor) {
-        return sdl.last_error("SetCursor failed")
-    }
-    return null
+fn ShowCursor(): i32 {
+    return SDL_ShowCursor()
 }
 
-fn GetCursor(): *raw.SDL_Cursor {
-    return raw.SDL_GetCursor()
+fn HideCursor(): i32 {
+    return SDL_HideCursor()
 }
 
-fn GetDefaultCursor(): *raw.SDL_Cursor {
-    return raw.SDL_GetDefaultCursor()
+fn CursorVisible(): i32 {
+    return SDL_CursorVisible()
 }
 
-fn Cursor.destroy() {
-    if self.ptr != null {
-        raw.SDL_DestroyCursor(self.ptr!!)
-    }
+fn SetRelativeMouseTransform(callback: *byte, userdata: *byte): i32 {
+    return SDL_SetRelativeMouseTransform(callback, userdata)
 }
 
-fn ShowCursor(): sdl.SDLError? {
-    if !raw.SDL_ShowCursor() {
-        return sdl.last_error("ShowCursor failed")
-    }
-    return null
-}
-
-fn HideCursor(): sdl.SDLError? {
-    if !raw.SDL_HideCursor() {
-        return sdl.last_error("HideCursor failed")
-    }
-    return null
-}
-
-fn CursorVisible(): sdl.SDLError? {
-    if !raw.SDL_CursorVisible() {
-        return sdl.last_error("CursorVisible failed")
-    }
-    return null
-}

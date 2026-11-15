@@ -1,8 +1,0 @@
-// Raw SDL3 metal — v2 flat merge (generated).
-@link("SDL3")
-extern {
-
-    fn SDL_Metal_CreateView(window: *byte): i32
-    fn SDL_Metal_DestroyView(view: i32): i32
-    fn SDL_Metal_GetLayer(view: i32): i32
-}

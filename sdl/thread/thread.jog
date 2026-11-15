@@ -1,68 +1,51 @@
-// Idiomatic wrappers over sdl3.thread.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.thread as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL thread (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-struct Thread {
-    ptr: *raw.SDL_Thread?
-}
-
-fn empty_thread(): Thread {
-    var h: Thread
-    return h
-}
-
-fn CreateThreadRuntime(fn_: *void, name: *const c.char, data: *void, pfnBeginThread: *void, pfnEndThread: *void): *raw.SDL_Thread {
-    return raw.SDL_CreateThreadRuntime(fn_, name, data, pfnBeginThread, pfnEndThread)
-}
-
-fn CreateThreadWithPropertiesRuntime(props: u32, pfnBeginThread: *void, pfnEndThread: *void): *raw.SDL_Thread {
-    return raw.SDL_CreateThreadWithPropertiesRuntime(props, pfnBeginThread, pfnEndThread)
-}
-
-fn GetThreadName(thread: *raw.SDL_Thread): *const c.char {
-    return raw.SDL_GetThreadName(thread)
+fn GetThreadName(thread: *byte): *byte {
+    return SDL_GetThreadName(thread)
 }
 
 fn GetCurrentThreadID(): u64 {
-    return raw.SDL_GetCurrentThreadID()
+    return SDL_GetCurrentThreadID()
 }
 
-fn GetThreadID(thread: *raw.SDL_Thread): u64 {
-    return raw.SDL_GetThreadID(thread)
+fn GetThreadID(thread: *byte): u64 {
+    return SDL_GetThreadID(thread)
 }
 
-fn SetCurrentThreadPriority(priority: u32): sdl.SDLError? {
-    if !raw.SDL_SetCurrentThreadPriority(priority) {
-        return sdl.last_error("SetCurrentThreadPriority failed")
-    }
-    return null
+fn WaitThread(thread: *byte, status: *byte) {
+    SDL_WaitThread(thread, status)
 }
 
-fn WaitThread(thread: *raw.SDL_Thread, status: *c.int) {
-    raw.SDL_WaitThread(thread, status)
+fn DetachThread(thread: *byte) {
+    SDL_DetachThread(thread)
 }
 
-fn GetThreadState(thread: *raw.SDL_Thread): u32 {
-    return raw.SDL_GetThreadState(thread)
-}
-
-fn DetachThread(thread: *raw.SDL_Thread) {
-    raw.SDL_DetachThread(thread)
-}
-
-fn GetTLS(id: *void): *void {
-    return raw.SDL_GetTLS(id)
-}
-
-fn SetTLS(id: *void, value: *const void, destructor: *void): sdl.SDLError? {
-    if !raw.SDL_SetTLS(id, value, destructor) {
-        return sdl.last_error("SetTLS failed")
-    }
-    return null
+fn GetTLS(id: *byte): *byte {
+    return SDL_GetTLS(id)
 }
 
 fn CleanupTLS() {
-    raw.SDL_CleanupTLS()
+    SDL_CleanupTLS()
 }
+
+fn CreateThreadRuntime(fn_: *byte, name: *byte, data: *byte, pfnBeginThread: *byte, pfnEndThread: *byte): i32 {
+    return SDL_CreateThreadRuntime(fn_, name, data, pfnBeginThread, pfnEndThread)
+}
+
+fn CreateThreadWithPropertiesRuntime(props: u32, pfnBeginThread: *byte, pfnEndThread: *byte): i32 {
+    return SDL_CreateThreadWithPropertiesRuntime(props, pfnBeginThread, pfnEndThread)
+}
+
+fn GetThreadState(thread: *byte): *byte {
+    return SDL_GetThreadState(thread)
+}
+
+fn SetCurrentThreadPriority(priority: u32): i32 {
+    return SDL_SetCurrentThreadPriority(priority)
+}
+
+fn SetTLS(id: *byte, value: *byte, destructor: *byte): i32 {
+    return SDL_SetTLS(id, value, destructor)
+}
+

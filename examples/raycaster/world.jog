@@ -1,114 +1,210 @@
-// Pure map + DDA helpers for the Wolfenstein-style raycaster (no SDL).
+// Map + float DDA cast for the proto-3D raycaster.
+// Hot path is scalar (pos/dir/plane + package hit_*) so jogrt bump heap is not
+// drained by per-column Hit / Vec2 struct returns.
+//
+// After JogCompiler #30, numeric `as` is sitofp/fptosi — do NOT use the old
+// IEEE 2^52 bitcast "i_to_f" trick (it becomes sitofp of F52+n and produces
+// garbage → every column paints door lime 0xffccff00 = solid green).
 import std.math
 
-val MAP_W: i32 = 16
-val MAP_H: i32 = 16
-val MAP_CELLS: i32 = 256
-
-// Hit from casting one column. wall_id 0 means no hit (should not happen in a sealed map).
-struct Hit {
-    wall_id: u8
-    dist: f64
-    side: i32 // 0 = NS (X-step), 1 = EW (Y-step) — for cheap shading
+fn cell_coord(v: f64): i64 {
+    return floor(v) as i64
 }
 
-struct Map {
-    cells: [256]u8
+fn f_to_i(v: f64): i64 {
+    return v as i64
 }
 
-fn empty_map(): Map {
-    var m: Map
-    return m
+fn poke32(p: *byte, off: i64, v: i64) {
+    p[off] = v & 255
+    p[off + 1] = (v >> 8) & 255
+    p[off + 2] = (v >> 16) & 255
+    p[off + 3] = (v >> 24) & 255
 }
 
-/** Border walls (id 1) plus a few interior blocks (ids 2–4). */
-fn demo_map(): Map {
-    var m = empty_map()
-    var y: i32 = 0
-    for y < MAP_H {
-        var x: i32 = 0
-        for x < MAP_W {
-            val i = (y * MAP_W + x) as usize
-            if x == 0 || y == 0 || x == MAP_W - 1 || y == MAP_H - 1 {
-                m.cells[i] = 1
+extern {
+    fn fopen(path: *byte, mode: *byte): *byte
+    fn fwrite(ptr: *byte, size: u64, nmemb: u64, stream: *byte): u64
+    fn fclose(stream: *byte): i32
+}
+
+// Smoke evidence: write /tmp/jogsdl_raycaster_fb.ppm (RGB from ARGB8888 LE).
+fn dump_fb_ppm(pixels: *byte, fb_w: i64, fb_h: i64) {
+    val f = fopen(c"/tmp/jogsdl_raycaster_fb.ppm", c"wb")
+    if (f == null) {
+        print("dump_fb_ppm: fopen failed\n")
+        return
+    }
+    val rgb = alloc(3)
+    // P6 header for 160x100
+    fwrite(c"P6\n160 100\n255\n", 1, 15, f)
+    var i = 0
+    val n = fb_w * fb_h
+    while (i < n) {
+        val off = i * 4
+        // ARGB8888 little-endian in memory: B,G,R,A
+        rgb[0] = pixels[off + 2]
+        rgb[1] = pixels[off + 1]
+        rgb[2] = pixels[off]
+        fwrite(rgb, 1, 3, f)
+        i = i + 1
+    }
+    fclose(f)
+    print("wrote /tmp/jogsdl_raycaster_fb.ppm\n")
+}
+
+val MAP_W: i64 = 16
+val MAP_H: i64 = 16
+val CELL_EMPTY: i64 = 0
+val CELL_WALL: i64 = 1
+val CELL_PILLAR: i64 = 2
+val CELL_BLUE: i64 = 3
+val CELL_ORANGE: i64 = 4
+val CELL_DOOR_CLOSED: i64 = 5
+val CELL_DOOR_OPEN: i64 = 6
+
+fn alloc_map(): *byte {
+    val cells = alloc(256)
+    var i = 0
+    while (i < 256) {
+        cells[i] = 0
+        i = i + 1
+    }
+    return cells
+}
+
+fn set_cell(cells: *byte, x: i64, y: i64, id: i64) {
+    cells[y * 16 + x] = id & 255
+}
+
+fn map_cell(cells: *byte, x: i64, y: i64): i64 {
+    if (x < 0 || y < 0 || x >= 16 || y >= 16) {
+        return CELL_WALL
+    }
+    return cells[y * 16 + x]
+}
+
+fn map_solid(cells: *byte, x: i64, y: i64): i64 {
+    val id = map_cell(cells, x, y)
+    if (id == CELL_EMPTY || id == CELL_DOOR_OPEN) {
+        return 0
+    }
+    return 1
+}
+
+fn fill_demo_map(cells: *byte) {
+    var y = 0
+    while (y < 16) {
+        var x = 0
+        while (x < 16) {
+            if (x == 0 || y == 0 || x == 15 || y == 15) {
+                set_cell(cells, x, y, CELL_WALL)
             }
             x = x + 1
         }
         y = y + 1
     }
-    // Interior pillars / rooms
-    m.cells[(3 * MAP_W + 3) as usize] = 2
-    m.cells[(3 * MAP_W + 4) as usize] = 2
-    m.cells[(4 * MAP_W + 3) as usize] = 2
-    m.cells[(8 * MAP_W + 8) as usize] = 3
-    m.cells[(8 * MAP_W + 9) as usize] = 3
-    m.cells[(9 * MAP_W + 8) as usize] = 3
-    m.cells[(5 * MAP_W + 11) as usize] = 4
-    m.cells[(6 * MAP_W + 11) as usize] = 4
-    m.cells[(7 * MAP_W + 11) as usize] = 4
-    m.cells[(11 * MAP_W + 4) as usize] = 2
-    m.cells[(11 * MAP_W + 5) as usize] = 2
-    m.cells[(12 * MAP_W + 5) as usize] = 4
-    return m
+    set_cell(cells, 3, 3, CELL_PILLAR)
+    set_cell(cells, 3, 4, CELL_PILLAR)
+    set_cell(cells, 4, 3, CELL_PILLAR)
+    set_cell(cells, 8, 8, CELL_BLUE)
+    set_cell(cells, 8, 9, CELL_BLUE)
+    set_cell(cells, 9, 8, CELL_BLUE)
+    set_cell(cells, 5, 11, CELL_ORANGE)
+    set_cell(cells, 6, 11, CELL_ORANGE)
+    set_cell(cells, 7, 11, CELL_ORANGE)
+    set_cell(cells, 11, 4, CELL_PILLAR)
+    set_cell(cells, 11, 5, CELL_PILLAR)
+    set_cell(cells, 12, 5, CELL_ORANGE)
+    // Interactive door ahead of spawn (2.5, 2.5) looking +x.
+    set_cell(cells, 5, 2, CELL_DOOR_CLOSED)
+    set_cell(cells, 6, 1, CELL_WALL)
+    set_cell(cells, 6, 3, CELL_WALL)
 }
 
-fn Map.cell(x: i32, y: i32): u8 {
-    if x < 0 || y < 0 || x >= MAP_W || y >= MAP_H {
+fn demo_map(): *byte {
+    val cells = alloc_map()
+    fill_demo_map(cells)
+    return cells
+}
+
+fn abs_f(v: f64): f64 {
+    return fabs(v)
+}
+
+// Axis-separated move into empty / open-door cells (mutates cam_pos_*).
+fn try_move(map: *byte, dx: f64, dy: f64) {
+    val nx = cam_pos_x + dx
+    val ny = cam_pos_y + dy
+    val cy = cell_coord(cam_pos_y)
+    val nx_cell = cell_coord(nx)
+    val ny_cell = cell_coord(ny)
+    if (map_solid(map, nx_cell, cy) == 0) {
+        cam_pos_x = nx
+    }
+    if (map_solid(map, cell_coord(cam_pos_x), ny_cell) == 0) {
+        cam_pos_y = ny
+    }
+}
+
+// Toggle door in the cell ahead of the camera (E / Space).
+fn try_use_door(map: *byte): i64 {
+    val ahead_x = cam_pos_x + cam_dir_x * 0.7
+    val ahead_y = cam_pos_y + cam_dir_y * 0.7
+    val cx = cell_coord(ahead_x)
+    val cy = cell_coord(ahead_y)
+    val id = map_cell(map, cx, cy)
+    if (id == CELL_DOOR_CLOSED) {
+        set_cell(map, cx, cy, CELL_DOOR_OPEN)
         return 1
     }
-    return self.cells[(y * MAP_W + x) as usize]
+    if (id == CELL_DOOR_OPEN) {
+        set_cell(map, cx, cy, CELL_DOOR_CLOSED)
+        return 1
+    }
+    return 0
 }
 
-fn Map.solid(x: i32, y: i32): bool {
-    return self.cell(x, y) != 0
-}
+// DDA writes package hit_* (no Hit struct return; keeps arity ≤ 6).
+var hit_wall: i64 = 0
+var hit_dist: f64 = 1.0
+var hit_side: i64 = 0
 
-/**
- * DDA column cast from (pos_x, pos_y) along (ray_dir_x, ray_dir_y).
- * Returns distance to the wall in world units (perpendicular-corrected by caller via ray dirs).
- */
-fn Map.cast(pos_x: f64, pos_y: f64, ray_dir_x: f64, ray_dir_y: f64): Hit {
-    var map_x = math.floor(pos_x) as i32
-    var map_y = math.floor(pos_y) as i32
-
-    var delta_dist_x: f64
-    var delta_dist_y: f64
-    if ray_dir_x == 0.0 {
-        delta_dist_x = 1.0e30
-    } else {
-        delta_dist_x = (1.0 / ray_dir_x).abs()
+fn map_cast(cells: *byte, pos_x: f64, pos_y: f64, ray_x: f64, ray_y: f64) {
+    var map_x = cell_coord(pos_x)
+    var map_y = cell_coord(pos_y)
+    var delta_dist_x = 1000000000.0
+    var delta_dist_y = 1000000000.0
+    if (ray_x != 0.0) {
+        delta_dist_x = abs_f(1.0 / ray_x)
     }
-    if ray_dir_y == 0.0 {
-        delta_dist_y = 1.0e30
-    } else {
-        delta_dist_y = (1.0 / ray_dir_y).abs()
+    if (ray_y != 0.0) {
+        delta_dist_y = abs_f(1.0 / ray_y)
     }
-
-    var step_x: i32
-    var step_y: i32
-    var side_dist_x: f64
-    var side_dist_y: f64
-
-    if ray_dir_x < 0.0 {
-        step_x = -1
+    var step_x: i64 = 0
+    var step_y: i64 = 0
+    var side_dist_x = 0.0
+    var side_dist_y = 0.0
+    if (ray_x < 0.0) {
+        step_x = 0 - 1
         side_dist_x = (pos_x - (map_x as f64)) * delta_dist_x
     } else {
         step_x = 1
         side_dist_x = ((map_x as f64) + 1.0 - pos_x) * delta_dist_x
     }
-    if ray_dir_y < 0.0 {
-        step_y = -1
+    if (ray_y < 0.0) {
+        step_y = 0 - 1
         side_dist_y = (pos_y - (map_y as f64)) * delta_dist_y
     } else {
         step_y = 1
         side_dist_y = ((map_y as f64) + 1.0 - pos_y) * delta_dist_y
     }
-
-    var hit: Hit
-    var side: i32 = 0
-    var guard: i32 = 0
-    for guard < 64 {
-        if side_dist_x < side_dist_y {
+    var hit = 0
+    var side: i64 = 0
+    var wall_id = map_cell(cells, map_x, map_y)
+    var guard = 0
+    while (hit == 0 && guard < 64) {
+        if (side_dist_x < side_dist_y) {
             side_dist_x = side_dist_x + delta_dist_x
             map_x = map_x + step_x
             side = 0
@@ -117,58 +213,234 @@ fn Map.cast(pos_x: f64, pos_y: f64, ray_dir_x: f64, ray_dir_y: f64): Hit {
             map_y = map_y + step_y
             side = 1
         }
-        val id = self.cell(map_x, map_y)
-        if id != 0 {
-            hit.wall_id = id
-            hit.side = side
-            if side == 0 {
-                hit.dist = side_dist_x - delta_dist_x
-            } else {
-                hit.dist = side_dist_y - delta_dist_y
-            }
-            if hit.dist < 0.0001 {
-                hit.dist = 0.0001
-            }
-            return hit
+        wall_id = map_cell(cells, map_x, map_y)
+        if (map_solid(cells, map_x, map_y) != 0) {
+            hit = 1
         }
         guard = guard + 1
     }
-    hit.wall_id = 1
-    hit.dist = 64.0
-    hit.side = side
-    return hit
+    var dist = 1.0
+    if (side == 0) {
+        dist = side_dist_x - delta_dist_x
+    } else {
+        dist = side_dist_y - delta_dist_y
+    }
+    if (dist < 0.015625) {
+        dist = 0.015625
+    }
+    hit_wall = wall_id
+    hit_dist = dist
+    hit_side = side
 }
 
-/** Palette for wall ids 1..4 (ARGB). */
-fn wall_color(id: u8, side: i32): u32 {
-    var r: u32 = 180
-    var g: u32 = 180
-    var b: u32 = 180
-    if id == 1 {
-        r = 160
-        g = 40
-        b = 40
-    } else if id == 2 {
-        r = 40
-        g = 140
-        b = 60
-    } else if id == 3 {
-        r = 40
-        g = 80
-        b = 180
-    } else if id == 4 {
-        r = 180
-        g = 140
-        b = 40
-    }
-    // Cheap N/S vs E/W shading
-    if side == 1 {
-        r = r / 2
-        g = g / 2
-        b = b / 2
-    }
-    return (255 as u32) << 24 | r << 16 | g << 8 | b
+// Distinct from ceiling/floor so a broken cast is obvious (was same gray as ceiling).
+// Door closed is amber (not lime) so a full-frame hit is not mistaken for "SDL green".
+fn wall_color(wall_id: i64, side: i64): i64 {
+    var c = 4288256409
+    if (wall_id == CELL_WALL) { c = 4288256409 }
+    if (wall_id == CELL_PILLAR) { c = 4294951115 }
+    if (wall_id == CELL_BLUE) { c = 4283867007 }
+    if (wall_id == CELL_ORANGE) { c = 4294929254 }
+    if (wall_id == CELL_DOOR_CLOSED) { c = 4294927360 }
+    if (wall_id == CELL_DOOR_OPEN) { c = 4286611584 }
+    if (side != 0) { c = c - 2105376 }
+    return c
 }
 
-val CEILING_COLOR: u32 = 0xFF203040
-val FLOOR_COLOR: u32 = 0xFF303028
+val CEILING_COLOR: i64 = 4279834905
+val FLOOR_COLOR: i64 = 4281549618
+
+// Package scalars: IR call arity max is 8; camera cannot ride as extra args.
+var cam_pos_x: f64 = 2.5
+var cam_pos_y: f64 = 2.5
+var cam_dir_x: f64 = 1.0
+var cam_dir_y: f64 = 0.0
+var cam_plane_x: f64 = 0.0
+var cam_plane_y: f64 = 0.66
+// Classic raycaster pitch: pixel offset of the horizon from mid-screen.
+// Positive = look up (horizon lower; more ceiling). Not 6DOF — walls stay upright.
+var cam_pitch: f64 = 0.0
+val PITCH_CLAMP: f64 = 40.0
+
+fn set_camera(pos_x: f64, pos_y: f64, dir_x: f64, dir_y: f64, plane_x: f64, plane_y: f64) {
+    cam_pos_x = pos_x
+    cam_pos_y = pos_y
+    cam_dir_x = dir_x
+    cam_dir_y = dir_y
+    cam_plane_x = plane_x
+    cam_plane_y = plane_y
+    cam_pitch = 0.0
+}
+
+fn set_cam_pitch(pitch: f64) {
+    var p = pitch
+    if (p > PITCH_CLAMP) {
+        p = PITCH_CLAMP
+    }
+    if (p < 0.0 - PITCH_CLAMP) {
+        p = 0.0 - PITCH_CLAMP
+    }
+    cam_pitch = p
+}
+
+fn add_cam_pitch(delta: f64) {
+    set_cam_pitch(cam_pitch + delta)
+}
+
+fn rotate_cam_yaw(radians: f64) {
+    val c = cos(radians)
+    val s = sin(radians)
+    val dx = cam_dir_x
+    val dy = cam_dir_y
+    val px = cam_plane_x
+    val py = cam_plane_y
+    cam_dir_x = dx * c - dy * s
+    cam_dir_y = dx * s + dy * c
+    cam_plane_x = px * c - py * s
+    cam_plane_y = px * s + py * c
+}
+
+// Optional per-column depth (i32 fixed-point dist*DEPTH_SCALE), size fb_w.
+// Classic raycaster Z: one wall distance per column. Null = walls-only (wasm).
+var depth_buf: *byte = null
+var depth_fb_w: i64 = 0
+val DEPTH_SCALE: f64 = 1024.0
+val DEPTH_FAR: i64 = 1000000
+
+fn depth_bind(buf: *byte, fb_w: i64) {
+    depth_buf = buf
+    depth_fb_w = fb_w
+}
+
+fn depth_init(fb_w: i64): i64 {
+    // Assign alloc directly into the package ptr (local→package *byte copy is flaky).
+    depth_fb_w = fb_w
+    depth_buf = alloc(fb_w * 4)
+    if (depth_buf == null) {
+        return 0
+    }
+    depth_clear()
+    return 1
+}
+
+fn depth_from_dist(d: f64): i64 {
+    var v = f_to_i(d * DEPTH_SCALE)
+    if (v < 1) {
+        v = 1
+    }
+    if (v > DEPTH_FAR) {
+        v = DEPTH_FAR
+    }
+    return v
+}
+
+fn depth_put_col(x: i64, d: i64) {
+    // Index depth_buf directly — copying package *byte to a local is unreliable.
+    if (depth_buf == null) {
+        return
+    }
+    if (x < 0 || x >= depth_fb_w) {
+        return
+    }
+    val off = x * 4
+    depth_buf[off] = d & 255
+    depth_buf[off + 1] = (d >> 8) & 255
+    depth_buf[off + 2] = (d >> 16) & 255
+    depth_buf[off + 3] = (d >> 24) & 255
+}
+
+fn depth_get_col(x: i64): i64 {
+    if (depth_buf == null) {
+        return DEPTH_FAR
+    }
+    if (x < 0 || x >= depth_fb_w) {
+        return DEPTH_FAR
+    }
+    val off = x * 4
+    val b0 = depth_buf[off] & 255
+    val b1 = depth_buf[off + 1] & 255
+    val b2 = depth_buf[off + 2] & 255
+    val b3 = depth_buf[off + 3] & 255
+    return b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
+}
+
+fn depth_clear() {
+    if (depth_buf == null) {
+        return
+    }
+    // Skip clear when width unset; otherwise fill FAR.
+    var i: i64 = 0
+    while (i < depth_fb_w) {
+        val off = i * 4
+        // FAR = 1000000 = 0x000F4240
+        depth_buf[off] = 64
+        depth_buf[off + 1] = 66
+        depth_buf[off + 2] = 15
+        depth_buf[off + 3] = 0
+        i = i + 1
+    }
+}
+
+fn render_frame(pixels: *byte, map: *byte, fb_w: i64, fb_h: i64) {
+    val fb_wf = fb_w as f64
+    val fb_hf = fb_h as f64
+    // Horizon follows pitch; ceiling/floor split is y < draw_start / y > draw_end.
+    val horizon = fb_hf / 2.0 + cam_pitch
+    depth_clear()
+    var x: i64 = 0
+    while (x < fb_w) {
+        val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
+        val ray_x = cam_dir_x + cam_plane_x * camera_x
+        val ray_y = cam_dir_y + cam_plane_y * camera_x
+        map_cast(map, cam_pos_x, cam_pos_y, ray_x, ray_y)
+        var line_h = fb_hf / hit_dist
+        if (line_h > fb_hf * 4.0) {
+            line_h = fb_hf * 4.0
+        }
+        var draw_start = f_to_i(0.0 - line_h / 2.0 + horizon)
+        var draw_end = f_to_i(line_h / 2.0 + horizon)
+        if (draw_start < 0) {
+            draw_start = 0
+        }
+        if (draw_end >= fb_h) {
+            draw_end = fb_h - 1
+        }
+        val color = wall_color(hit_wall, hit_side)
+        // Store hit_dist into a parallel f64 column buffer via fixed-point bytes.
+        // Defer depth writes until after the frame — in-loop package ptr
+        // stores were not observable via depth_get_col (Jog codegen).
+        var y: i64 = 0
+        while (y < fb_h) {
+            val idx = (y * fb_w + x) * 4
+            var pix = FLOOR_COLOR
+            if (y < draw_start) {
+                pix = CEILING_COLOR
+            } else {
+                if (y <= draw_end) {
+                    pix = color
+                }
+            }
+            poke32(pixels, idx, pix)
+            y = y + 1
+        }
+        x = x + 1
+    }
+    // Second pass: DDA depths only. Separate from the FB poke loop — Jog codegen
+    // did not persist package-ptr stores when interleaved with poke32(pixels,…).
+    if (depth_buf != null) {
+        x = 0
+        while (x < fb_w) {
+            val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
+            val ray_x = cam_dir_x + cam_plane_x * camera_x
+            val ray_y = cam_dir_y + cam_plane_y * camera_x
+            map_cast(map, cam_pos_x, cam_pos_y, ray_x, ray_y)
+            val zd = depth_from_dist(hit_dist)
+            val zoff = x * 4
+            depth_buf[zoff] = zd & 255
+            depth_buf[zoff + 1] = (zd >> 8) & 255
+            depth_buf[zoff + 2] = (zd >> 16) & 255
+            depth_buf[zoff + 3] = (zd >> 24) & 255
+            x = x + 1
+        }
+    }
+}

@@ -1,17 +1,9 @@
-// SDL_keycode.h — keycode constants (no functions in 3.4.18).
-// SDLK_* are u32 values; bind the set demos/common apps need plus ASCII range helpers.
-
+// SDL_keycode.h constants (v2).
 val SDLK_UNKNOWN: u32 = 0
 val SDLK_RETURN: u32 = 0x0000000d
 val SDLK_ESCAPE: u32 = 0x0000001b
-val SDLK_BACKSPACE: u32 = 0x00000008
-val SDLK_TAB: u32 = 0x00000009
 val SDLK_SPACE: u32 = 0x00000020
 val SDLK_A: u32 = 0x00000061
 val SDLK_D: u32 = 0x00000064
 val SDLK_S: u32 = 0x00000073
 val SDLK_W: u32 = 0x00000077
-val SDLK_LEFT: u32 = 0x40000050
-val SDLK_RIGHT: u32 = 0x4000004f
-val SDLK_UP: u32 = 0x40000052
-val SDLK_DOWN: u32 = 0x40000051

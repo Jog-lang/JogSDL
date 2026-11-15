@@ -1,0 +1,16 @@
+extern {
+    fn strlen(s: *byte): i64
+}
+
+fn to_c(title: str): i64 {
+    return strlen(title)
+}
+
+fn main() {
+    val n = to_c("hello")
+    if (n == 5) {
+        print("plain str ok\n")
+    } else {
+        panic("bad plain\n")
+    }
+}

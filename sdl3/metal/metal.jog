@@ -1,12 +1,8 @@
-import sdl3.video
-// Raw SDL3 metal — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-
-@opaque struct SDL_MetalView
-
+// Raw SDL3 metal — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_Metal_CreateView(window: *video.SDL_Window): SDL_MetalView
-    fn SDL_Metal_DestroyView(view: SDL_MetalView)
-    fn SDL_Metal_GetLayer(view: SDL_MetalView): *void
+
+    fn SDL_Metal_CreateView(window: *byte): i32
+    fn SDL_Metal_DestroyView(view: i32): i32
+    fn SDL_Metal_GetLayer(view: i32): i32
 }

@@ -1,32 +1,27 @@
-// Raw SDL3 hidapi — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-import std.c
-
-@opaque struct SDL_hid_device
-
+// Raw SDL3 hidapi — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_hid_init(): c.int
-    fn SDL_hid_exit(): c.int
+    fn SDL_hid_init(): i32
+    fn SDL_hid_exit(): i32
     fn SDL_hid_device_change_count(): u32
-    fn SDL_hid_enumerate(vendor_id: u16, product_id: u16): *void
-    fn SDL_hid_free_enumeration(devs: *void)
-    fn SDL_hid_open(vendor_id: u16, product_id: u16, serial_number: *const u32): *SDL_hid_device
-    fn SDL_hid_open_path(path: *const c.char): *SDL_hid_device
-    fn SDL_hid_get_properties(dev: *SDL_hid_device): u32
-    fn SDL_hid_write(dev: *SDL_hid_device, data: *const u8, length: c.size_t): c.int
-    fn SDL_hid_read_timeout(dev: *SDL_hid_device, data: *u8, length: c.size_t, milliseconds: c.int): c.int
-    fn SDL_hid_read(dev: *SDL_hid_device, data: *u8, length: c.size_t): c.int
-    fn SDL_hid_set_nonblocking(dev: *SDL_hid_device, nonblock: c.int): c.int
-    fn SDL_hid_send_feature_report(dev: *SDL_hid_device, data: *const u8, length: c.size_t): c.int
-    fn SDL_hid_get_feature_report(dev: *SDL_hid_device, data: *u8, length: c.size_t): c.int
-    fn SDL_hid_get_input_report(dev: *SDL_hid_device, data: *u8, length: c.size_t): c.int
-    fn SDL_hid_close(dev: *SDL_hid_device): c.int
-    fn SDL_hid_get_manufacturer_string(dev: *SDL_hid_device, string: *u32, maxlen: c.size_t): c.int
-    fn SDL_hid_get_product_string(dev: *SDL_hid_device, string: *u32, maxlen: c.size_t): c.int
-    fn SDL_hid_get_serial_number_string(dev: *SDL_hid_device, string: *u32, maxlen: c.size_t): c.int
-    fn SDL_hid_get_indexed_string(dev: *SDL_hid_device, string_index: c.int, string: *u32, maxlen: c.size_t): c.int
-    fn SDL_hid_get_device_info(dev: *SDL_hid_device): *void
-    fn SDL_hid_get_report_descriptor(dev: *SDL_hid_device, buf: *u8, buf_size: c.size_t): c.int
-    fn SDL_hid_ble_scan(active: bool)
+    fn SDL_hid_enumerate(vendor_id: u8, product_id: u8): *byte
+    fn SDL_hid_free_enumeration(devs: *byte)
+    fn SDL_hid_open(vendor_id: u8, product_id: u8, serial_number: *byte): *byte
+    fn SDL_hid_open_path(path: *byte): *byte
+    fn SDL_hid_get_properties(dev: *byte): u32
+    fn SDL_hid_write(dev: *byte, data: *byte, length: u64): i32
+    fn SDL_hid_read_timeout(dev: *byte, data: *byte, length: u64, milliseconds: i32): i32
+    fn SDL_hid_read(dev: *byte, data: *byte, length: u64): i32
+    fn SDL_hid_set_nonblocking(dev: *byte, nonblock: i32): i32
+    fn SDL_hid_send_feature_report(dev: *byte, data: *byte, length: u64): i32
+    fn SDL_hid_get_feature_report(dev: *byte, data: *byte, length: u64): i32
+    fn SDL_hid_get_input_report(dev: *byte, data: *byte, length: u64): i32
+    fn SDL_hid_close(dev: *byte): i32
+    fn SDL_hid_get_manufacturer_string(dev: *byte, string: *byte, maxlen: u64): i32
+    fn SDL_hid_get_product_string(dev: *byte, string: *byte, maxlen: u64): i32
+    fn SDL_hid_get_serial_number_string(dev: *byte, string: *byte, maxlen: u64): i32
+    fn SDL_hid_get_indexed_string(dev: *byte, string_index: i32, string: *byte, maxlen: u64): i32
+    fn SDL_hid_get_device_info(dev: *byte): *byte
+    fn SDL_hid_get_report_descriptor(dev: *byte, buf: *byte, buf_size: u64): i32
+    fn SDL_hid_ble_scan(active: i32)
 }

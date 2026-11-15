@@ -1,15 +1,7 @@
-// Raw SDL3 GUID (SDL_guid.h).
-import std.c
-
-struct SDL_GUID {
-    data: [16]u8
-}
-
-// Raw SDL3 guid — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-
+// Raw SDL3 guid — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_GUIDToString(guid: SDL_GUID, pszGUID: *c.char, cbGUID: c.int)
-    fn SDL_StringToGUID(pchGUID: *const c.char): SDL_GUID
+
+    fn SDL_GUIDToString(guid: i32, pszGUID: *byte, cbGUID: i32): i32
+    fn SDL_StringToGUID(pchGUID: *byte): i32
 }

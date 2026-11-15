@@ -1,12 +1,7 @@
-// Idiomatic wrappers over sdl3.misc.
-// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
-import sdl3.misc as raw
-import sdl
-import std.c
+// Idiomatic v2 wrappers for SDL misc (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
 
-fn OpenURL(url: *const c.char): sdl.SDLError? {
-    if !raw.SDL_OpenURL(url) {
-        return sdl.last_error("OpenURL failed")
-    }
-    return null
+fn OpenURL(url: *byte): i32 {
+    return SDL_OpenURL(url)
 }
+

@@ -1,7 +1,10 @@
-# Smoke app: open a window, clear, present, quit on close.
+# Jog v2 window smoke — native + wasm32-emscripten (JOG-90).
 module window_demo
 version 0.1.0
-kind executable
-jog 0.0.1
-
+root main.jog
 require jog_sdl ../..
+link.linux SDL3
+link.emscripten SDL3
+libdir.linux ../../prefix/lib64
+libdir.linux ../../prefix/lib
+libdir.emscripten ../../prefix-emscripten/lib

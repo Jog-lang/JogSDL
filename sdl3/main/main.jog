@@ -1,11 +1,8 @@
-// Raw SDL3 main — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-import std.c
-
+// Raw SDL3 main — v2 flat merge (generated).
 @link("SDL3")
 extern {
     fn SDL_SetMainReady()
-    fn SDL_RegisterApp(name: *const c.char, style: u32, hInst: *void): bool
+    fn SDL_RegisterApp(name: *byte, style: u32, hInst: *byte): i32
     fn SDL_UnregisterApp()
     fn SDL_GDKSuspendComplete()
 }

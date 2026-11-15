@@ -1,6 +1,4 @@
-// Raw SDL3 bits — generated from headers; hand-maintain.
-// Unexported — apps use jog_sdl.sdl*.
-
+// Raw SDL3 bits — v2 flat merge (generated).
 @link("SDL3")
 extern {
 

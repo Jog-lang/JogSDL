@@ -1,4 +1,0 @@
-/** Tiny test-only dep so `jog-build test` exercises require.test. */
-fn ready(): bool {
-    return true
-}

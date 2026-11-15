@@ -1,11 +1,9 @@
-// Idiomatic timer wrappers.
-import sdl3.timer as raw
+// Timer wrappers (v2 flat merge).
 
 fn Delay(ms: u32) {
-    raw.SDL_Delay(ms)
+    SDL_Delay(ms)
 }
 
-/** Milliseconds since SDL init. */
 fn GetTicks(): u64 {
-    return raw.SDL_GetTicks()
+    return SDL_GetTicks()
 }

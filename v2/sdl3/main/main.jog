@@ -1,8 +1,0 @@
-// Raw SDL3 main — v2 flat merge (generated).
-@link("SDL3")
-extern {
-    fn SDL_SetMainReady()
-    fn SDL_RegisterApp(name: *byte, style: u32, hInst: *byte): i32
-    fn SDL_UnregisterApp()
-    fn SDL_GDKSuspendComplete()
-}
