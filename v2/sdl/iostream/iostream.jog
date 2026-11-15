@@ -1,0 +1,191 @@
+// Idiomatic v2 wrappers for SDL iostream (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn IOFromFile(file: *byte, mode: *byte): *byte {
+    return SDL_IOFromFile(file, mode)
+}
+
+fn IOFromMem(mem: *byte, size: u64): *byte {
+    return SDL_IOFromMem(mem, size)
+}
+
+fn IOFromConstMem(mem: *byte, size: u64): *byte {
+    return SDL_IOFromConstMem(mem, size)
+}
+
+fn IOFromDynamicMem(): *byte {
+    return SDL_IOFromDynamicMem()
+}
+
+fn OpenIO(iface: *byte, userdata: *byte): *byte {
+    return SDL_OpenIO(iface, userdata)
+}
+
+fn CloseIO(context_: *byte): i32 {
+    return SDL_CloseIO(context_)
+}
+
+fn GetIOProperties(context_: *byte): u32 {
+    return SDL_GetIOProperties(context_)
+}
+
+fn GetIOSize(context_: *byte): i64 {
+    return SDL_GetIOSize(context_)
+}
+
+fn TellIO(context_: *byte): i64 {
+    return SDL_TellIO(context_)
+}
+
+fn ReadIO(context_: *byte, ptr: *byte, size: u64): u64 {
+    return SDL_ReadIO(context_, ptr, size)
+}
+
+fn WriteIO(context_: *byte, ptr: *byte, size: u64): u64 {
+    return SDL_WriteIO(context_, ptr, size)
+}
+
+fn FlushIO(context_: *byte): i32 {
+    return SDL_FlushIO(context_)
+}
+
+fn LoadFile_IO(src: *byte, datasize: *byte, closeio: i32): *byte {
+    return SDL_LoadFile_IO(src, datasize, closeio)
+}
+
+fn LoadFile(file: *byte, datasize: *byte): *byte {
+    return SDL_LoadFile(file, datasize)
+}
+
+fn SaveFile_IO(src: *byte, data: *byte, datasize: u64, closeio: i32): i32 {
+    return SDL_SaveFile_IO(src, data, datasize, closeio)
+}
+
+fn SaveFile(file: *byte, data: *byte, datasize: u64): i32 {
+    return SDL_SaveFile(file, data, datasize)
+}
+
+fn ReadU8(src: *byte, value: *byte): i32 {
+    return SDL_ReadU8(src, value)
+}
+
+fn ReadS8(src: *byte, value: *byte): i32 {
+    return SDL_ReadS8(src, value)
+}
+
+fn ReadU16LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU16LE(src, value)
+}
+
+fn ReadS16LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS16LE(src, value)
+}
+
+fn ReadU16BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU16BE(src, value)
+}
+
+fn ReadS16BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS16BE(src, value)
+}
+
+fn ReadU32LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU32LE(src, value)
+}
+
+fn ReadS32LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS32LE(src, value)
+}
+
+fn ReadU32BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU32BE(src, value)
+}
+
+fn ReadS32BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS32BE(src, value)
+}
+
+fn ReadU64LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU64LE(src, value)
+}
+
+fn ReadS64LE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS64LE(src, value)
+}
+
+fn ReadU64BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadU64BE(src, value)
+}
+
+fn ReadS64BE(src: *byte, value: *byte): i32 {
+    return SDL_ReadS64BE(src, value)
+}
+
+fn WriteU8(dst: *byte, value: u8): i32 {
+    return SDL_WriteU8(dst, value)
+}
+
+fn WriteS8(dst: *byte, value: i8): i32 {
+    return SDL_WriteS8(dst, value)
+}
+
+fn WriteU16LE(dst: *byte, value: u16): i32 {
+    return SDL_WriteU16LE(dst, value)
+}
+
+fn WriteS16LE(dst: *byte, value: i16): i32 {
+    return SDL_WriteS16LE(dst, value)
+}
+
+fn WriteU16BE(dst: *byte, value: u16): i32 {
+    return SDL_WriteU16BE(dst, value)
+}
+
+fn WriteS16BE(dst: *byte, value: i16): i32 {
+    return SDL_WriteS16BE(dst, value)
+}
+
+fn WriteU32LE(dst: *byte, value: u32): i32 {
+    return SDL_WriteU32LE(dst, value)
+}
+
+fn WriteS32LE(dst: *byte, value: i32): i32 {
+    return SDL_WriteS32LE(dst, value)
+}
+
+fn WriteU32BE(dst: *byte, value: u32): i32 {
+    return SDL_WriteU32BE(dst, value)
+}
+
+fn WriteS32BE(dst: *byte, value: i32): i32 {
+    return SDL_WriteS32BE(dst, value)
+}
+
+fn WriteU64LE(dst: *byte, value: u64): i32 {
+    return SDL_WriteU64LE(dst, value)
+}
+
+fn WriteS64LE(dst: *byte, value: i64): i32 {
+    return SDL_WriteS64LE(dst, value)
+}
+
+fn WriteU64BE(dst: *byte, value: u64): i32 {
+    return SDL_WriteU64BE(dst, value)
+}
+
+fn WriteS64BE(dst: *byte, value: i64): i32 {
+    return SDL_WriteS64BE(dst, value)
+}
+
+fn GetIOStatus(context_: *byte): *byte {
+    return SDL_GetIOStatus(context_)
+}
+
+fn IOprintf(context_: *byte, fmt: *byte): i32 {
+    return SDL_IOprintf(context_, fmt)
+}
+
+fn SeekIO(context_: *byte, offset: i64, whence: u32): i32 {
+    return SDL_SeekIO(context_, offset, whence)
+}
+

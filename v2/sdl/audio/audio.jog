@@ -1,0 +1,235 @@
+// Idiomatic v2 wrappers for SDL audio (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetNumAudioDrivers(): i32 {
+    return SDL_GetNumAudioDrivers()
+}
+
+fn GetAudioDriver(index: i32): *byte {
+    return SDL_GetAudioDriver(index)
+}
+
+fn GetCurrentAudioDriver(): *byte {
+    return SDL_GetCurrentAudioDriver()
+}
+
+fn GetAudioPlaybackDevices(count: *byte): *byte {
+    return SDL_GetAudioPlaybackDevices(count)
+}
+
+fn GetAudioRecordingDevices(count: *byte): *byte {
+    return SDL_GetAudioRecordingDevices(count)
+}
+
+fn GetAudioDeviceName(devid: u32): *byte {
+    return SDL_GetAudioDeviceName(devid)
+}
+
+fn GetAudioDeviceFormat(devid: u32, spec: *byte, sample_frames: *byte): i32 {
+    return SDL_GetAudioDeviceFormat(devid, spec, sample_frames)
+}
+
+fn GetAudioDeviceChannelMap(devid: u32, count: *byte): *byte {
+    return SDL_GetAudioDeviceChannelMap(devid, count)
+}
+
+fn OpenAudioDevice(devid: u32, spec: *byte): u32 {
+    return SDL_OpenAudioDevice(devid, spec)
+}
+
+fn IsAudioDevicePhysical(devid: u32): i32 {
+    return SDL_IsAudioDevicePhysical(devid)
+}
+
+fn IsAudioDevicePlayback(devid: u32): i32 {
+    return SDL_IsAudioDevicePlayback(devid)
+}
+
+fn PauseAudioDevice(devid: u32): i32 {
+    return SDL_PauseAudioDevice(devid)
+}
+
+fn ResumeAudioDevice(devid: u32): i32 {
+    return SDL_ResumeAudioDevice(devid)
+}
+
+fn AudioDevicePaused(devid: u32): i32 {
+    return SDL_AudioDevicePaused(devid)
+}
+
+fn GetAudioDeviceGain(devid: u32): f32 {
+    return SDL_GetAudioDeviceGain(devid)
+}
+
+fn SetAudioDeviceGain(devid: u32, gain: f32): i32 {
+    return SDL_SetAudioDeviceGain(devid, gain)
+}
+
+fn CloseAudioDevice(devid: u32) {
+    SDL_CloseAudioDevice(devid)
+}
+
+fn BindAudioStreams(devid: u32, streams: **byte, num_streams: i32): i32 {
+    return SDL_BindAudioStreams(devid, streams, num_streams)
+}
+
+fn BindAudioStream(devid: u32, stream: *byte): i32 {
+    return SDL_BindAudioStream(devid, stream)
+}
+
+fn UnbindAudioStreams(streams: **byte, num_streams: i32) {
+    SDL_UnbindAudioStreams(streams, num_streams)
+}
+
+fn UnbindAudioStream(stream: *byte) {
+    SDL_UnbindAudioStream(stream)
+}
+
+fn GetAudioStreamDevice(stream: *byte): u32 {
+    return SDL_GetAudioStreamDevice(stream)
+}
+
+fn CreateAudioStream(src_spec: *byte, dst_spec: *byte): *byte {
+    return SDL_CreateAudioStream(src_spec, dst_spec)
+}
+
+fn GetAudioStreamProperties(stream: *byte): u32 {
+    return SDL_GetAudioStreamProperties(stream)
+}
+
+fn GetAudioStreamFormat(stream: *byte, src_spec: *byte, dst_spec: *byte): i32 {
+    return SDL_GetAudioStreamFormat(stream, src_spec, dst_spec)
+}
+
+fn SetAudioStreamFormat(stream: *byte, src_spec: *byte, dst_spec: *byte): i32 {
+    return SDL_SetAudioStreamFormat(stream, src_spec, dst_spec)
+}
+
+fn GetAudioStreamFrequencyRatio(stream: *byte): f32 {
+    return SDL_GetAudioStreamFrequencyRatio(stream)
+}
+
+fn SetAudioStreamFrequencyRatio(stream: *byte, ratio: f32): i32 {
+    return SDL_SetAudioStreamFrequencyRatio(stream, ratio)
+}
+
+fn GetAudioStreamGain(stream: *byte): f32 {
+    return SDL_GetAudioStreamGain(stream)
+}
+
+fn SetAudioStreamGain(stream: *byte, gain: f32): i32 {
+    return SDL_SetAudioStreamGain(stream, gain)
+}
+
+fn GetAudioStreamInputChannelMap(stream: *byte, count: *byte): *byte {
+    return SDL_GetAudioStreamInputChannelMap(stream, count)
+}
+
+fn GetAudioStreamOutputChannelMap(stream: *byte, count: *byte): *byte {
+    return SDL_GetAudioStreamOutputChannelMap(stream, count)
+}
+
+fn SetAudioStreamInputChannelMap(stream: *byte, chmap: *byte, count: i32): i32 {
+    return SDL_SetAudioStreamInputChannelMap(stream, chmap, count)
+}
+
+fn SetAudioStreamOutputChannelMap(stream: *byte, chmap: *byte, count: i32): i32 {
+    return SDL_SetAudioStreamOutputChannelMap(stream, chmap, count)
+}
+
+fn PutAudioStreamData(stream: *byte, buf: *byte, len: i32): i32 {
+    return SDL_PutAudioStreamData(stream, buf, len)
+}
+
+fn PutAudioStreamPlanarData(stream: *byte, channel_buffers: **byte, num_channels: i32, num_samples: i32): i32 {
+    return SDL_PutAudioStreamPlanarData(stream, channel_buffers, num_channels, num_samples)
+}
+
+fn GetAudioStreamData(stream: *byte, buf: *byte, len: i32): i32 {
+    return SDL_GetAudioStreamData(stream, buf, len)
+}
+
+fn GetAudioStreamAvailable(stream: *byte): i32 {
+    return SDL_GetAudioStreamAvailable(stream)
+}
+
+fn GetAudioStreamQueued(stream: *byte): i32 {
+    return SDL_GetAudioStreamQueued(stream)
+}
+
+fn FlushAudioStream(stream: *byte): i32 {
+    return SDL_FlushAudioStream(stream)
+}
+
+fn ClearAudioStream(stream: *byte): i32 {
+    return SDL_ClearAudioStream(stream)
+}
+
+fn PauseAudioStreamDevice(stream: *byte): i32 {
+    return SDL_PauseAudioStreamDevice(stream)
+}
+
+fn ResumeAudioStreamDevice(stream: *byte): i32 {
+    return SDL_ResumeAudioStreamDevice(stream)
+}
+
+fn AudioStreamDevicePaused(stream: *byte): i32 {
+    return SDL_AudioStreamDevicePaused(stream)
+}
+
+fn LockAudioStream(stream: *byte): i32 {
+    return SDL_LockAudioStream(stream)
+}
+
+fn UnlockAudioStream(stream: *byte): i32 {
+    return SDL_UnlockAudioStream(stream)
+}
+
+fn DestroyAudioStream(stream: *byte) {
+    SDL_DestroyAudioStream(stream)
+}
+
+fn LoadWAV_IO(src: *byte, closeio: i32, spec: *byte, audio_buf: **byte, audio_len: *byte): i32 {
+    return SDL_LoadWAV_IO(src, closeio, spec, audio_buf, audio_len)
+}
+
+fn LoadWAV(path: *byte, spec: *byte, audio_buf: **byte, audio_len: *byte): i32 {
+    return SDL_LoadWAV(path, spec, audio_buf, audio_len)
+}
+
+fn ConvertAudioSamples(src_spec: *byte, src_data: *byte, src_len: i32, dst_spec: *byte, dst_data: **byte, dst_len: *byte): i32 {
+    return SDL_ConvertAudioSamples(src_spec, src_data, src_len, dst_spec, dst_data, dst_len)
+}
+
+fn GetAudioFormatName(format: u32): *byte {
+    return SDL_GetAudioFormatName(format)
+}
+
+fn GetSilenceValueForFormat(format: u32): *byte {
+    return SDL_GetSilenceValueForFormat(format)
+}
+
+fn MixAudio(dst: *byte, src: *byte, format: u32, len: u32, volume: f32): i32 {
+    return SDL_MixAudio(dst, src, format, len, volume)
+}
+
+fn OpenAudioDeviceStream(devid: u32, spec: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_OpenAudioDeviceStream(devid, spec, callback, userdata)
+}
+
+fn PutAudioStreamDataNoCopy(stream: *byte, buf: *byte, len: i32, callback: *byte, userdata: *byte): i32 {
+    return SDL_PutAudioStreamDataNoCopy(stream, buf, len, callback, userdata)
+}
+
+fn SetAudioPostmixCallback(devid: u32, callback: *byte, userdata: *byte): i32 {
+    return SDL_SetAudioPostmixCallback(devid, callback, userdata)
+}
+
+fn SetAudioStreamGetCallback(stream: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_SetAudioStreamGetCallback(stream, callback, userdata)
+}
+
+fn SetAudioStreamPutCallback(stream: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_SetAudioStreamPutCallback(stream, callback, userdata)
+}
+

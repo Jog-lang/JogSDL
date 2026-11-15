@@ -1,0 +1,79 @@
+// Idiomatic v2 wrappers for SDL mouse (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetRelativeMouseState(x: *byte, y: *byte): u32 {
+    return SDL_GetRelativeMouseState(x, y)
+}
+
+fn HasMouse(): i32 {
+    return SDL_HasMouse()
+}
+
+fn GetMice(count: *byte): *byte {
+    return SDL_GetMice(count)
+}
+
+fn GetMouseNameForID(instance_id: u32): *byte {
+    return SDL_GetMouseNameForID(instance_id)
+}
+
+fn GetMouseFocus(): *byte {
+    return SDL_GetMouseFocus()
+}
+
+fn WarpMouseInWindow(window: *byte, x: f32, y: f32) {
+    SDL_WarpMouseInWindow(window, x, y)
+}
+
+fn WarpMouseGlobal(x: f32, y: f32): i32 {
+    return SDL_WarpMouseGlobal(x, y)
+}
+
+fn GetWindowRelativeMouseMode(window: *byte): i32 {
+    return SDL_GetWindowRelativeMouseMode(window)
+}
+
+fn CaptureMouse(enabled: i32): i32 {
+    return SDL_CaptureMouse(enabled)
+}
+
+fn CreateCursor(data: *byte, mask: *byte, w: i32, h: i32, hot_x: i32, hot_y: i32): *byte {
+    return SDL_CreateCursor(data, mask, w, h, hot_x, hot_y)
+}
+
+fn CreateColorCursor(surface: *byte, hot_x: i32, hot_y: i32): *byte {
+    return SDL_CreateColorCursor(surface, hot_x, hot_y)
+}
+
+fn SetCursor(cursor: *byte): i32 {
+    return SDL_SetCursor(cursor)
+}
+
+fn GetCursor(): *byte {
+    return SDL_GetCursor()
+}
+
+fn GetDefaultCursor(): *byte {
+    return SDL_GetDefaultCursor()
+}
+
+fn DestroyCursor(cursor: *byte) {
+    SDL_DestroyCursor(cursor)
+}
+
+fn ShowCursor(): i32 {
+    return SDL_ShowCursor()
+}
+
+fn HideCursor(): i32 {
+    return SDL_HideCursor()
+}
+
+fn CursorVisible(): i32 {
+    return SDL_CursorVisible()
+}
+
+fn SetRelativeMouseTransform(callback: *byte, userdata: *byte): i32 {
+    return SDL_SetRelativeMouseTransform(callback, userdata)
+}
+

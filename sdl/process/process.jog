@@ -1,2 +1,59 @@
-// Idiomatic sdl.process — expand wrappers over sdl3.process as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.process.
+// Idiomatic wrappers over sdl3.process.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.process as raw
+import sdl3.iostream
+import sdl
+import std.c
+
+struct Process {
+    ptr: *raw.SDL_Process?
+}
+
+fn empty_process(): Process {
+    var h: Process
+    return h
+}
+
+fn CreateProcess(args: **c.char, pipe_stdio: bool): *raw.SDL_Process {
+    return raw.SDL_CreateProcess(args, pipe_stdio)
+}
+
+fn CreateProcessWithProperties(props: u32): *raw.SDL_Process {
+    return raw.SDL_CreateProcessWithProperties(props)
+}
+
+fn GetProcessProperties(process: *raw.SDL_Process): u32 {
+    return raw.SDL_GetProcessProperties(process)
+}
+
+fn ReadProcess(process: *raw.SDL_Process, datasize: *c.size_t, exitcode: *c.int): *void {
+    return raw.SDL_ReadProcess(process, datasize, exitcode)
+}
+
+fn GetProcessInput(process: *raw.SDL_Process): *iostream.SDL_IOStream {
+    return raw.SDL_GetProcessInput(process)
+}
+
+fn GetProcessOutput(process: *raw.SDL_Process): *iostream.SDL_IOStream {
+    return raw.SDL_GetProcessOutput(process)
+}
+
+fn KillProcess(process: *raw.SDL_Process, force: bool): sdl.SDLError? {
+    if !raw.SDL_KillProcess(process, force) {
+        return sdl.last_error("KillProcess failed")
+    }
+    return null
+}
+
+fn WaitProcess(process: *raw.SDL_Process, block: bool, exitcode: *c.int): sdl.SDLError? {
+    if !raw.SDL_WaitProcess(process, block, exitcode) {
+        return sdl.last_error("WaitProcess failed")
+    }
+    return null
+}
+
+fn Process.destroy() {
+    if self.ptr != null {
+        raw.SDL_DestroyProcess(self.ptr!!)
+    }
+}

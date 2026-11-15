@@ -1,0 +1,19 @@
+// Idiomatic v2 wrappers for SDL error (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn OutOfMemory(): i32 {
+    return SDL_OutOfMemory()
+}
+
+fn GetError(): *byte {
+    return SDL_GetError()
+}
+
+fn ClearError(): i32 {
+    return SDL_ClearError()
+}
+
+fn SetError(fmt: *byte): i32 {
+    return SDL_SetError(fmt)
+}
+

@@ -1,0 +1,79 @@
+// Idiomatic v2 wrappers for SDL cpuinfo (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetNumLogicalCPUCores(): i32 {
+    return SDL_GetNumLogicalCPUCores()
+}
+
+fn GetCPUCacheLineSize(): i32 {
+    return SDL_GetCPUCacheLineSize()
+}
+
+fn HasAltiVec(): i32 {
+    return SDL_HasAltiVec()
+}
+
+fn HasMMX(): i32 {
+    return SDL_HasMMX()
+}
+
+fn HasSSE(): i32 {
+    return SDL_HasSSE()
+}
+
+fn HasSSE2(): i32 {
+    return SDL_HasSSE2()
+}
+
+fn HasSSE3(): i32 {
+    return SDL_HasSSE3()
+}
+
+fn HasSSE41(): i32 {
+    return SDL_HasSSE41()
+}
+
+fn HasSSE42(): i32 {
+    return SDL_HasSSE42()
+}
+
+fn HasAVX(): i32 {
+    return SDL_HasAVX()
+}
+
+fn HasAVX2(): i32 {
+    return SDL_HasAVX2()
+}
+
+fn HasAVX512F(): i32 {
+    return SDL_HasAVX512F()
+}
+
+fn HasARMSIMD(): i32 {
+    return SDL_HasARMSIMD()
+}
+
+fn HasNEON(): i32 {
+    return SDL_HasNEON()
+}
+
+fn HasLSX(): i32 {
+    return SDL_HasLSX()
+}
+
+fn HasLASX(): i32 {
+    return SDL_HasLASX()
+}
+
+fn GetSystemRAM(): i32 {
+    return SDL_GetSystemRAM()
+}
+
+fn GetSIMDAlignment(): u64 {
+    return SDL_GetSIMDAlignment()
+}
+
+fn GetSystemPageSize(): i32 {
+    return SDL_GetSystemPageSize()
+}
+

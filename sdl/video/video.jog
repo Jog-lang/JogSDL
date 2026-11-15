@@ -1,2 +1,660 @@
-// Idiomatic sdl.video — expand wrappers over sdl3.video as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.video.
+// Idiomatic wrappers over sdl3.video.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.video as raw
+import sdl3.rect
+import sdl3.surface
+import sdl
+import std.c
+
+struct Window {
+    ptr: *raw.SDL_Window?
+}
+
+fn empty_window(): Window {
+    var h: Window
+    return h
+}
+
+struct Renderer {
+    ptr: *raw.SDL_Renderer?
+}
+
+fn empty_renderer(): Renderer {
+    var h: Renderer
+    return h
+}
+
+fn GetNumVideoDrivers(): c.int {
+    return raw.SDL_GetNumVideoDrivers()
+}
+
+fn GetVideoDriver(index: c.int): *const c.char {
+    return raw.SDL_GetVideoDriver(index)
+}
+
+fn GetCurrentVideoDriver(): *const c.char {
+    return raw.SDL_GetCurrentVideoDriver()
+}
+
+fn GetSystemTheme(): u32 {
+    return raw.SDL_GetSystemTheme()
+}
+
+fn GetDisplays(count: *c.int): *u32 {
+    return raw.SDL_GetDisplays(count)
+}
+
+fn GetPrimaryDisplay(): u32 {
+    return raw.SDL_GetPrimaryDisplay()
+}
+
+fn GetDisplayProperties(displayID: u32): u32 {
+    return raw.SDL_GetDisplayProperties(displayID)
+}
+
+fn GetDisplayName(displayID: u32): *const c.char {
+    return raw.SDL_GetDisplayName(displayID)
+}
+
+fn GetDisplayBounds(displayID: u32, rect: *rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_GetDisplayBounds(displayID, rect) {
+        return sdl.last_error("GetDisplayBounds failed")
+    }
+    return null
+}
+
+fn GetDisplayUsableBounds(displayID: u32, rect: *rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_GetDisplayUsableBounds(displayID, rect) {
+        return sdl.last_error("GetDisplayUsableBounds failed")
+    }
+    return null
+}
+
+fn GetNaturalDisplayOrientation(displayID: u32): u32 {
+    return raw.SDL_GetNaturalDisplayOrientation(displayID)
+}
+
+fn GetCurrentDisplayOrientation(displayID: u32): u32 {
+    return raw.SDL_GetCurrentDisplayOrientation(displayID)
+}
+
+fn GetDisplayContentScale(displayID: u32): f32 {
+    return raw.SDL_GetDisplayContentScale(displayID)
+}
+
+fn GetFullscreenDisplayModes(displayID: u32, count: *c.int): **void {
+    return raw.SDL_GetFullscreenDisplayModes(displayID, count)
+}
+
+fn GetClosestFullscreenDisplayMode(displayID: u32, w: c.int, h: c.int, refresh_rate: f32, include_high_density_modes: bool, closest: *void): sdl.SDLError? {
+    if !raw.SDL_GetClosestFullscreenDisplayMode(displayID, w, h, refresh_rate, include_high_density_modes, closest) {
+        return sdl.last_error("GetClosestFullscreenDisplayMode failed")
+    }
+    return null
+}
+
+fn GetDesktopDisplayMode(displayID: u32): *const void {
+    return raw.SDL_GetDesktopDisplayMode(displayID)
+}
+
+fn GetCurrentDisplayMode(displayID: u32): *const void {
+    return raw.SDL_GetCurrentDisplayMode(displayID)
+}
+
+fn GetDisplayForPoint(point: *const rect.SDL_Point): u32 {
+    return raw.SDL_GetDisplayForPoint(point)
+}
+
+fn GetDisplayForRect(rect: *const rect.SDL_Rect): u32 {
+    return raw.SDL_GetDisplayForRect(rect)
+}
+
+fn GetDisplayForWindow(window: *raw.SDL_Window): u32 {
+    return raw.SDL_GetDisplayForWindow(window)
+}
+
+fn GetWindowPixelDensity(window: *raw.SDL_Window): f32 {
+    return raw.SDL_GetWindowPixelDensity(window)
+}
+
+fn GetWindowDisplayScale(window: *raw.SDL_Window): f32 {
+    return raw.SDL_GetWindowDisplayScale(window)
+}
+
+fn SetWindowFullscreenMode(window: *raw.SDL_Window, mode: *const void): sdl.SDLError? {
+    if !raw.SDL_SetWindowFullscreenMode(window, mode) {
+        return sdl.last_error("SetWindowFullscreenMode failed")
+    }
+    return null
+}
+
+fn GetWindowFullscreenMode(window: *raw.SDL_Window): *const void {
+    return raw.SDL_GetWindowFullscreenMode(window)
+}
+
+fn GetWindowICCProfile(window: *raw.SDL_Window, size: *c.size_t): *void {
+    return raw.SDL_GetWindowICCProfile(window, size)
+}
+
+fn GetWindowPixelFormat(window: *raw.SDL_Window): u32 {
+    return raw.SDL_GetWindowPixelFormat(window)
+}
+
+fn GetWindows(count: *c.int): **raw.SDL_Window {
+    return raw.SDL_GetWindows(count)
+}
+
+fn CreateWindow(title: *const c.char, w: c.int, h: c.int, flags: u64): (Window, sdl.SDLError?) {
+    val ptr = raw.SDL_CreateWindow(title, w, h, flags)
+    if ptr == null {
+        return empty_window(), sdl.last_error("CreateWindow failed")
+    }
+    var h: Window
+    h.ptr = ptr
+    return h, null
+}
+
+fn CreatePopupWindow(parent: *raw.SDL_Window, offset_x: c.int, offset_y: c.int, w: c.int, h: c.int, flags: u64): *raw.SDL_Window {
+    return raw.SDL_CreatePopupWindow(parent, offset_x, offset_y, w, h, flags)
+}
+
+fn CreateWindowWithProperties(props: u32): *raw.SDL_Window {
+    return raw.SDL_CreateWindowWithProperties(props)
+}
+
+fn GetWindowID(window: *raw.SDL_Window): u32 {
+    return raw.SDL_GetWindowID(window)
+}
+
+fn GetWindowFromID(id: u32): *raw.SDL_Window {
+    return raw.SDL_GetWindowFromID(id)
+}
+
+fn GetWindowParent(window: *raw.SDL_Window): *raw.SDL_Window {
+    return raw.SDL_GetWindowParent(window)
+}
+
+fn GetWindowProperties(window: *raw.SDL_Window): u32 {
+    return raw.SDL_GetWindowProperties(window)
+}
+
+fn GetWindowFlags(window: *raw.SDL_Window): u64 {
+    return raw.SDL_GetWindowFlags(window)
+}
+
+fn SetWindowTitle(window: *raw.SDL_Window, title: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SetWindowTitle(window, title) {
+        return sdl.last_error("SetWindowTitle failed")
+    }
+    return null
+}
+
+fn GetWindowTitle(window: *raw.SDL_Window): *const c.char {
+    return raw.SDL_GetWindowTitle(window)
+}
+
+fn SetWindowIcon(window: *raw.SDL_Window, icon: *surface.SDL_Surface): sdl.SDLError? {
+    if !raw.SDL_SetWindowIcon(window, icon) {
+        return sdl.last_error("SetWindowIcon failed")
+    }
+    return null
+}
+
+fn SetWindowPosition(window: *raw.SDL_Window, x: c.int, y: c.int): sdl.SDLError? {
+    if !raw.SDL_SetWindowPosition(window, x, y) {
+        return sdl.last_error("SetWindowPosition failed")
+    }
+    return null
+}
+
+fn GetWindowPosition(window: *raw.SDL_Window, x: *c.int, y: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetWindowPosition(window, x, y) {
+        return sdl.last_error("GetWindowPosition failed")
+    }
+    return null
+}
+
+fn SetWindowSize(window: *raw.SDL_Window, w: c.int, h: c.int): sdl.SDLError? {
+    if !raw.SDL_SetWindowSize(window, w, h) {
+        return sdl.last_error("SetWindowSize failed")
+    }
+    return null
+}
+
+fn GetWindowSize(window: *raw.SDL_Window, w: *c.int, h: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetWindowSize(window, w, h) {
+        return sdl.last_error("GetWindowSize failed")
+    }
+    return null
+}
+
+fn GetWindowSafeArea(window: *raw.SDL_Window, rect: *rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_GetWindowSafeArea(window, rect) {
+        return sdl.last_error("GetWindowSafeArea failed")
+    }
+    return null
+}
+
+fn SetWindowAspectRatio(window: *raw.SDL_Window, min_aspect: f32, max_aspect: f32): sdl.SDLError? {
+    if !raw.SDL_SetWindowAspectRatio(window, min_aspect, max_aspect) {
+        return sdl.last_error("SetWindowAspectRatio failed")
+    }
+    return null
+}
+
+fn GetWindowAspectRatio(window: *raw.SDL_Window, min_aspect: *f32, max_aspect: *f32): sdl.SDLError? {
+    if !raw.SDL_GetWindowAspectRatio(window, min_aspect, max_aspect) {
+        return sdl.last_error("GetWindowAspectRatio failed")
+    }
+    return null
+}
+
+fn GetWindowBordersSize(window: *raw.SDL_Window, top: *c.int, left: *c.int, bottom: *c.int, right: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetWindowBordersSize(window, top, left, bottom, right) {
+        return sdl.last_error("GetWindowBordersSize failed")
+    }
+    return null
+}
+
+fn GetWindowSizeInPixels(window: *raw.SDL_Window, w: *c.int, h: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetWindowSizeInPixels(window, w, h) {
+        return sdl.last_error("GetWindowSizeInPixels failed")
+    }
+    return null
+}
+
+fn SetWindowMinimumSize(window: *raw.SDL_Window, min_w: c.int, min_h: c.int): sdl.SDLError? {
+    if !raw.SDL_SetWindowMinimumSize(window, min_w, min_h) {
+        return sdl.last_error("SetWindowMinimumSize failed")
+    }
+    return null
+}
+
+fn GetWindowMinimumSize(window: *raw.SDL_Window, w: *c.int, h: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetWindowMinimumSize(window, w, h) {
+        return sdl.last_error("GetWindowMinimumSize failed")
+    }
+    return null
+}
+
+fn SetWindowMaximumSize(window: *raw.SDL_Window, max_w: c.int, max_h: c.int): sdl.SDLError? {
+    if !raw.SDL_SetWindowMaximumSize(window, max_w, max_h) {
+        return sdl.last_error("SetWindowMaximumSize failed")
+    }
+    return null
+}
+
+fn GetWindowMaximumSize(window: *raw.SDL_Window, w: *c.int, h: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetWindowMaximumSize(window, w, h) {
+        return sdl.last_error("GetWindowMaximumSize failed")
+    }
+    return null
+}
+
+fn SetWindowBordered(window: *raw.SDL_Window, bordered: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowBordered(window, bordered) {
+        return sdl.last_error("SetWindowBordered failed")
+    }
+    return null
+}
+
+fn SetWindowResizable(window: *raw.SDL_Window, resizable: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowResizable(window, resizable) {
+        return sdl.last_error("SetWindowResizable failed")
+    }
+    return null
+}
+
+fn SetWindowAlwaysOnTop(window: *raw.SDL_Window, on_top: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowAlwaysOnTop(window, on_top) {
+        return sdl.last_error("SetWindowAlwaysOnTop failed")
+    }
+    return null
+}
+
+fn SetWindowFillDocument(window: *raw.SDL_Window, fill: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowFillDocument(window, fill) {
+        return sdl.last_error("SetWindowFillDocument failed")
+    }
+    return null
+}
+
+fn ShowWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_ShowWindow(window) {
+        return sdl.last_error("ShowWindow failed")
+    }
+    return null
+}
+
+fn HideWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_HideWindow(window) {
+        return sdl.last_error("HideWindow failed")
+    }
+    return null
+}
+
+fn RaiseWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_RaiseWindow(window) {
+        return sdl.last_error("RaiseWindow failed")
+    }
+    return null
+}
+
+fn MaximizeWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_MaximizeWindow(window) {
+        return sdl.last_error("MaximizeWindow failed")
+    }
+    return null
+}
+
+fn MinimizeWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_MinimizeWindow(window) {
+        return sdl.last_error("MinimizeWindow failed")
+    }
+    return null
+}
+
+fn RestoreWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_RestoreWindow(window) {
+        return sdl.last_error("RestoreWindow failed")
+    }
+    return null
+}
+
+fn SetWindowFullscreen(window: *raw.SDL_Window, fullscreen: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowFullscreen(window, fullscreen) {
+        return sdl.last_error("SetWindowFullscreen failed")
+    }
+    return null
+}
+
+fn SyncWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_SyncWindow(window) {
+        return sdl.last_error("SyncWindow failed")
+    }
+    return null
+}
+
+fn WindowHasSurface(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_WindowHasSurface(window) {
+        return sdl.last_error("WindowHasSurface failed")
+    }
+    return null
+}
+
+fn GetWindowSurface(window: *raw.SDL_Window): *surface.SDL_Surface {
+    return raw.SDL_GetWindowSurface(window)
+}
+
+fn SetWindowSurfaceVSync(window: *raw.SDL_Window, vsync: c.int): sdl.SDLError? {
+    if !raw.SDL_SetWindowSurfaceVSync(window, vsync) {
+        return sdl.last_error("SetWindowSurfaceVSync failed")
+    }
+    return null
+}
+
+fn GetWindowSurfaceVSync(window: *raw.SDL_Window, vsync: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetWindowSurfaceVSync(window, vsync) {
+        return sdl.last_error("GetWindowSurfaceVSync failed")
+    }
+    return null
+}
+
+fn UpdateWindowSurface(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_UpdateWindowSurface(window) {
+        return sdl.last_error("UpdateWindowSurface failed")
+    }
+    return null
+}
+
+fn UpdateWindowSurfaceRects(window: *raw.SDL_Window, rects: *const rect.SDL_Rect, numrects: c.int): sdl.SDLError? {
+    if !raw.SDL_UpdateWindowSurfaceRects(window, rects, numrects) {
+        return sdl.last_error("UpdateWindowSurfaceRects failed")
+    }
+    return null
+}
+
+fn Window.destroy() {
+    if self.ptr != null {
+        raw.SDL_DestroyWindowSurface(self.ptr!!)
+    }
+}
+
+fn SetWindowKeyboardGrab(window: *raw.SDL_Window, grabbed: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowKeyboardGrab(window, grabbed) {
+        return sdl.last_error("SetWindowKeyboardGrab failed")
+    }
+    return null
+}
+
+fn SetWindowMouseGrab(window: *raw.SDL_Window, grabbed: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowMouseGrab(window, grabbed) {
+        return sdl.last_error("SetWindowMouseGrab failed")
+    }
+    return null
+}
+
+fn GetWindowKeyboardGrab(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_GetWindowKeyboardGrab(window) {
+        return sdl.last_error("GetWindowKeyboardGrab failed")
+    }
+    return null
+}
+
+fn GetWindowMouseGrab(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_GetWindowMouseGrab(window) {
+        return sdl.last_error("GetWindowMouseGrab failed")
+    }
+    return null
+}
+
+fn GetGrabbedWindow(): *raw.SDL_Window {
+    return raw.SDL_GetGrabbedWindow()
+}
+
+fn SetWindowMouseRect(window: *raw.SDL_Window, rect: *const rect.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_SetWindowMouseRect(window, rect) {
+        return sdl.last_error("SetWindowMouseRect failed")
+    }
+    return null
+}
+
+fn GetWindowMouseRect(window: *raw.SDL_Window): *const rect.SDL_Rect {
+    return raw.SDL_GetWindowMouseRect(window)
+}
+
+fn SetWindowOpacity(window: *raw.SDL_Window, opacity: f32): sdl.SDLError? {
+    if !raw.SDL_SetWindowOpacity(window, opacity) {
+        return sdl.last_error("SetWindowOpacity failed")
+    }
+    return null
+}
+
+fn GetWindowOpacity(window: *raw.SDL_Window): f32 {
+    return raw.SDL_GetWindowOpacity(window)
+}
+
+fn SetWindowParent(window: *raw.SDL_Window, parent: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_SetWindowParent(window, parent) {
+        return sdl.last_error("SetWindowParent failed")
+    }
+    return null
+}
+
+fn SetWindowModal(window: *raw.SDL_Window, modal: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowModal(window, modal) {
+        return sdl.last_error("SetWindowModal failed")
+    }
+    return null
+}
+
+fn SetWindowFocusable(window: *raw.SDL_Window, focusable: bool): sdl.SDLError? {
+    if !raw.SDL_SetWindowFocusable(window, focusable) {
+        return sdl.last_error("SetWindowFocusable failed")
+    }
+    return null
+}
+
+fn ShowWindowSystemMenu(window: *raw.SDL_Window, x: c.int, y: c.int): sdl.SDLError? {
+    if !raw.SDL_ShowWindowSystemMenu(window, x, y) {
+        return sdl.last_error("ShowWindowSystemMenu failed")
+    }
+    return null
+}
+
+fn SetWindowShape(window: *raw.SDL_Window, shape: *surface.SDL_Surface): sdl.SDLError? {
+    if !raw.SDL_SetWindowShape(window, shape) {
+        return sdl.last_error("SetWindowShape failed")
+    }
+    return null
+}
+
+fn FlashWindow(window: *raw.SDL_Window, operation: u32): sdl.SDLError? {
+    if !raw.SDL_FlashWindow(window, operation) {
+        return sdl.last_error("FlashWindow failed")
+    }
+    return null
+}
+
+fn SetWindowProgressValue(window: *raw.SDL_Window, value: f32): sdl.SDLError? {
+    if !raw.SDL_SetWindowProgressValue(window, value) {
+        return sdl.last_error("SetWindowProgressValue failed")
+    }
+    return null
+}
+
+fn GetWindowProgressValue(window: *raw.SDL_Window): f32 {
+    return raw.SDL_GetWindowProgressValue(window)
+}
+
+fn DestroyWindow(window: *raw.SDL_Window) {
+    raw.SDL_DestroyWindow(window)
+}
+
+fn ScreenSaverEnabled(): sdl.SDLError? {
+    if !raw.SDL_ScreenSaverEnabled() {
+        return sdl.last_error("ScreenSaverEnabled failed")
+    }
+    return null
+}
+
+fn EnableScreenSaver(): sdl.SDLError? {
+    if !raw.SDL_EnableScreenSaver() {
+        return sdl.last_error("EnableScreenSaver failed")
+    }
+    return null
+}
+
+fn DisableScreenSaver(): sdl.SDLError? {
+    if !raw.SDL_DisableScreenSaver() {
+        return sdl.last_error("DisableScreenSaver failed")
+    }
+    return null
+}
+
+fn GL_LoadLibrary(path: *const c.char): sdl.SDLError? {
+    if !raw.SDL_GL_LoadLibrary(path) {
+        return sdl.last_error("GL_LoadLibrary failed")
+    }
+    return null
+}
+
+fn GL_GetProcAddress(proc: *const c.char): *void {
+    return raw.SDL_GL_GetProcAddress(proc)
+}
+
+fn EGL_GetProcAddress(proc: *const c.char): *void {
+    return raw.SDL_EGL_GetProcAddress(proc)
+}
+
+fn GL_UnloadLibrary() {
+    raw.SDL_GL_UnloadLibrary()
+}
+
+fn GL_ExtensionSupported(extension: *const c.char): sdl.SDLError? {
+    if !raw.SDL_GL_ExtensionSupported(extension) {
+        return sdl.last_error("GL_ExtensionSupported failed")
+    }
+    return null
+}
+
+fn GL_ResetAttributes() {
+    raw.SDL_GL_ResetAttributes()
+}
+
+fn GL_SetAttribute(attr: u32, value: c.int): sdl.SDLError? {
+    if !raw.SDL_GL_SetAttribute(attr, value) {
+        return sdl.last_error("GL_SetAttribute failed")
+    }
+    return null
+}
+
+fn GL_GetAttribute(attr: u32, value: *c.int): sdl.SDLError? {
+    if !raw.SDL_GL_GetAttribute(attr, value) {
+        return sdl.last_error("GL_GetAttribute failed")
+    }
+    return null
+}
+
+fn GL_CreateContext(window: *raw.SDL_Window): *void {
+    return raw.SDL_GL_CreateContext(window)
+}
+
+fn GL_MakeCurrent(window: *raw.SDL_Window, context_: *void): sdl.SDLError? {
+    if !raw.SDL_GL_MakeCurrent(window, context_) {
+        return sdl.last_error("GL_MakeCurrent failed")
+    }
+    return null
+}
+
+fn GL_GetCurrentWindow(): *raw.SDL_Window {
+    return raw.SDL_GL_GetCurrentWindow()
+}
+
+fn GL_GetCurrentContext(): *void {
+    return raw.SDL_GL_GetCurrentContext()
+}
+
+fn EGL_GetCurrentDisplay(): *void {
+    return raw.SDL_EGL_GetCurrentDisplay()
+}
+
+fn EGL_GetCurrentConfig(): *void {
+    return raw.SDL_EGL_GetCurrentConfig()
+}
+
+fn EGL_GetWindowSurface(window: *raw.SDL_Window): *void {
+    return raw.SDL_EGL_GetWindowSurface(window)
+}
+
+fn EGL_SetAttributeCallbacks(platformAttribCallback: *void, surfaceAttribCallback: *void, contextAttribCallback: *void, userdata: *void) {
+    raw.SDL_EGL_SetAttributeCallbacks(platformAttribCallback, surfaceAttribCallback, contextAttribCallback, userdata)
+}
+
+fn GL_SetSwapInterval(interval: c.int): sdl.SDLError? {
+    if !raw.SDL_GL_SetSwapInterval(interval) {
+        return sdl.last_error("GL_SetSwapInterval failed")
+    }
+    return null
+}
+
+fn GL_GetSwapInterval(interval: *c.int): sdl.SDLError? {
+    if !raw.SDL_GL_GetSwapInterval(interval) {
+        return sdl.last_error("GL_GetSwapInterval failed")
+    }
+    return null
+}
+
+fn GL_SwapWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_GL_SwapWindow(window) {
+        return sdl.last_error("GL_SwapWindow failed")
+    }
+    return null
+}
+
+fn GL_DestroyContext(context_: *void): sdl.SDLError? {
+    if !raw.SDL_GL_DestroyContext(context_) {
+        return sdl.last_error("GL_DestroyContext failed")
+    }
+    return null
+}

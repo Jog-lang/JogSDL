@@ -1,2 +1,73 @@
-// Idiomatic sdl.pixels — expand wrappers over sdl3.pixels as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.pixels.
+// Idiomatic wrappers over sdl3.pixels.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.pixels as raw
+import sdl
+import std.c
+
+struct Palette {
+    ptr: *raw.SDL_Palette?
+}
+
+fn empty_palette(): Palette {
+    var h: Palette
+    return h
+}
+
+struct PixelFormatDetails {
+    ptr: *raw.SDL_PixelFormatDetails?
+}
+
+fn empty_pixelformatdetails(): PixelFormatDetails {
+    var h: PixelFormatDetails
+    return h
+}
+
+fn GetPixelFormatName(format: u32): *const c.char {
+    return raw.SDL_GetPixelFormatName(format)
+}
+
+fn GetMasksForPixelFormat(format: u32, bpp: *c.int, Rmask: *u32, Gmask: *u32, Bmask: *u32, Amask: *u32): sdl.SDLError? {
+    if !raw.SDL_GetMasksForPixelFormat(format, bpp, Rmask, Gmask, Bmask, Amask) {
+        return sdl.last_error("GetMasksForPixelFormat failed")
+    }
+    return null
+}
+
+fn GetPixelFormatForMasks(bpp: c.int, Rmask: u32, Gmask: u32, Bmask: u32, Amask: u32): u32 {
+    return raw.SDL_GetPixelFormatForMasks(bpp, Rmask, Gmask, Bmask, Amask)
+}
+
+fn GetPixelFormatDetails(format: u32): *const void {
+    return raw.SDL_GetPixelFormatDetails(format)
+}
+
+fn CreatePalette(ncolors: c.int): *void {
+    return raw.SDL_CreatePalette(ncolors)
+}
+
+fn SetPaletteColors(palette: *void, colors: *const raw.SDL_Color, firstcolor: c.int, ncolors: c.int): sdl.SDLError? {
+    if !raw.SDL_SetPaletteColors(palette, colors, firstcolor, ncolors) {
+        return sdl.last_error("SetPaletteColors failed")
+    }
+    return null
+}
+
+fn DestroyPalette(palette: *void) {
+    raw.SDL_DestroyPalette(palette)
+}
+
+fn MapRGB(format: *const void, palette: *const void, r: u8, g: u8, b: u8): u32 {
+    return raw.SDL_MapRGB(format, palette, r, g, b)
+}
+
+fn MapRGBA(format: *const void, palette: *const void, r: u8, g: u8, b: u8, a: u8): u32 {
+    return raw.SDL_MapRGBA(format, palette, r, g, b, a)
+}
+
+fn GetRGB(pixelvalue: u32, format: *const void, palette: *const void, r: *u8, g: *u8, b: *u8) {
+    raw.SDL_GetRGB(pixelvalue, format, palette, r, g, b)
+}
+
+fn GetRGBA(pixelvalue: u32, format: *const void, palette: *const void, r: *u8, g: *u8, b: *u8, a: *u8) {
+    raw.SDL_GetRGBA(pixelvalue, format, palette, r, g, b, a)
+}

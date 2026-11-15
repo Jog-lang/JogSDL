@@ -1,2 +1,8 @@
-// Idiomatic sdl.platform — expand wrappers over sdl3.platform as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.platform.
+// Idiomatic wrappers over sdl3.platform.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.platform as raw
+import std.c
+
+fn GetPlatform(): *const c.char {
+    return raw.SDL_GetPlatform()
+}

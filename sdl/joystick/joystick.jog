@@ -1,2 +1,293 @@
-// Idiomatic sdl.joystick — expand wrappers over sdl3.joystick as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.joystick.
+// Idiomatic wrappers over sdl3.joystick.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.joystick as raw
+import sdl3.guid
+import sdl
+import std.c
+
+struct Joystick {
+    ptr: *raw.SDL_Joystick?
+}
+
+fn empty_joystick(): Joystick {
+    var h: Joystick
+    return h
+}
+
+fn LockJoysticks() {
+    raw.SDL_LockJoysticks()
+}
+
+fn UnlockJoysticks() {
+    raw.SDL_UnlockJoysticks()
+}
+
+fn HasJoystick(): sdl.SDLError? {
+    if !raw.SDL_HasJoystick() {
+        return sdl.last_error("HasJoystick failed")
+    }
+    return null
+}
+
+fn GetJoysticks(count: *c.int): *u32 {
+    return raw.SDL_GetJoysticks(count)
+}
+
+fn GetJoystickNameForID(instance_id: u32): *const c.char {
+    return raw.SDL_GetJoystickNameForID(instance_id)
+}
+
+fn GetJoystickPathForID(instance_id: u32): *const c.char {
+    return raw.SDL_GetJoystickPathForID(instance_id)
+}
+
+fn GetJoystickPlayerIndexForID(instance_id: u32): c.int {
+    return raw.SDL_GetJoystickPlayerIndexForID(instance_id)
+}
+
+fn GetJoystickGUIDForID(instance_id: u32): guid.SDL_GUID {
+    return raw.SDL_GetJoystickGUIDForID(instance_id)
+}
+
+fn GetJoystickVendorForID(instance_id: u32): u16 {
+    return raw.SDL_GetJoystickVendorForID(instance_id)
+}
+
+fn GetJoystickProductForID(instance_id: u32): u16 {
+    return raw.SDL_GetJoystickProductForID(instance_id)
+}
+
+fn GetJoystickProductVersionForID(instance_id: u32): u16 {
+    return raw.SDL_GetJoystickProductVersionForID(instance_id)
+}
+
+fn GetJoystickTypeForID(instance_id: u32): u32 {
+    return raw.SDL_GetJoystickTypeForID(instance_id)
+}
+
+fn OpenJoystick(instance_id: u32): *raw.SDL_Joystick {
+    return raw.SDL_OpenJoystick(instance_id)
+}
+
+fn GetJoystickFromID(instance_id: u32): *raw.SDL_Joystick {
+    return raw.SDL_GetJoystickFromID(instance_id)
+}
+
+fn GetJoystickFromPlayerIndex(player_index: c.int): *raw.SDL_Joystick {
+    return raw.SDL_GetJoystickFromPlayerIndex(player_index)
+}
+
+fn AttachVirtualJoystick(desc: *const void): u32 {
+    return raw.SDL_AttachVirtualJoystick(desc)
+}
+
+fn DetachVirtualJoystick(instance_id: u32): sdl.SDLError? {
+    if !raw.SDL_DetachVirtualJoystick(instance_id) {
+        return sdl.last_error("DetachVirtualJoystick failed")
+    }
+    return null
+}
+
+fn IsJoystickVirtual(instance_id: u32): sdl.SDLError? {
+    if !raw.SDL_IsJoystickVirtual(instance_id) {
+        return sdl.last_error("IsJoystickVirtual failed")
+    }
+    return null
+}
+
+fn SetJoystickVirtualAxis(joystick: *raw.SDL_Joystick, axis: c.int, value: i16): sdl.SDLError? {
+    if !raw.SDL_SetJoystickVirtualAxis(joystick, axis, value) {
+        return sdl.last_error("SetJoystickVirtualAxis failed")
+    }
+    return null
+}
+
+fn SetJoystickVirtualBall(joystick: *raw.SDL_Joystick, ball: c.int, xrel: i16, yrel: i16): sdl.SDLError? {
+    if !raw.SDL_SetJoystickVirtualBall(joystick, ball, xrel, yrel) {
+        return sdl.last_error("SetJoystickVirtualBall failed")
+    }
+    return null
+}
+
+fn SetJoystickVirtualButton(joystick: *raw.SDL_Joystick, button: c.int, down: bool): sdl.SDLError? {
+    if !raw.SDL_SetJoystickVirtualButton(joystick, button, down) {
+        return sdl.last_error("SetJoystickVirtualButton failed")
+    }
+    return null
+}
+
+fn SetJoystickVirtualHat(joystick: *raw.SDL_Joystick, hat: c.int, value: u8): sdl.SDLError? {
+    if !raw.SDL_SetJoystickVirtualHat(joystick, hat, value) {
+        return sdl.last_error("SetJoystickVirtualHat failed")
+    }
+    return null
+}
+
+fn SetJoystickVirtualTouchpad(joystick: *raw.SDL_Joystick, touchpad: c.int, finger: c.int, down: bool, x: f32, y: f32, pressure: f32): sdl.SDLError? {
+    if !raw.SDL_SetJoystickVirtualTouchpad(joystick, touchpad, finger, down, x, y, pressure) {
+        return sdl.last_error("SetJoystickVirtualTouchpad failed")
+    }
+    return null
+}
+
+fn GetJoystickProperties(joystick: *raw.SDL_Joystick): u32 {
+    return raw.SDL_GetJoystickProperties(joystick)
+}
+
+fn GetJoystickName(joystick: *raw.SDL_Joystick): *const c.char {
+    return raw.SDL_GetJoystickName(joystick)
+}
+
+fn GetJoystickPath(joystick: *raw.SDL_Joystick): *const c.char {
+    return raw.SDL_GetJoystickPath(joystick)
+}
+
+fn GetJoystickPlayerIndex(joystick: *raw.SDL_Joystick): c.int {
+    return raw.SDL_GetJoystickPlayerIndex(joystick)
+}
+
+fn SetJoystickPlayerIndex(joystick: *raw.SDL_Joystick, player_index: c.int): sdl.SDLError? {
+    if !raw.SDL_SetJoystickPlayerIndex(joystick, player_index) {
+        return sdl.last_error("SetJoystickPlayerIndex failed")
+    }
+    return null
+}
+
+fn GetJoystickGUID(joystick: *raw.SDL_Joystick): guid.SDL_GUID {
+    return raw.SDL_GetJoystickGUID(joystick)
+}
+
+fn GetJoystickVendor(joystick: *raw.SDL_Joystick): u16 {
+    return raw.SDL_GetJoystickVendor(joystick)
+}
+
+fn GetJoystickProduct(joystick: *raw.SDL_Joystick): u16 {
+    return raw.SDL_GetJoystickProduct(joystick)
+}
+
+fn GetJoystickProductVersion(joystick: *raw.SDL_Joystick): u16 {
+    return raw.SDL_GetJoystickProductVersion(joystick)
+}
+
+fn GetJoystickFirmwareVersion(joystick: *raw.SDL_Joystick): u16 {
+    return raw.SDL_GetJoystickFirmwareVersion(joystick)
+}
+
+fn GetJoystickSerial(joystick: *raw.SDL_Joystick): *const c.char {
+    return raw.SDL_GetJoystickSerial(joystick)
+}
+
+fn GetJoystickType(joystick: *raw.SDL_Joystick): u32 {
+    return raw.SDL_GetJoystickType(joystick)
+}
+
+fn GetJoystickGUIDInfo(guid: guid.SDL_GUID, vendor: *u16, product: *u16, version: *u16, crc16: *u16) {
+    raw.SDL_GetJoystickGUIDInfo(guid, vendor, product, version, crc16)
+}
+
+fn JoystickConnected(joystick: *raw.SDL_Joystick): sdl.SDLError? {
+    if !raw.SDL_JoystickConnected(joystick) {
+        return sdl.last_error("JoystickConnected failed")
+    }
+    return null
+}
+
+fn GetJoystickID(joystick: *raw.SDL_Joystick): u32 {
+    return raw.SDL_GetJoystickID(joystick)
+}
+
+fn GetNumJoystickAxes(joystick: *raw.SDL_Joystick): c.int {
+    return raw.SDL_GetNumJoystickAxes(joystick)
+}
+
+fn GetNumJoystickBalls(joystick: *raw.SDL_Joystick): c.int {
+    return raw.SDL_GetNumJoystickBalls(joystick)
+}
+
+fn GetNumJoystickHats(joystick: *raw.SDL_Joystick): c.int {
+    return raw.SDL_GetNumJoystickHats(joystick)
+}
+
+fn GetNumJoystickButtons(joystick: *raw.SDL_Joystick): c.int {
+    return raw.SDL_GetNumJoystickButtons(joystick)
+}
+
+fn SetJoystickEventsEnabled(enabled: bool) {
+    raw.SDL_SetJoystickEventsEnabled(enabled)
+}
+
+fn JoystickEventsEnabled(): sdl.SDLError? {
+    if !raw.SDL_JoystickEventsEnabled() {
+        return sdl.last_error("JoystickEventsEnabled failed")
+    }
+    return null
+}
+
+fn UpdateJoysticks() {
+    raw.SDL_UpdateJoysticks()
+}
+
+fn GetJoystickAxis(joystick: *raw.SDL_Joystick, axis: c.int): i16 {
+    return raw.SDL_GetJoystickAxis(joystick, axis)
+}
+
+fn GetJoystickAxisInitialState(joystick: *raw.SDL_Joystick, axis: c.int, state: *i16): sdl.SDLError? {
+    if !raw.SDL_GetJoystickAxisInitialState(joystick, axis, state) {
+        return sdl.last_error("GetJoystickAxisInitialState failed")
+    }
+    return null
+}
+
+fn GetJoystickBall(joystick: *raw.SDL_Joystick, ball: c.int, dx: *c.int, dy: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetJoystickBall(joystick, ball, dx, dy) {
+        return sdl.last_error("GetJoystickBall failed")
+    }
+    return null
+}
+
+fn GetJoystickHat(joystick: *raw.SDL_Joystick, hat: c.int): u8 {
+    return raw.SDL_GetJoystickHat(joystick, hat)
+}
+
+fn GetJoystickButton(joystick: *raw.SDL_Joystick, button: c.int): sdl.SDLError? {
+    if !raw.SDL_GetJoystickButton(joystick, button) {
+        return sdl.last_error("GetJoystickButton failed")
+    }
+    return null
+}
+
+fn RumbleJoystick(joystick: *raw.SDL_Joystick, low_frequency_rumble: u16, high_frequency_rumble: u16, duration_ms: u32): sdl.SDLError? {
+    if !raw.SDL_RumbleJoystick(joystick, low_frequency_rumble, high_frequency_rumble, duration_ms) {
+        return sdl.last_error("RumbleJoystick failed")
+    }
+    return null
+}
+
+fn RumbleJoystickTriggers(joystick: *raw.SDL_Joystick, left_rumble: u16, right_rumble: u16, duration_ms: u32): sdl.SDLError? {
+    if !raw.SDL_RumbleJoystickTriggers(joystick, left_rumble, right_rumble, duration_ms) {
+        return sdl.last_error("RumbleJoystickTriggers failed")
+    }
+    return null
+}
+
+fn SetJoystickLED(joystick: *raw.SDL_Joystick, red: u8, green: u8, blue: u8): sdl.SDLError? {
+    if !raw.SDL_SetJoystickLED(joystick, red, green, blue) {
+        return sdl.last_error("SetJoystickLED failed")
+    }
+    return null
+}
+
+fn SendJoystickEffect(joystick: *raw.SDL_Joystick, data: *const void, size: c.int): sdl.SDLError? {
+    if !raw.SDL_SendJoystickEffect(joystick, data, size) {
+        return sdl.last_error("SendJoystickEffect failed")
+    }
+    return null
+}
+
+fn CloseJoystick(joystick: *raw.SDL_Joystick) {
+    raw.SDL_CloseJoystick(joystick)
+}
+
+fn GetJoystickPowerInfo(joystick: *raw.SDL_Joystick, percent: *c.int): u32 {
+    return raw.SDL_GetJoystickPowerInfo(joystick, percent)
+}

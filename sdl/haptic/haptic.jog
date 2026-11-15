@@ -1,2 +1,151 @@
-// Idiomatic sdl.haptic — expand wrappers over sdl3.haptic as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.haptic.
+// Idiomatic wrappers over sdl3.haptic.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.haptic as raw
+import sdl3.joystick
+import sdl
+import std.c
+
+struct Haptic {
+    ptr: *raw.SDL_Haptic?
+}
+
+fn empty_haptic(): Haptic {
+    var h: Haptic
+    return h
+}
+
+fn GetHaptics(count: *c.int): *u32 {
+    return raw.SDL_GetHaptics(count)
+}
+
+fn GetHapticNameForID(instance_id: u32): *const c.char {
+    return raw.SDL_GetHapticNameForID(instance_id)
+}
+
+fn OpenHaptic(instance_id: u32): *raw.SDL_Haptic {
+    return raw.SDL_OpenHaptic(instance_id)
+}
+
+fn GetHapticFromID(instance_id: u32): *raw.SDL_Haptic {
+    return raw.SDL_GetHapticFromID(instance_id)
+}
+
+fn GetHapticID(haptic: *raw.SDL_Haptic): u32 {
+    return raw.SDL_GetHapticID(haptic)
+}
+
+fn GetHapticName(haptic: *raw.SDL_Haptic): *const c.char {
+    return raw.SDL_GetHapticName(haptic)
+}
+
+fn IsMouseHaptic(): sdl.SDLError? {
+    if !raw.SDL_IsMouseHaptic() {
+        return sdl.last_error("IsMouseHaptic failed")
+    }
+    return null
+}
+
+fn OpenHapticFromMouse(): *raw.SDL_Haptic {
+    return raw.SDL_OpenHapticFromMouse()
+}
+
+fn IsJoystickHaptic(joystick: *joystick.SDL_Joystick): sdl.SDLError? {
+    if !raw.SDL_IsJoystickHaptic(joystick) {
+        return sdl.last_error("IsJoystickHaptic failed")
+    }
+    return null
+}
+
+fn OpenHapticFromJoystick(joystick: *joystick.SDL_Joystick): *raw.SDL_Haptic {
+    return raw.SDL_OpenHapticFromJoystick(joystick)
+}
+
+fn CloseHaptic(haptic: *raw.SDL_Haptic) {
+    raw.SDL_CloseHaptic(haptic)
+}
+
+fn GetMaxHapticEffects(haptic: *raw.SDL_Haptic): c.int {
+    return raw.SDL_GetMaxHapticEffects(haptic)
+}
+
+fn GetMaxHapticEffectsPlaying(haptic: *raw.SDL_Haptic): c.int {
+    return raw.SDL_GetMaxHapticEffectsPlaying(haptic)
+}
+
+fn GetHapticFeatures(haptic: *raw.SDL_Haptic): u32 {
+    return raw.SDL_GetHapticFeatures(haptic)
+}
+
+fn GetNumHapticAxes(haptic: *raw.SDL_Haptic): c.int {
+    return raw.SDL_GetNumHapticAxes(haptic)
+}
+
+fn HapticEffectSupported(haptic: *raw.SDL_Haptic, effect: *const void): sdl.SDLError? {
+    if !raw.SDL_HapticEffectSupported(haptic, effect) {
+        return sdl.last_error("HapticEffectSupported failed")
+    }
+    return null
+}
+
+fn SetHapticGain(haptic: *raw.SDL_Haptic, gain: c.int): sdl.SDLError? {
+    if !raw.SDL_SetHapticGain(haptic, gain) {
+        return sdl.last_error("SetHapticGain failed")
+    }
+    return null
+}
+
+fn SetHapticAutocenter(haptic: *raw.SDL_Haptic, autocenter: c.int): sdl.SDLError? {
+    if !raw.SDL_SetHapticAutocenter(haptic, autocenter) {
+        return sdl.last_error("SetHapticAutocenter failed")
+    }
+    return null
+}
+
+fn PauseHaptic(haptic: *raw.SDL_Haptic): sdl.SDLError? {
+    if !raw.SDL_PauseHaptic(haptic) {
+        return sdl.last_error("PauseHaptic failed")
+    }
+    return null
+}
+
+fn ResumeHaptic(haptic: *raw.SDL_Haptic): sdl.SDLError? {
+    if !raw.SDL_ResumeHaptic(haptic) {
+        return sdl.last_error("ResumeHaptic failed")
+    }
+    return null
+}
+
+fn StopHapticEffects(haptic: *raw.SDL_Haptic): sdl.SDLError? {
+    if !raw.SDL_StopHapticEffects(haptic) {
+        return sdl.last_error("StopHapticEffects failed")
+    }
+    return null
+}
+
+fn HapticRumbleSupported(haptic: *raw.SDL_Haptic): sdl.SDLError? {
+    if !raw.SDL_HapticRumbleSupported(haptic) {
+        return sdl.last_error("HapticRumbleSupported failed")
+    }
+    return null
+}
+
+fn InitHapticRumble(haptic: *raw.SDL_Haptic): sdl.SDLError? {
+    if !raw.SDL_InitHapticRumble(haptic) {
+        return sdl.last_error("InitHapticRumble failed")
+    }
+    return null
+}
+
+fn PlayHapticRumble(haptic: *raw.SDL_Haptic, strength: f32, length: u32): sdl.SDLError? {
+    if !raw.SDL_PlayHapticRumble(haptic, strength, length) {
+        return sdl.last_error("PlayHapticRumble failed")
+    }
+    return null
+}
+
+fn StopHapticRumble(haptic: *raw.SDL_Haptic): sdl.SDLError? {
+    if !raw.SDL_StopHapticRumble(haptic) {
+        return sdl.last_error("StopHapticRumble failed")
+    }
+    return null
+}

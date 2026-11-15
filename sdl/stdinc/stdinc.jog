@@ -1,0 +1,102 @@
+// Idiomatic re-exports / wrappers for sdl3.stdinc.
+import sdl3.stdinc as raw
+import std.c
+
+fn malloc(size: c.size_t): *void { return raw.SDL_malloc(size) }
+
+fn calloc(nmemb: c.size_t, size: c.size_t): *void { return raw.SDL_calloc(nmemb, size) }
+
+fn realloc(mem: *void, size: c.size_t): *void { return raw.SDL_realloc(mem, size) }
+
+fn free(mem: *void) { raw.SDL_free(mem) }
+
+fn aligned_alloc(alignment: c.size_t, size: c.size_t): *void { return raw.SDL_aligned_alloc(alignment, size) }
+
+fn aligned_free(mem: *void) { raw.SDL_aligned_free(mem) }
+
+fn GetNumAllocations(): c.int { return raw.SDL_GetNumAllocations() }
+
+fn getenv(name: *const c.char): *const c.char { return raw.SDL_getenv(name) }
+
+fn abs(x: c.int): c.int { return raw.SDL_abs(x) }
+
+fn isalpha(x: c.int): c.int { return raw.SDL_isalpha(x) }
+
+fn isalnum(x: c.int): c.int { return raw.SDL_isalnum(x) }
+
+fn isdigit(x: c.int): c.int { return raw.SDL_isdigit(x) }
+
+fn isspace(x: c.int): c.int { return raw.SDL_isspace(x) }
+
+fn toupper(x: c.int): c.int { return raw.SDL_toupper(x) }
+
+fn tolower(x: c.int): c.int { return raw.SDL_tolower(x) }
+
+fn crc16(crc: u16, data: *const void, len: c.size_t): u16 { return raw.SDL_crc16(crc, data, len) }
+
+fn crc32(crc: u32, data: *const void, len: c.size_t): u32 { return raw.SDL_crc32(crc, data, len) }
+
+fn murmur3_32(data: *const void, len: c.size_t, seed: u32): u32 { return raw.SDL_murmur3_32(data, len, seed) }
+
+fn memcpy(dst: *void, src: *void, len: c.size_t): *void { return raw.SDL_memcpy(dst, src, len) }
+
+fn memmove(dst: *void, src: *void, len: c.size_t): *void { return raw.SDL_memmove(dst, src, len) }
+
+fn memset(dst: *void, c: c.int, len: c.size_t): *void { return raw.SDL_memset(dst, c, len) }
+
+fn memcmp(s1: *const void, s2: *const void, len: c.size_t): c.int { return raw.SDL_memcmp(s1, s2, len) }
+
+fn wcslen(wstr: *const u32): c.size_t { return raw.SDL_wcslen(wstr) }
+
+fn wcsnlen(wstr: *const u32, maxlen: c.size_t): c.size_t { return raw.SDL_wcsnlen(wstr, maxlen) }
+
+fn strlen(str: *const c.char): c.size_t { return raw.SDL_strlen(str) }
+
+fn strnlen(str: *const c.char, maxlen: c.size_t): c.size_t { return raw.SDL_strnlen(str, maxlen) }
+
+fn strlcpy(dst: *void, src: *const c.char, maxlen: c.size_t): c.size_t { return raw.SDL_strlcpy(dst, src, maxlen) }
+
+fn strlcat(dst: *void, src: *const c.char, maxlen: c.size_t): c.size_t { return raw.SDL_strlcat(dst, src, maxlen) }
+
+fn strdup(str: *const c.char): *c.char { return raw.SDL_strdup(str) }
+
+fn strndup(str: *const c.char, maxlen: c.size_t): *c.char { return raw.SDL_strndup(str, maxlen) }
+
+fn strchr(str: *const c.char, c: c.int): *c.char { return raw.SDL_strchr(str, c) }
+
+fn strrchr(str: *const c.char, c: c.int): *c.char { return raw.SDL_strrchr(str, c) }
+
+fn strstr(haystack: *const c.char, needle: *const c.char): *c.char { return raw.SDL_strstr(haystack, needle) }
+
+fn utf8strlen(str: *const c.char): c.size_t { return raw.SDL_utf8strlen(str) }
+
+fn utf8strnlen(str: *const c.char, bytes: c.size_t): c.size_t { return raw.SDL_utf8strnlen(str, bytes) }
+
+fn atoi(str: *const c.char): c.int { return raw.SDL_atoi(str) }
+
+fn atof(str: *const c.char): f64 { return raw.SDL_atof(str) }
+
+fn strcmp(str1: *const c.char, str2: *const c.char): c.int { return raw.SDL_strcmp(str1, str2) }
+
+fn strncmp(str1: *const c.char, str2: *const c.char, maxlen: c.size_t): c.int { return raw.SDL_strncmp(str1, str2, maxlen) }
+
+fn strcasecmp(str1: *const c.char, str2: *const c.char): c.int { return raw.SDL_strcasecmp(str1, str2) }
+
+fn strncasecmp(str1: *const c.char, str2: *const c.char, maxlen: c.size_t): c.int { return raw.SDL_strncasecmp(str1, str2, maxlen) }
+
+fn srand(seed: u64) { raw.SDL_srand(seed) }
+
+fn rand(n: i32): i32 { return raw.SDL_rand(n) }
+
+fn randf(): f32 { return raw.SDL_randf() }
+
+fn rand_bits(): u32 { return raw.SDL_rand_bits() }
+
+fn rand_r(state: *u64, n: i32): i32 { return raw.SDL_rand_r(state, n) }
+
+fn randf_r(state: *u64): f32 { return raw.SDL_randf_r(state) }
+
+fn rand_bits_r(state: *u64): u32 { return raw.SDL_rand_bits_r(state) }
+
+fn iconv_string(tocode: *const c.char, fromcode: *const c.char, inbuf: *const c.char, inbytesleft: c.size_t): *c.char { return raw.SDL_iconv_string(tocode, fromcode, inbuf, inbytesleft) }
+

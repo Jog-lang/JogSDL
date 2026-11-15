@@ -1,2 +1,75 @@
-// Idiomatic sdl.rect — expand wrappers over sdl3.rect as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.rect.
+// Idiomatic wrappers over sdl3.rect.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.rect as raw
+import sdl
+import std.c
+
+fn HasRectIntersection(A: *const raw.SDL_Rect, B: *const raw.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_HasRectIntersection(A, B) {
+        return sdl.last_error("HasRectIntersection failed")
+    }
+    return null
+}
+
+fn GetRectIntersection(A: *const raw.SDL_Rect, B: *const raw.SDL_Rect, result: *raw.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_GetRectIntersection(A, B, result) {
+        return sdl.last_error("GetRectIntersection failed")
+    }
+    return null
+}
+
+fn GetRectUnion(A: *const raw.SDL_Rect, B: *const raw.SDL_Rect, result: *raw.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_GetRectUnion(A, B, result) {
+        return sdl.last_error("GetRectUnion failed")
+    }
+    return null
+}
+
+fn GetRectEnclosingPoints(points: *const raw.SDL_Point, count: c.int, clip: *const raw.SDL_Rect, result: *raw.SDL_Rect): sdl.SDLError? {
+    if !raw.SDL_GetRectEnclosingPoints(points, count, clip, result) {
+        return sdl.last_error("GetRectEnclosingPoints failed")
+    }
+    return null
+}
+
+fn GetRectAndLineIntersection(rect: *const raw.SDL_Rect, X1: *c.int, Y1: *c.int, X2: *c.int, Y2: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetRectAndLineIntersection(rect, X1, Y1, X2, Y2) {
+        return sdl.last_error("GetRectAndLineIntersection failed")
+    }
+    return null
+}
+
+fn HasRectIntersectionFloat(A: *const raw.SDL_FRect, B: *const raw.SDL_FRect): sdl.SDLError? {
+    if !raw.SDL_HasRectIntersectionFloat(A, B) {
+        return sdl.last_error("HasRectIntersectionFloat failed")
+    }
+    return null
+}
+
+fn GetRectIntersectionFloat(A: *const raw.SDL_FRect, B: *const raw.SDL_FRect, result: *raw.SDL_FRect): sdl.SDLError? {
+    if !raw.SDL_GetRectIntersectionFloat(A, B, result) {
+        return sdl.last_error("GetRectIntersectionFloat failed")
+    }
+    return null
+}
+
+fn GetRectUnionFloat(A: *const raw.SDL_FRect, B: *const raw.SDL_FRect, result: *raw.SDL_FRect): sdl.SDLError? {
+    if !raw.SDL_GetRectUnionFloat(A, B, result) {
+        return sdl.last_error("GetRectUnionFloat failed")
+    }
+    return null
+}
+
+fn GetRectEnclosingPointsFloat(points: *const raw.SDL_FPoint, count: c.int, clip: *const raw.SDL_FRect, result: *raw.SDL_FRect): sdl.SDLError? {
+    if !raw.SDL_GetRectEnclosingPointsFloat(points, count, clip, result) {
+        return sdl.last_error("GetRectEnclosingPointsFloat failed")
+    }
+    return null
+}
+
+fn GetRectAndLineIntersectionFloat(rect: *const raw.SDL_FRect, X1: *f32, Y1: *f32, X2: *f32, Y2: *f32): sdl.SDLError? {
+    if !raw.SDL_GetRectAndLineIntersectionFloat(rect, X1, Y1, X2, Y2) {
+        return sdl.last_error("GetRectAndLineIntersectionFloat failed")
+    }
+    return null
+}

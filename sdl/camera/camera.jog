@@ -1,2 +1,74 @@
-// Idiomatic sdl.camera — expand wrappers over sdl3.camera as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.camera.
+// Idiomatic wrappers over sdl3.camera.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.camera as raw
+import sdl3.surface
+import sdl
+import std.c
+
+struct Camera {
+    ptr: *raw.SDL_Camera?
+}
+
+fn empty_camera(): Camera {
+    var h: Camera
+    return h
+}
+
+fn GetNumCameraDrivers(): c.int {
+    return raw.SDL_GetNumCameraDrivers()
+}
+
+fn GetCameraDriver(index: c.int): *const c.char {
+    return raw.SDL_GetCameraDriver(index)
+}
+
+fn GetCurrentCameraDriver(): *const c.char {
+    return raw.SDL_GetCurrentCameraDriver()
+}
+
+fn GetCameras(count: *c.int): *u32 {
+    return raw.SDL_GetCameras(count)
+}
+
+fn GetCameraSupportedFormats(instance_id: u32, count: *c.int): **void {
+    return raw.SDL_GetCameraSupportedFormats(instance_id, count)
+}
+
+fn GetCameraName(instance_id: u32): *const c.char {
+    return raw.SDL_GetCameraName(instance_id)
+}
+
+fn GetCameraPosition(instance_id: u32): u32 {
+    return raw.SDL_GetCameraPosition(instance_id)
+}
+
+fn OpenCamera(instance_id: u32, spec: *const void): *raw.SDL_Camera {
+    return raw.SDL_OpenCamera(instance_id, spec)
+}
+
+fn GetCameraID(camera: *raw.SDL_Camera): u32 {
+    return raw.SDL_GetCameraID(camera)
+}
+
+fn GetCameraProperties(camera: *raw.SDL_Camera): u32 {
+    return raw.SDL_GetCameraProperties(camera)
+}
+
+fn GetCameraFormat(camera: *raw.SDL_Camera, spec: *void): sdl.SDLError? {
+    if !raw.SDL_GetCameraFormat(camera, spec) {
+        return sdl.last_error("GetCameraFormat failed")
+    }
+    return null
+}
+
+fn AcquireCameraFrame(camera: *raw.SDL_Camera, timestampNS: *u64): *surface.SDL_Surface {
+    return raw.SDL_AcquireCameraFrame(camera, timestampNS)
+}
+
+fn ReleaseCameraFrame(camera: *raw.SDL_Camera, frame: *surface.SDL_Surface) {
+    raw.SDL_ReleaseCameraFrame(camera, frame)
+}
+
+fn CloseCamera(camera: *raw.SDL_Camera) {
+    raw.SDL_CloseCamera(camera)
+}

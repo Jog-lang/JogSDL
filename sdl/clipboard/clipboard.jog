@@ -1,2 +1,70 @@
-// Idiomatic sdl.clipboard — expand wrappers over sdl3.clipboard as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.clipboard.
+// Idiomatic wrappers over sdl3.clipboard.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.clipboard as raw
+import sdl
+import std.c
+
+fn SetClipboardText(text: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SetClipboardText(text) {
+        return sdl.last_error("SetClipboardText failed")
+    }
+    return null
+}
+
+fn GetClipboardText(): *c.char {
+    return raw.SDL_GetClipboardText()
+}
+
+fn HasClipboardText(): sdl.SDLError? {
+    if !raw.SDL_HasClipboardText() {
+        return sdl.last_error("HasClipboardText failed")
+    }
+    return null
+}
+
+fn SetPrimarySelectionText(text: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SetPrimarySelectionText(text) {
+        return sdl.last_error("SetPrimarySelectionText failed")
+    }
+    return null
+}
+
+fn GetPrimarySelectionText(): *c.char {
+    return raw.SDL_GetPrimarySelectionText()
+}
+
+fn HasPrimarySelectionText(): sdl.SDLError? {
+    if !raw.SDL_HasPrimarySelectionText() {
+        return sdl.last_error("HasPrimarySelectionText failed")
+    }
+    return null
+}
+
+fn SetClipboardData(callback: *void, cleanup: *void, userdata: *void, mime_types: **c.char, num_mime_types: c.size_t): sdl.SDLError? {
+    if !raw.SDL_SetClipboardData(callback, cleanup, userdata, mime_types, num_mime_types) {
+        return sdl.last_error("SetClipboardData failed")
+    }
+    return null
+}
+
+fn ClearClipboardData(): sdl.SDLError? {
+    if !raw.SDL_ClearClipboardData() {
+        return sdl.last_error("ClearClipboardData failed")
+    }
+    return null
+}
+
+fn GetClipboardData(mime_type: *const c.char, size: *c.size_t): *void {
+    return raw.SDL_GetClipboardData(mime_type, size)
+}
+
+fn HasClipboardData(mime_type: *const c.char): sdl.SDLError? {
+    if !raw.SDL_HasClipboardData(mime_type) {
+        return sdl.last_error("HasClipboardData failed")
+    }
+    return null
+}
+
+fn GetClipboardMimeTypes(num_mime_types: *c.size_t): **c.char {
+    return raw.SDL_GetClipboardMimeTypes(num_mime_types)
+}

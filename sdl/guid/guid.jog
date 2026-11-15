@@ -1,2 +1,12 @@
-// Idiomatic sdl.guid — expand wrappers over sdl3.guid as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.guid.
+// Idiomatic wrappers over sdl3.guid.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.guid as raw
+import std.c
+
+fn GUIDToString(guid: raw.SDL_GUID, pszGUID: *c.char, cbGUID: c.int) {
+    raw.SDL_GUIDToString(guid, pszGUID, cbGUID)
+}
+
+fn StringToGUID(pchGUID: *const c.char): raw.SDL_GUID {
+    return raw.SDL_StringToGUID(pchGUID)
+}

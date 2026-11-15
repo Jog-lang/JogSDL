@@ -1,2 +1,12 @@
-// Idiomatic sdl.misc — expand wrappers over sdl3.misc as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.misc.
+// Idiomatic wrappers over sdl3.misc.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.misc as raw
+import sdl
+import std.c
+
+fn OpenURL(url: *const c.char): sdl.SDLError? {
+    if !raw.SDL_OpenURL(url) {
+        return sdl.last_error("OpenURL failed")
+    }
+    return null
+}

@@ -1,0 +1,59 @@
+// Idiomatic v2 wrappers for SDL camera (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetNumCameraDrivers(): i32 {
+    return SDL_GetNumCameraDrivers()
+}
+
+fn GetCameraDriver(index: i32): *byte {
+    return SDL_GetCameraDriver(index)
+}
+
+fn GetCurrentCameraDriver(): *byte {
+    return SDL_GetCurrentCameraDriver()
+}
+
+fn GetCameras(count: *byte): *byte {
+    return SDL_GetCameras(count)
+}
+
+fn GetCameraSupportedFormats(instance_id: u32, count: *byte): **byte {
+    return SDL_GetCameraSupportedFormats(instance_id, count)
+}
+
+fn GetCameraName(instance_id: u32): *byte {
+    return SDL_GetCameraName(instance_id)
+}
+
+fn OpenCamera(instance_id: u32, spec: *byte): *byte {
+    return SDL_OpenCamera(instance_id, spec)
+}
+
+fn GetCameraID(camera: *byte): u32 {
+    return SDL_GetCameraID(camera)
+}
+
+fn GetCameraProperties(camera: *byte): u32 {
+    return SDL_GetCameraProperties(camera)
+}
+
+fn GetCameraFormat(camera: *byte, spec: *byte): i32 {
+    return SDL_GetCameraFormat(camera, spec)
+}
+
+fn AcquireCameraFrame(camera: *byte, timestampNS: *byte): *byte {
+    return SDL_AcquireCameraFrame(camera, timestampNS)
+}
+
+fn ReleaseCameraFrame(camera: *byte, frame: *byte) {
+    SDL_ReleaseCameraFrame(camera, frame)
+}
+
+fn CloseCamera(camera: *byte) {
+    SDL_CloseCamera(camera)
+}
+
+fn GetCameraPosition(instance_id: u32): *byte {
+    return SDL_GetCameraPosition(instance_id)
+}
+

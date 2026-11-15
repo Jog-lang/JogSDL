@@ -1,2 +1,129 @@
-// Idiomatic sdl.tray — expand wrappers over sdl3.tray as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.tray.
+// Idiomatic wrappers over sdl3.tray.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.tray as raw
+import sdl3.surface
+import sdl
+import std.c
+
+struct Tray {
+    ptr: *raw.SDL_Tray?
+}
+
+fn empty_tray(): Tray {
+    var h: Tray
+    return h
+}
+
+struct TrayMenu {
+    ptr: *raw.SDL_TrayMenu?
+}
+
+fn empty_traymenu(): TrayMenu {
+    var h: TrayMenu
+    return h
+}
+
+struct TrayEntry {
+    ptr: *raw.SDL_TrayEntry?
+}
+
+fn empty_trayentry(): TrayEntry {
+    var h: TrayEntry
+    return h
+}
+
+fn CreateTray(icon: *surface.SDL_Surface, tooltip: *const c.char): *raw.SDL_Tray {
+    return raw.SDL_CreateTray(icon, tooltip)
+}
+
+fn SetTrayIcon(tray: *raw.SDL_Tray, icon: *surface.SDL_Surface) {
+    raw.SDL_SetTrayIcon(tray, icon)
+}
+
+fn SetTrayTooltip(tray: *raw.SDL_Tray, tooltip: *const c.char) {
+    raw.SDL_SetTrayTooltip(tray, tooltip)
+}
+
+fn CreateTrayMenu(tray: *raw.SDL_Tray): *raw.SDL_TrayMenu {
+    return raw.SDL_CreateTrayMenu(tray)
+}
+
+fn CreateTraySubmenu(entry: *raw.SDL_TrayEntry): *raw.SDL_TrayMenu {
+    return raw.SDL_CreateTraySubmenu(entry)
+}
+
+fn GetTrayMenu(tray: *raw.SDL_Tray): *raw.SDL_TrayMenu {
+    return raw.SDL_GetTrayMenu(tray)
+}
+
+fn GetTraySubmenu(entry: *raw.SDL_TrayEntry): *raw.SDL_TrayMenu {
+    return raw.SDL_GetTraySubmenu(entry)
+}
+
+fn GetTrayEntries(menu: *raw.SDL_TrayMenu, count: *c.int): **raw.SDL_TrayEntry {
+    return raw.SDL_GetTrayEntries(menu, count)
+}
+
+fn RemoveTrayEntry(entry: *raw.SDL_TrayEntry) {
+    raw.SDL_RemoveTrayEntry(entry)
+}
+
+fn SetTrayEntryLabel(entry: *raw.SDL_TrayEntry, label: *const c.char) {
+    raw.SDL_SetTrayEntryLabel(entry, label)
+}
+
+fn GetTrayEntryLabel(entry: *raw.SDL_TrayEntry): *const c.char {
+    return raw.SDL_GetTrayEntryLabel(entry)
+}
+
+fn SetTrayEntryChecked(entry: *raw.SDL_TrayEntry, checked: bool) {
+    raw.SDL_SetTrayEntryChecked(entry, checked)
+}
+
+fn GetTrayEntryChecked(entry: *raw.SDL_TrayEntry): sdl.SDLError? {
+    if !raw.SDL_GetTrayEntryChecked(entry) {
+        return sdl.last_error("GetTrayEntryChecked failed")
+    }
+    return null
+}
+
+fn SetTrayEntryEnabled(entry: *raw.SDL_TrayEntry, enabled: bool) {
+    raw.SDL_SetTrayEntryEnabled(entry, enabled)
+}
+
+fn GetTrayEntryEnabled(entry: *raw.SDL_TrayEntry): sdl.SDLError? {
+    if !raw.SDL_GetTrayEntryEnabled(entry) {
+        return sdl.last_error("GetTrayEntryEnabled failed")
+    }
+    return null
+}
+
+fn SetTrayEntryCallback(entry: *raw.SDL_TrayEntry, callback: *void, userdata: *void) {
+    raw.SDL_SetTrayEntryCallback(entry, callback, userdata)
+}
+
+fn ClickTrayEntry(entry: *raw.SDL_TrayEntry) {
+    raw.SDL_ClickTrayEntry(entry)
+}
+
+fn Tray.destroy() {
+    if self.ptr != null {
+        raw.SDL_DestroyTray(self.ptr!!)
+    }
+}
+
+fn GetTrayEntryParent(entry: *raw.SDL_TrayEntry): *raw.SDL_TrayMenu {
+    return raw.SDL_GetTrayEntryParent(entry)
+}
+
+fn GetTrayMenuParentEntry(menu: *raw.SDL_TrayMenu): *raw.SDL_TrayEntry {
+    return raw.SDL_GetTrayMenuParentEntry(menu)
+}
+
+fn GetTrayMenuParentTray(menu: *raw.SDL_TrayMenu): *raw.SDL_Tray {
+    return raw.SDL_GetTrayMenuParentTray(menu)
+}
+
+fn UpdateTrays() {
+    raw.SDL_UpdateTrays()
+}

@@ -1,0 +1,39 @@
+// Idiomatic v2 wrappers for SDL process (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn CreateProcess(args: **byte, pipe_stdio: i32): *byte {
+    return SDL_CreateProcess(args, pipe_stdio)
+}
+
+fn CreateProcessWithProperties(props: u32): *byte {
+    return SDL_CreateProcessWithProperties(props)
+}
+
+fn GetProcessProperties(process: *byte): u32 {
+    return SDL_GetProcessProperties(process)
+}
+
+fn ReadProcess(process: *byte, datasize: *byte, exitcode: *byte): *byte {
+    return SDL_ReadProcess(process, datasize, exitcode)
+}
+
+fn GetProcessInput(process: *byte): *byte {
+    return SDL_GetProcessInput(process)
+}
+
+fn GetProcessOutput(process: *byte): *byte {
+    return SDL_GetProcessOutput(process)
+}
+
+fn KillProcess(process: *byte, force: i32): i32 {
+    return SDL_KillProcess(process, force)
+}
+
+fn WaitProcess(process: *byte, block: i32, exitcode: *byte): i32 {
+    return SDL_WaitProcess(process, block, exitcode)
+}
+
+fn DestroyProcess(process: *byte) {
+    SDL_DestroyProcess(process)
+}
+

@@ -1,2 +1,21 @@
-// Idiomatic sdl.dialog — expand wrappers over sdl3.dialog as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.dialog.
+// Idiomatic wrappers over sdl3.dialog.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.dialog as raw
+import sdl3.video
+import std.c
+
+fn ShowOpenFileDialog(callback: *void, userdata: *void, window: *video.SDL_Window, filters: *const void, nfilters: c.int, default_location: *const c.char, allow_many: bool) {
+    raw.SDL_ShowOpenFileDialog(callback, userdata, window, filters, nfilters, default_location, allow_many)
+}
+
+fn ShowSaveFileDialog(callback: *void, userdata: *void, window: *video.SDL_Window, filters: *const void, nfilters: c.int, default_location: *const c.char) {
+    raw.SDL_ShowSaveFileDialog(callback, userdata, window, filters, nfilters, default_location)
+}
+
+fn ShowOpenFolderDialog(callback: *void, userdata: *void, window: *video.SDL_Window, default_location: *const c.char, allow_many: bool) {
+    raw.SDL_ShowOpenFolderDialog(callback, userdata, window, default_location, allow_many)
+}
+
+fn ShowFileDialogWithProperties(type_: u32, callback: *void, userdata: *void, props: u32) {
+    raw.SDL_ShowFileDialogWithProperties(type_, callback, userdata, props)
+}

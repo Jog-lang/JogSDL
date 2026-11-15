@@ -1,2 +1,24 @@
-// Idiomatic sdl.main — expand wrappers over sdl3.main as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.main.
+// Idiomatic wrappers over sdl3.main.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.main as raw
+import sdl
+import std.c
+
+fn SetMainReady() {
+    raw.SDL_SetMainReady()
+}
+
+fn RegisterApp(name: *const c.char, style: u32, hInst: *void): sdl.SDLError? {
+    if !raw.SDL_RegisterApp(name, style, hInst) {
+        return sdl.last_error("RegisterApp failed")
+    }
+    return null
+}
+
+fn UnregisterApp() {
+    raw.SDL_UnregisterApp()
+}
+
+fn GDKSuspendComplete() {
+    raw.SDL_GDKSuspendComplete()
+}

@@ -1,0 +1,391 @@
+// Idiomatic v2 wrappers for SDL gpu (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GPUSupportsProperties(props: u32): i32 {
+    return SDL_GPUSupportsProperties(props)
+}
+
+fn CreateGPUDeviceWithProperties(props: u32): *byte {
+    return SDL_CreateGPUDeviceWithProperties(props)
+}
+
+fn DestroyGPUDevice(device: *byte) {
+    SDL_DestroyGPUDevice(device)
+}
+
+fn GetNumGPUDrivers(): i32 {
+    return SDL_GetNumGPUDrivers()
+}
+
+fn GetGPUDriver(index: i32): *byte {
+    return SDL_GetGPUDriver(index)
+}
+
+fn GetGPUDeviceDriver(device: *byte): *byte {
+    return SDL_GetGPUDeviceDriver(device)
+}
+
+fn GetGPUDeviceProperties(device: *byte): u32 {
+    return SDL_GetGPUDeviceProperties(device)
+}
+
+fn CreateGPUComputePipeline(device: *byte, createinfo: *byte): *byte {
+    return SDL_CreateGPUComputePipeline(device, createinfo)
+}
+
+fn CreateGPUGraphicsPipeline(device: *byte, createinfo: *byte): *byte {
+    return SDL_CreateGPUGraphicsPipeline(device, createinfo)
+}
+
+fn CreateGPUSampler(device: *byte, createinfo: *byte): *byte {
+    return SDL_CreateGPUSampler(device, createinfo)
+}
+
+fn CreateGPUShader(device: *byte, createinfo: *byte): *byte {
+    return SDL_CreateGPUShader(device, createinfo)
+}
+
+fn CreateGPUTexture(device: *byte, createinfo: *byte): *byte {
+    return SDL_CreateGPUTexture(device, createinfo)
+}
+
+fn CreateGPUBuffer(device: *byte, createinfo: *byte): *byte {
+    return SDL_CreateGPUBuffer(device, createinfo)
+}
+
+fn CreateGPUTransferBuffer(device: *byte, createinfo: *byte): *byte {
+    return SDL_CreateGPUTransferBuffer(device, createinfo)
+}
+
+fn SetGPUBufferName(device: *byte, buffer: *byte, text: *byte) {
+    SDL_SetGPUBufferName(device, buffer, text)
+}
+
+fn SetGPUTextureName(device: *byte, texture: *byte, text: *byte) {
+    SDL_SetGPUTextureName(device, texture, text)
+}
+
+fn InsertGPUDebugLabel(command_buffer: *byte, text: *byte) {
+    SDL_InsertGPUDebugLabel(command_buffer, text)
+}
+
+fn PushGPUDebugGroup(command_buffer: *byte, name: *byte) {
+    SDL_PushGPUDebugGroup(command_buffer, name)
+}
+
+fn PopGPUDebugGroup(command_buffer: *byte) {
+    SDL_PopGPUDebugGroup(command_buffer)
+}
+
+fn ReleaseGPUTexture(device: *byte, texture: *byte) {
+    SDL_ReleaseGPUTexture(device, texture)
+}
+
+fn ReleaseGPUSampler(device: *byte, sampler: *byte) {
+    SDL_ReleaseGPUSampler(device, sampler)
+}
+
+fn ReleaseGPUBuffer(device: *byte, buffer: *byte) {
+    SDL_ReleaseGPUBuffer(device, buffer)
+}
+
+fn ReleaseGPUTransferBuffer(device: *byte, transfer_buffer: *byte) {
+    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer)
+}
+
+fn ReleaseGPUComputePipeline(device: *byte, compute_pipeline: *byte) {
+    SDL_ReleaseGPUComputePipeline(device, compute_pipeline)
+}
+
+fn ReleaseGPUShader(device: *byte, shader: *byte) {
+    SDL_ReleaseGPUShader(device, shader)
+}
+
+fn ReleaseGPUGraphicsPipeline(device: *byte, graphics_pipeline: *byte) {
+    SDL_ReleaseGPUGraphicsPipeline(device, graphics_pipeline)
+}
+
+fn AcquireGPUCommandBuffer(device: *byte): *byte {
+    return SDL_AcquireGPUCommandBuffer(device)
+}
+
+fn PushGPUVertexUniformData(command_buffer: *byte, slot_index: u32, data: *byte, length: u32) {
+    SDL_PushGPUVertexUniformData(command_buffer, slot_index, data, length)
+}
+
+fn PushGPUFragmentUniformData(command_buffer: *byte, slot_index: u32, data: *byte, length: u32) {
+    SDL_PushGPUFragmentUniformData(command_buffer, slot_index, data, length)
+}
+
+fn PushGPUComputeUniformData(command_buffer: *byte, slot_index: u32, data: *byte, length: u32) {
+    SDL_PushGPUComputeUniformData(command_buffer, slot_index, data, length)
+}
+
+fn BeginGPURenderPass(command_buffer: *byte, color_target_infos: *byte, num_color_targets: u32, depth_stencil_target_info: *byte): *byte {
+    return SDL_BeginGPURenderPass(command_buffer, color_target_infos, num_color_targets, depth_stencil_target_info)
+}
+
+fn BindGPUGraphicsPipeline(render_pass: *byte, graphics_pipeline: *byte) {
+    SDL_BindGPUGraphicsPipeline(render_pass, graphics_pipeline)
+}
+
+fn SetGPUViewport(render_pass: *byte, viewport: *byte) {
+    SDL_SetGPUViewport(render_pass, viewport)
+}
+
+fn SetGPUScissor(render_pass: *byte, scissor: *byte) {
+    SDL_SetGPUScissor(render_pass, scissor)
+}
+
+fn SetGPUStencilReference(render_pass: *byte, reference: u8) {
+    SDL_SetGPUStencilReference(render_pass, reference)
+}
+
+fn BindGPUVertexBuffers(render_pass: *byte, first_slot: u32, bindings: *byte, num_bindings: u32) {
+    SDL_BindGPUVertexBuffers(render_pass, first_slot, bindings, num_bindings)
+}
+
+fn BindGPUVertexSamplers(render_pass: *byte, first_slot: u32, texture_sampler_bindings: *byte, num_bindings: u32) {
+    SDL_BindGPUVertexSamplers(render_pass, first_slot, texture_sampler_bindings, num_bindings)
+}
+
+fn BindGPUVertexStorageTextures(render_pass: *byte, first_slot: u32, storage_textures: **byte, num_bindings: u32) {
+    SDL_BindGPUVertexStorageTextures(render_pass, first_slot, storage_textures, num_bindings)
+}
+
+fn BindGPUVertexStorageBuffers(render_pass: *byte, first_slot: u32, storage_buffers: **byte, num_bindings: u32) {
+    SDL_BindGPUVertexStorageBuffers(render_pass, first_slot, storage_buffers, num_bindings)
+}
+
+fn BindGPUFragmentSamplers(render_pass: *byte, first_slot: u32, texture_sampler_bindings: *byte, num_bindings: u32) {
+    SDL_BindGPUFragmentSamplers(render_pass, first_slot, texture_sampler_bindings, num_bindings)
+}
+
+fn BindGPUFragmentStorageTextures(render_pass: *byte, first_slot: u32, storage_textures: **byte, num_bindings: u32) {
+    SDL_BindGPUFragmentStorageTextures(render_pass, first_slot, storage_textures, num_bindings)
+}
+
+fn BindGPUFragmentStorageBuffers(render_pass: *byte, first_slot: u32, storage_buffers: **byte, num_bindings: u32) {
+    SDL_BindGPUFragmentStorageBuffers(render_pass, first_slot, storage_buffers, num_bindings)
+}
+
+fn DrawGPUIndexedPrimitives(render_pass: *byte, num_indices: u32, num_instances: u32, first_index: u32, vertex_offset: i32, first_instance: u32) {
+    SDL_DrawGPUIndexedPrimitives(render_pass, num_indices, num_instances, first_index, vertex_offset, first_instance)
+}
+
+fn DrawGPUPrimitives(render_pass: *byte, num_vertices: u32, num_instances: u32, first_vertex: u32, first_instance: u32) {
+    SDL_DrawGPUPrimitives(render_pass, num_vertices, num_instances, first_vertex, first_instance)
+}
+
+fn DrawGPUPrimitivesIndirect(render_pass: *byte, buffer: *byte, offset: u32, draw_count: u32) {
+    SDL_DrawGPUPrimitivesIndirect(render_pass, buffer, offset, draw_count)
+}
+
+fn DrawGPUIndexedPrimitivesIndirect(render_pass: *byte, buffer: *byte, offset: u32, draw_count: u32) {
+    SDL_DrawGPUIndexedPrimitivesIndirect(render_pass, buffer, offset, draw_count)
+}
+
+fn EndGPURenderPass(render_pass: *byte) {
+    SDL_EndGPURenderPass(render_pass)
+}
+
+fn BeginGPUComputePass(command_buffer: *byte, storage_texture_bindings: *byte, num_storage_texture_bindings: u32, storage_buffer_bindings: *byte, num_storage_buffer_bindings: u32): *byte {
+    return SDL_BeginGPUComputePass(command_buffer, storage_texture_bindings, num_storage_texture_bindings, storage_buffer_bindings, num_storage_buffer_bindings)
+}
+
+fn BindGPUComputePipeline(compute_pass: *byte, compute_pipeline: *byte) {
+    SDL_BindGPUComputePipeline(compute_pass, compute_pipeline)
+}
+
+fn BindGPUComputeSamplers(compute_pass: *byte, first_slot: u32, texture_sampler_bindings: *byte, num_bindings: u32) {
+    SDL_BindGPUComputeSamplers(compute_pass, first_slot, texture_sampler_bindings, num_bindings)
+}
+
+fn BindGPUComputeStorageTextures(compute_pass: *byte, first_slot: u32, storage_textures: **byte, num_bindings: u32) {
+    SDL_BindGPUComputeStorageTextures(compute_pass, first_slot, storage_textures, num_bindings)
+}
+
+fn BindGPUComputeStorageBuffers(compute_pass: *byte, first_slot: u32, storage_buffers: **byte, num_bindings: u32) {
+    SDL_BindGPUComputeStorageBuffers(compute_pass, first_slot, storage_buffers, num_bindings)
+}
+
+fn DispatchGPUCompute(compute_pass: *byte, groupcount_x: u32, groupcount_y: u32, groupcount_z: u32) {
+    SDL_DispatchGPUCompute(compute_pass, groupcount_x, groupcount_y, groupcount_z)
+}
+
+fn DispatchGPUComputeIndirect(compute_pass: *byte, buffer: *byte, offset: u32) {
+    SDL_DispatchGPUComputeIndirect(compute_pass, buffer, offset)
+}
+
+fn EndGPUComputePass(compute_pass: *byte) {
+    SDL_EndGPUComputePass(compute_pass)
+}
+
+fn MapGPUTransferBuffer(device: *byte, transfer_buffer: *byte, cycle: i32): *byte {
+    return SDL_MapGPUTransferBuffer(device, transfer_buffer, cycle)
+}
+
+fn UnmapGPUTransferBuffer(device: *byte, transfer_buffer: *byte) {
+    SDL_UnmapGPUTransferBuffer(device, transfer_buffer)
+}
+
+fn BeginGPUCopyPass(command_buffer: *byte): *byte {
+    return SDL_BeginGPUCopyPass(command_buffer)
+}
+
+fn UploadToGPUTexture(copy_pass: *byte, source: *byte, destination: *byte, cycle: i32) {
+    SDL_UploadToGPUTexture(copy_pass, source, destination, cycle)
+}
+
+fn UploadToGPUBuffer(copy_pass: *byte, source: *byte, destination: *byte, cycle: i32) {
+    SDL_UploadToGPUBuffer(copy_pass, source, destination, cycle)
+}
+
+fn CopyGPUTextureToTexture(copy_pass: *byte, source: *byte, destination: *byte, w: u32, h: u32, d: u32, cycle: i32) {
+    SDL_CopyGPUTextureToTexture(copy_pass, source, destination, w, h, d, cycle)
+}
+
+fn CopyGPUBufferToBuffer(copy_pass: *byte, source: *byte, destination: *byte, size: u32, cycle: i32) {
+    SDL_CopyGPUBufferToBuffer(copy_pass, source, destination, size, cycle)
+}
+
+fn DownloadFromGPUTexture(copy_pass: *byte, source: *byte, destination: *byte) {
+    SDL_DownloadFromGPUTexture(copy_pass, source, destination)
+}
+
+fn DownloadFromGPUBuffer(copy_pass: *byte, source: *byte, destination: *byte) {
+    SDL_DownloadFromGPUBuffer(copy_pass, source, destination)
+}
+
+fn EndGPUCopyPass(copy_pass: *byte) {
+    SDL_EndGPUCopyPass(copy_pass)
+}
+
+fn GenerateMipmapsForGPUTexture(command_buffer: *byte, texture: *byte) {
+    SDL_GenerateMipmapsForGPUTexture(command_buffer, texture)
+}
+
+fn BlitGPUTexture(command_buffer: *byte, info: *byte) {
+    SDL_BlitGPUTexture(command_buffer, info)
+}
+
+fn ClaimWindowForGPUDevice(device: *byte, window: *byte): i32 {
+    return SDL_ClaimWindowForGPUDevice(device, window)
+}
+
+fn ReleaseWindowFromGPUDevice(device: *byte, window: *byte) {
+    SDL_ReleaseWindowFromGPUDevice(device, window)
+}
+
+fn SetGPUAllowedFramesInFlight(device: *byte, allowed_frames_in_flight: u32): i32 {
+    return SDL_SetGPUAllowedFramesInFlight(device, allowed_frames_in_flight)
+}
+
+fn AcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32 {
+    return SDL_AcquireGPUSwapchainTexture(command_buffer, window, swapchain_texture, swapchain_texture_width, swapchain_texture_height)
+}
+
+fn WaitForGPUSwapchain(device: *byte, window: *byte): i32 {
+    return SDL_WaitForGPUSwapchain(device, window)
+}
+
+fn WaitAndAcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32 {
+    return SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window, swapchain_texture, swapchain_texture_width, swapchain_texture_height)
+}
+
+fn SubmitGPUCommandBuffer(command_buffer: *byte): i32 {
+    return SDL_SubmitGPUCommandBuffer(command_buffer)
+}
+
+fn SubmitGPUCommandBufferAndAcquireFence(command_buffer: *byte): *byte {
+    return SDL_SubmitGPUCommandBufferAndAcquireFence(command_buffer)
+}
+
+fn CancelGPUCommandBuffer(command_buffer: *byte): i32 {
+    return SDL_CancelGPUCommandBuffer(command_buffer)
+}
+
+fn WaitForGPUIdle(device: *byte): i32 {
+    return SDL_WaitForGPUIdle(device)
+}
+
+fn WaitForGPUFences(device: *byte, wait_all: i32, fences: **byte, num_fences: u32): i32 {
+    return SDL_WaitForGPUFences(device, wait_all, fences, num_fences)
+}
+
+fn QueryGPUFence(device: *byte, fence: *byte): i32 {
+    return SDL_QueryGPUFence(device, fence)
+}
+
+fn ReleaseGPUFence(device: *byte, fence: *byte) {
+    SDL_ReleaseGPUFence(device, fence)
+}
+
+fn BindGPUIndexBuffer(render_pass: *byte, binding: *byte, index_element_size: u32): i32 {
+    return SDL_BindGPUIndexBuffer(render_pass, binding, index_element_size)
+}
+
+fn CalculateGPUTextureFormatSize(format: u32, width: u32, height: u32, depth_or_layer_count: u32): i32 {
+    return SDL_CalculateGPUTextureFormatSize(format, width, height, depth_or_layer_count)
+}
+
+fn CreateGPUDevice(format_flags: u32, debug_mode: i32, name: *byte): i32 {
+    return SDL_CreateGPUDevice(format_flags, debug_mode, name)
+}
+
+fn GPUSupportsShaderFormats(format_flags: u32, name: *byte): i32 {
+    return SDL_GPUSupportsShaderFormats(format_flags, name)
+}
+
+fn GPUTextureFormatTexelBlockSize(format: u32): i32 {
+    return SDL_GPUTextureFormatTexelBlockSize(format)
+}
+
+fn GPUTextureSupportsFormat(device: *byte, format: u32, type_: u32, usage: u32): i32 {
+    return SDL_GPUTextureSupportsFormat(device, format, type_, usage)
+}
+
+fn GPUTextureSupportsSampleCount(device: *byte, format: u32, sample_count: u32): i32 {
+    return SDL_GPUTextureSupportsSampleCount(device, format, sample_count)
+}
+
+fn GetGPUShaderFormats(device: *byte): *byte {
+    return SDL_GetGPUShaderFormats(device)
+}
+
+fn GetGPUSwapchainTextureFormat(device: *byte, window: *byte): *byte {
+    return SDL_GetGPUSwapchainTextureFormat(device, window)
+}
+
+fn GetGPUTextureFormatFromPixelFormat(format: u32): *byte {
+    return SDL_GetGPUTextureFormatFromPixelFormat(format)
+}
+
+fn GetPixelFormatFromGPUTextureFormat(format: u32): *byte {
+    return SDL_GetPixelFormatFromGPUTextureFormat(format)
+}
+
+fn SetGPUBlendConstants(render_pass: *byte, blend_constants: i32): i32 {
+    return SDL_SetGPUBlendConstants(render_pass, blend_constants)
+}
+
+fn SetGPUSwapchainParameters(device: *byte, window: *byte, swapchain_composition: u32, present_mode: u32): i32 {
+    return SDL_SetGPUSwapchainParameters(device, window, swapchain_composition, present_mode)
+}
+
+fn WindowSupportsGPUPresentMode(device: *byte, window: *byte, present_mode: u32): i32 {
+    return SDL_WindowSupportsGPUPresentMode(device, window, present_mode)
+}
+
+fn WindowSupportsGPUSwapchainComposition(device: *byte, window: *byte, swapchain_composition: u32): i32 {
+    return SDL_WindowSupportsGPUSwapchainComposition(device, window, swapchain_composition)
+}
+
+fn GDKResumeGPU(device: *byte): i32 {
+    return SDL_GDKResumeGPU(device)
+}
+
+fn GDKSuspendGPU(device: *byte) {
+    SDL_GDKSuspendGPU(device)
+}
+

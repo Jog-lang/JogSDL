@@ -1,0 +1,199 @@
+// Idiomatic v2 wrappers for SDL stdinc (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn malloc(size: u64): *byte {
+    return SDL_malloc(size)
+}
+
+fn calloc(nmemb: u64, size: u64): *byte {
+    return SDL_calloc(nmemb, size)
+}
+
+fn realloc(mem: *byte, size: u64): *byte {
+    return SDL_realloc(mem, size)
+}
+
+fn free(mem: *byte) {
+    SDL_free(mem)
+}
+
+fn aligned_alloc(alignment: u64, size: u64): *byte {
+    return SDL_aligned_alloc(alignment, size)
+}
+
+fn aligned_free(mem: *byte) {
+    SDL_aligned_free(mem)
+}
+
+fn GetNumAllocations(): i32 {
+    return SDL_GetNumAllocations()
+}
+
+fn getenv(name: *byte): *byte {
+    return SDL_getenv(name)
+}
+
+fn abs(x: i32): i32 {
+    return SDL_abs(x)
+}
+
+fn isalpha(x: i32): i32 {
+    return SDL_isalpha(x)
+}
+
+fn isalnum(x: i32): i32 {
+    return SDL_isalnum(x)
+}
+
+fn isdigit(x: i32): i32 {
+    return SDL_isdigit(x)
+}
+
+fn isspace(x: i32): i32 {
+    return SDL_isspace(x)
+}
+
+fn toupper(x: i32): i32 {
+    return SDL_toupper(x)
+}
+
+fn tolower(x: i32): i32 {
+    return SDL_tolower(x)
+}
+
+fn crc16(crc: u16, data: *byte, len: u64): u16 {
+    return SDL_crc16(crc, data, len)
+}
+
+fn crc32(crc: u32, data: *byte, len: u64): u32 {
+    return SDL_crc32(crc, data, len)
+}
+
+fn murmur3_32(data: *byte, len: u64, seed: u32): u32 {
+    return SDL_murmur3_32(data, len, seed)
+}
+
+fn memcpy(dst: *byte, src: *byte, len: u64): *byte {
+    return SDL_memcpy(dst, src, len)
+}
+
+fn memmove(dst: *byte, src: *byte, len: u64): *byte {
+    return SDL_memmove(dst, src, len)
+}
+
+fn memset(dst: *byte, c: i32, len: u64): *byte {
+    return SDL_memset(dst, c, len)
+}
+
+fn memcmp(s1: *byte, s2: *byte, len: u64): i32 {
+    return SDL_memcmp(s1, s2, len)
+}
+
+fn wcslen(wstr: *byte): u64 {
+    return SDL_wcslen(wstr)
+}
+
+fn wcsnlen(wstr: *byte, maxlen: u64): u64 {
+    return SDL_wcsnlen(wstr, maxlen)
+}
+
+fn strlen(str: *byte): u64 {
+    return SDL_strlen(str)
+}
+
+fn strnlen(str: *byte, maxlen: u64): u64 {
+    return SDL_strnlen(str, maxlen)
+}
+
+fn strlcpy(dst: *byte, src: *byte, maxlen: u64): u64 {
+    return SDL_strlcpy(dst, src, maxlen)
+}
+
+fn strlcat(dst: *byte, src: *byte, maxlen: u64): u64 {
+    return SDL_strlcat(dst, src, maxlen)
+}
+
+fn strdup(str: *byte): *byte {
+    return SDL_strdup(str)
+}
+
+fn strndup(str: *byte, maxlen: u64): *byte {
+    return SDL_strndup(str, maxlen)
+}
+
+fn strchr(str: *byte, c: i32): *byte {
+    return SDL_strchr(str, c)
+}
+
+fn strrchr(str: *byte, c: i32): *byte {
+    return SDL_strrchr(str, c)
+}
+
+fn strstr(haystack: *byte, needle: *byte): *byte {
+    return SDL_strstr(haystack, needle)
+}
+
+fn utf8strlen(str: *byte): u64 {
+    return SDL_utf8strlen(str)
+}
+
+fn utf8strnlen(str: *byte, bytes: u64): u64 {
+    return SDL_utf8strnlen(str, bytes)
+}
+
+fn atoi(str: *byte): i32 {
+    return SDL_atoi(str)
+}
+
+fn atof(str: *byte): f64 {
+    return SDL_atof(str)
+}
+
+fn strcmp(str1: *byte, str2: *byte): i32 {
+    return SDL_strcmp(str1, str2)
+}
+
+fn strncmp(str1: *byte, str2: *byte, maxlen: u64): i32 {
+    return SDL_strncmp(str1, str2, maxlen)
+}
+
+fn strcasecmp(str1: *byte, str2: *byte): i32 {
+    return SDL_strcasecmp(str1, str2)
+}
+
+fn strncasecmp(str1: *byte, str2: *byte, maxlen: u64): i32 {
+    return SDL_strncasecmp(str1, str2, maxlen)
+}
+
+fn srand(seed: u64) {
+    SDL_srand(seed)
+}
+
+fn rand(n: i32): i32 {
+    return SDL_rand(n)
+}
+
+fn randf(): f32 {
+    return SDL_randf()
+}
+
+fn rand_bits(): u32 {
+    return SDL_rand_bits()
+}
+
+fn rand_r(state: *byte, n: i32): i32 {
+    return SDL_rand_r(state, n)
+}
+
+fn randf_r(state: *byte): f32 {
+    return SDL_randf_r(state)
+}
+
+fn rand_bits_r(state: *byte): u32 {
+    return SDL_rand_bits_r(state)
+}
+
+fn iconv_string(tocode: *byte, fromcode: *byte, inbuf: *byte, inbytesleft: u64): *byte {
+    return SDL_iconv_string(tocode, fromcode, inbuf, inbytesleft)
+}
+

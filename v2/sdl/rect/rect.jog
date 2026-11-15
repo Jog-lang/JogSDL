@@ -1,0 +1,43 @@
+// Idiomatic v2 wrappers for SDL rect (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn HasRectIntersection(A: *byte, B: *byte): i32 {
+    return SDL_HasRectIntersection(A, B)
+}
+
+fn GetRectIntersection(A: *byte, B: *byte, result: *byte): i32 {
+    return SDL_GetRectIntersection(A, B, result)
+}
+
+fn GetRectUnion(A: *byte, B: *byte, result: *byte): i32 {
+    return SDL_GetRectUnion(A, B, result)
+}
+
+fn GetRectEnclosingPoints(points: *byte, count: i32, clip: *byte, result: *byte): i32 {
+    return SDL_GetRectEnclosingPoints(points, count, clip, result)
+}
+
+fn GetRectAndLineIntersection(rect: *byte, X1: *byte, Y1: *byte, X2: *byte, Y2: *byte): i32 {
+    return SDL_GetRectAndLineIntersection(rect, X1, Y1, X2, Y2)
+}
+
+fn HasRectIntersectionFloat(A: *byte, B: *byte): i32 {
+    return SDL_HasRectIntersectionFloat(A, B)
+}
+
+fn GetRectIntersectionFloat(A: *byte, B: *byte, result: *byte): i32 {
+    return SDL_GetRectIntersectionFloat(A, B, result)
+}
+
+fn GetRectUnionFloat(A: *byte, B: *byte, result: *byte): i32 {
+    return SDL_GetRectUnionFloat(A, B, result)
+}
+
+fn GetRectEnclosingPointsFloat(points: *byte, count: i32, clip: *byte, result: *byte): i32 {
+    return SDL_GetRectEnclosingPointsFloat(points, count, clip, result)
+}
+
+fn GetRectAndLineIntersectionFloat(rect: *byte, X1: *byte, Y1: *byte, X2: *byte, Y2: *byte): i32 {
+    return SDL_GetRectAndLineIntersectionFloat(rect, X1, Y1, X2, Y2)
+}
+

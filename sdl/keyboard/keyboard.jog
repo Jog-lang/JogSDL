@@ -1,2 +1,136 @@
-// Idiomatic sdl.keyboard — expand wrappers over sdl3.keyboard as needed.
-// Full raw SDL_* surface for this category lives in unexported package sdl3.keyboard.
+// Idiomatic wrappers over sdl3.keyboard.
+// Variadic / unexpressible C entry points are omitted — see JogDocs Friction.
+import sdl3.keyboard as raw
+import sdl3.rect
+import sdl3.video
+import sdl
+import std.c
+
+fn HasKeyboard(): sdl.SDLError? {
+    if !raw.SDL_HasKeyboard() {
+        return sdl.last_error("HasKeyboard failed")
+    }
+    return null
+}
+
+fn GetKeyboards(count: *c.int): *u32 {
+    return raw.SDL_GetKeyboards(count)
+}
+
+fn GetKeyboardNameForID(instance_id: u32): *const c.char {
+    return raw.SDL_GetKeyboardNameForID(instance_id)
+}
+
+fn GetKeyboardFocus(): *video.SDL_Window {
+    return raw.SDL_GetKeyboardFocus()
+}
+
+fn GetKeyboardState(numkeys: *c.int): *const u8 {
+    return raw.SDL_GetKeyboardState(numkeys)
+}
+
+fn ResetKeyboard() {
+    raw.SDL_ResetKeyboard()
+}
+
+fn GetModState(): u16 {
+    return raw.SDL_GetModState()
+}
+
+fn SetModState(modstate: u16) {
+    raw.SDL_SetModState(modstate)
+}
+
+fn GetKeyFromScancode(scancode: u32, modstate: u16, key_event: bool): u32 {
+    return raw.SDL_GetKeyFromScancode(scancode, modstate, key_event)
+}
+
+fn GetScancodeFromKey(key: u32, modstate: *u16): u32 {
+    return raw.SDL_GetScancodeFromKey(key, modstate)
+}
+
+fn SetScancodeName(scancode: u32, name: *const c.char): sdl.SDLError? {
+    if !raw.SDL_SetScancodeName(scancode, name) {
+        return sdl.last_error("SetScancodeName failed")
+    }
+    return null
+}
+
+fn GetScancodeName(scancode: u32): *const c.char {
+    return raw.SDL_GetScancodeName(scancode)
+}
+
+fn GetScancodeFromName(name: *const c.char): u32 {
+    return raw.SDL_GetScancodeFromName(name)
+}
+
+fn GetKeyName(key: u32): *const c.char {
+    return raw.SDL_GetKeyName(key)
+}
+
+fn GetKeyFromName(name: *const c.char): u32 {
+    return raw.SDL_GetKeyFromName(name)
+}
+
+fn StartTextInput(window: *video.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_StartTextInput(window) {
+        return sdl.last_error("StartTextInput failed")
+    }
+    return null
+}
+
+fn StartTextInputWithProperties(window: *video.SDL_Window, props: u32): sdl.SDLError? {
+    if !raw.SDL_StartTextInputWithProperties(window, props) {
+        return sdl.last_error("StartTextInputWithProperties failed")
+    }
+    return null
+}
+
+fn TextInputActive(window: *video.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_TextInputActive(window) {
+        return sdl.last_error("TextInputActive failed")
+    }
+    return null
+}
+
+fn StopTextInput(window: *video.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_StopTextInput(window) {
+        return sdl.last_error("StopTextInput failed")
+    }
+    return null
+}
+
+fn ClearComposition(window: *video.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_ClearComposition(window) {
+        return sdl.last_error("ClearComposition failed")
+    }
+    return null
+}
+
+fn SetTextInputArea(window: *video.SDL_Window, rect: *const rect.SDL_Rect, cursor: c.int): sdl.SDLError? {
+    if !raw.SDL_SetTextInputArea(window, rect, cursor) {
+        return sdl.last_error("SetTextInputArea failed")
+    }
+    return null
+}
+
+fn GetTextInputArea(window: *video.SDL_Window, rect: *rect.SDL_Rect, cursor: *c.int): sdl.SDLError? {
+    if !raw.SDL_GetTextInputArea(window, rect, cursor) {
+        return sdl.last_error("GetTextInputArea failed")
+    }
+    return null
+}
+
+fn HasScreenKeyboardSupport(): sdl.SDLError? {
+    if !raw.SDL_HasScreenKeyboardSupport() {
+        return sdl.last_error("HasScreenKeyboardSupport failed")
+    }
+    return null
+}
+
+fn ScreenKeyboardShown(window: *video.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_ScreenKeyboardShown(window) {
+        return sdl.last_error("ScreenKeyboardShown failed")
+    }
+    return null
+}

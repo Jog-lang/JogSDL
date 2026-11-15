@@ -1,0 +1,43 @@
+// Idiomatic v2 wrappers for SDL filesystem (flat merge; calls SDL_* directly).
+// Variadics / by-value structs omitted — see JogDocs Friction.
+
+fn GetBasePath(): *byte {
+    return SDL_GetBasePath()
+}
+
+fn GetPrefPath(org: *byte, app: *byte): *byte {
+    return SDL_GetPrefPath(org, app)
+}
+
+fn CreateDirectory(path: *byte): i32 {
+    return SDL_CreateDirectory(path)
+}
+
+fn RemovePath(path: *byte): i32 {
+    return SDL_RemovePath(path)
+}
+
+fn RenamePath(oldpath: *byte, newpath: *byte): i32 {
+    return SDL_RenamePath(oldpath, newpath)
+}
+
+fn CopyFile(oldpath: *byte, newpath: *byte): i32 {
+    return SDL_CopyFile(oldpath, newpath)
+}
+
+fn GetPathInfo(path: *byte, info: *byte): i32 {
+    return SDL_GetPathInfo(path, info)
+}
+
+fn GetCurrentDirectory(): *byte {
+    return SDL_GetCurrentDirectory()
+}
+
+fn EnumerateDirectory(path: *byte, callback: *byte, userdata: *byte): i32 {
+    return SDL_EnumerateDirectory(path, callback, userdata)
+}
+
+fn GetUserFolder(folder: u32): *byte {
+    return SDL_GetUserFolder(folder)
+}
+
