@@ -92,8 +92,7 @@ fn map_solid(cells: *byte, x: i64, y: i64): i64 {
     return 1
 }
 
-fn demo_map(): *byte {
-    val cells = alloc_map()
+fn fill_demo_map(cells: *byte) {
     var y = 0
     while (y < 16) {
         var x = 0
@@ -121,6 +120,11 @@ fn demo_map(): *byte {
     set_cell(cells, 5, 2, CELL_DOOR_CLOSED)
     set_cell(cells, 6, 1, CELL_WALL)
     set_cell(cells, 6, 3, CELL_WALL)
+}
+
+fn demo_map(): *byte {
+    val cells = alloc_map()
+    fill_demo_map(cells)
     return cells
 }
 

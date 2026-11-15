@@ -1,0 +1,433 @@
+// Parallel column bands via go + Dispatcher (track E / JOG-118).
+// Native Linux only — wasm/emscripten keeps render_frame (go aborts under emcc).
+// Disjoint column ranges; local DDA (no shared hit_*). Mesh stays on main after join.
+// Join = coro_drain() (no Task/join in V2 yet).
+//
+// Jog quirk (same as depth_buf): only `pkg = alloc(...)` + `pkg[i]` are reliable.
+// Never copy package *byte to/from a local. Main blits parallel FB → local for SDL/mesh.
+
+extern {
+    fn getenv(name: *byte): *byte
+    fn strcmp(a: *byte, b: *byte): i32
+}
+
+var parallel_pixels: *byte = null
+var parallel_map: *byte = null
+var parallel_fb_w: i64 = 160
+var parallel_fb_h: i64 = 100
+var parallel_enabled: i64 = 0
+var parallel_inited: i64 = 0
+
+fn parallel_wants_serial(): i64 {
+    val p = getenv(c"JOGSDL_RAYCASTER_SERIAL")
+    if (p == null) {
+        return 0
+    }
+    if (strcmp(p, c"1") == 0) {
+        return 1
+    }
+    if (strcmp(p, c"true") == 0) {
+        return 1
+    }
+    return 0
+}
+
+fn parallel_init(fb_bytes: i64, fb_w: i64, fb_h: i64): i64 {
+    // Alloc straight into package ptrs (local→package *byte is flaky).
+    parallel_pixels = alloc(fb_bytes)
+    if (parallel_pixels == null) {
+        return 0
+    }
+    parallel_map = alloc(256)
+    if (parallel_map == null) {
+        return 0
+    }
+    var i: i64 = 0
+    while (i < 256) {
+        parallel_map[i] = 0
+        i = i + 1
+    }
+    var y: i64 = 0
+    while (y < 16) {
+        var x: i64 = 0
+        while (x < 16) {
+            if (x == 0 || y == 0 || x == 15 || y == 15) {
+                parallel_map[y * 16 + x] = 1
+            }
+            x = x + 1
+        }
+        y = y + 1
+    }
+    parallel_map[3 * 16 + 3] = 2
+    parallel_map[4 * 16 + 3] = 2
+    parallel_map[3 * 16 + 4] = 2
+    parallel_map[8 * 16 + 8] = 3
+    parallel_map[9 * 16 + 8] = 3
+    parallel_map[8 * 16 + 9] = 3
+    parallel_map[11 * 16 + 5] = 4
+    parallel_map[11 * 16 + 6] = 4
+    parallel_map[11 * 16 + 7] = 4
+    parallel_map[4 * 16 + 11] = 2
+    parallel_map[5 * 16 + 11] = 2
+    parallel_map[5 * 16 + 12] = 4
+    parallel_map[2 * 16 + 5] = 5
+    parallel_map[1 * 16 + 6] = 1
+    parallel_map[3 * 16 + 6] = 1
+    if (parallel_map[2 * 16 + 5] != 5) {
+        print("parallel_init door cell BAD\n")
+        return 0
+    }
+    parallel_fb_w = fb_w
+    parallel_fb_h = fb_h
+    // dispatcher_pool is started from main before SDL Init (libc/clone coexistence).
+    parallel_enabled = 1
+    if (parallel_wants_serial() != 0) {
+        parallel_enabled = 0
+    }
+    parallel_inited = 1
+    return 1
+}
+
+fn parallel_poke32(off: i64, v: i64) {
+    parallel_pixels[off] = v & 255
+    parallel_pixels[off + 1] = (v >> 8) & 255
+    parallel_pixels[off + 2] = (v >> 16) & 255
+    parallel_pixels[off + 3] = (v >> 24) & 255
+}
+
+fn parallel_map_cell(x: i64, y: i64): i64 {
+    if (x < 0 || y < 0 || x >= 16 || y >= 16) {
+        return CELL_WALL
+    }
+    return parallel_map[y * 16 + x] & 255
+}
+
+fn parallel_map_solid(x: i64, y: i64): i64 {
+    val id = parallel_map_cell(x, y)
+    if (id == CELL_EMPTY || id == CELL_DOOR_OPEN) {
+        return 0
+    }
+    return 1
+}
+
+fn parallel_set_cell(x: i64, y: i64, id: i64) {
+    if (x < 0 || y < 0 || x >= 16 || y >= 16) {
+        return
+    }
+    parallel_map[y * 16 + x] = id & 255
+}
+
+// Move/door against parallel_map (direct package index; no *byte arg).
+fn parallel_try_move(dx: f64, dy: f64) {
+    val nx = cam_pos_x + dx
+    val ny = cam_pos_y + dy
+    val cy = cell_coord(cam_pos_y)
+    val nx_cell = cell_coord(nx)
+    if (parallel_map_solid(nx_cell, cy) == 0) {
+        cam_pos_x = nx
+    }
+    val ny_cell = cell_coord(ny)
+    if (parallel_map_solid(cell_coord(cam_pos_x), ny_cell) == 0) {
+        cam_pos_y = ny
+    }
+}
+
+fn parallel_try_use_door(): i64 {
+    val ahead_x = cam_pos_x + cam_dir_x * 0.7
+    val ahead_y = cam_pos_y + cam_dir_y * 0.7
+    val cx = cell_coord(ahead_x)
+    val cy = cell_coord(ahead_y)
+    val id = parallel_map_cell(cx, cy)
+    if (id == CELL_DOOR_CLOSED) {
+        parallel_set_cell(cx, cy, CELL_DOOR_OPEN)
+        return 1
+    }
+    if (id == CELL_DOOR_OPEN) {
+        parallel_set_cell(cx, cy, CELL_DOOR_CLOSED)
+        return 1
+    }
+    return 0
+}
+
+fn parallel_map_cast_fwd() {
+    var map_x = cell_coord(cam_pos_x)
+    var map_y = cell_coord(cam_pos_y)
+    val ray_x = cam_dir_x
+    val ray_y = cam_dir_y
+    var delta_dist_x = 1000000000.0
+    var delta_dist_y = 1000000000.0
+    if (ray_x != 0.0) {
+        delta_dist_x = abs_f(1.0 / ray_x)
+    }
+    if (ray_y != 0.0) {
+        delta_dist_y = abs_f(1.0 / ray_y)
+    }
+    var step_x: i64 = 0
+    var step_y: i64 = 0
+    var side_dist_x = 0.0
+    var side_dist_y = 0.0
+    if (ray_x < 0.0) {
+        step_x = 0 - 1
+        side_dist_x = (cam_pos_x - (map_x as f64)) * delta_dist_x
+    } else {
+        step_x = 1
+        side_dist_x = ((map_x as f64) + 1.0 - cam_pos_x) * delta_dist_x
+    }
+    if (ray_y < 0.0) {
+        step_y = 0 - 1
+        side_dist_y = (cam_pos_y - (map_y as f64)) * delta_dist_y
+    } else {
+        step_y = 1
+        side_dist_y = ((map_y as f64) + 1.0 - cam_pos_y) * delta_dist_y
+    }
+    var hit = 0
+    var side: i64 = 0
+    var wall_id = parallel_map_cell(map_x, map_y)
+    var guard = 0
+    while (hit == 0 && guard < 64) {
+        if (side_dist_x < side_dist_y) {
+            side_dist_x = side_dist_x + delta_dist_x
+            map_x = map_x + step_x
+            side = 0
+        } else {
+            side_dist_y = side_dist_y + delta_dist_y
+            map_y = map_y + step_y
+            side = 1
+        }
+        wall_id = parallel_map_cell(map_x, map_y)
+        if (parallel_map_solid(map_x, map_y) != 0) {
+            hit = 1
+        }
+        guard = guard + 1
+    }
+    var dist = 1.0
+    if (side == 0) {
+        dist = side_dist_x - delta_dist_x
+    } else {
+        dist = side_dist_y - delta_dist_y
+    }
+    if (dist < 0.015625) {
+        dist = 0.015625
+    }
+    hit_wall = wall_id
+    hit_dist = dist
+    hit_side = side
+}
+
+// Copy package FB → main-owned local (arg dst is a true local *byte).
+fn parallel_blit_to(dst: *byte) {
+    val n = parallel_fb_w * parallel_fb_h * 4
+    var i: i64 = 0
+    while (i < n) {
+        dst[i] = parallel_pixels[i]
+        i = i + 1
+    }
+}
+
+fn parallel_fb_byte(off: i64): i64 {
+    return parallel_pixels[off] & 255
+}
+
+fn render_columns_range(x0: i64, x1: i64) {
+    if (parallel_inited == 0) {
+        return
+    }
+    val fb_w = parallel_fb_w
+    val fb_h = parallel_fb_h
+    val fb_wf = fb_w as f64
+    val fb_hf = fb_h as f64
+    val horizon = fb_hf / 2.0 + cam_pitch
+    var x = x0
+    while (x < x1) {
+        val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
+        val ray_x = cam_dir_x + cam_plane_x * camera_x
+        val ray_y = cam_dir_y + cam_plane_y * camera_x
+        var map_x = cell_coord(cam_pos_x)
+        var map_y = cell_coord(cam_pos_y)
+        var delta_dist_x = 1000000000.0
+        var delta_dist_y = 1000000000.0
+        if (ray_x != 0.0) {
+            delta_dist_x = abs_f(1.0 / ray_x)
+        }
+        if (ray_y != 0.0) {
+            delta_dist_y = abs_f(1.0 / ray_y)
+        }
+        var step_x: i64 = 0
+        var step_y: i64 = 0
+        var side_dist_x = 0.0
+        var side_dist_y = 0.0
+        if (ray_x < 0.0) {
+            step_x = 0 - 1
+            side_dist_x = (cam_pos_x - (map_x as f64)) * delta_dist_x
+        } else {
+            step_x = 1
+            side_dist_x = ((map_x as f64) + 1.0 - cam_pos_x) * delta_dist_x
+        }
+        if (ray_y < 0.0) {
+            step_y = 0 - 1
+            side_dist_y = (cam_pos_y - (map_y as f64)) * delta_dist_y
+        } else {
+            step_y = 1
+            side_dist_y = ((map_y as f64) + 1.0 - cam_pos_y) * delta_dist_y
+        }
+        var hit = 0
+        var side: i64 = 0
+        var wall_id = parallel_map_cell(map_x, map_y)
+        var guard = 0
+        while (hit == 0 && guard < 64) {
+            if (side_dist_x < side_dist_y) {
+                side_dist_x = side_dist_x + delta_dist_x
+                map_x = map_x + step_x
+                side = 0
+            } else {
+                side_dist_y = side_dist_y + delta_dist_y
+                map_y = map_y + step_y
+                side = 1
+            }
+            wall_id = parallel_map_cell(map_x, map_y)
+            if (parallel_map_solid(map_x, map_y) != 0) {
+                hit = 1
+            }
+            guard = guard + 1
+        }
+        var dist = 1.0
+        if (side == 0) {
+            dist = side_dist_x - delta_dist_x
+        } else {
+            dist = side_dist_y - delta_dist_y
+        }
+        if (dist < 0.015625) {
+            dist = 0.015625
+        }
+        var line_h = fb_hf / dist
+        if (line_h > fb_hf * 4.0) {
+            line_h = fb_hf * 4.0
+        }
+        var draw_start = f_to_i(0.0 - line_h / 2.0 + horizon)
+        var draw_end = f_to_i(line_h / 2.0 + horizon)
+        if (draw_start < 0) {
+            draw_start = 0
+        }
+        if (draw_end >= fb_h) {
+            draw_end = fb_h - 1
+        }
+        val color = wall_color(wall_id, side)
+        var y: i64 = 0
+        while (y < fb_h) {
+            val idx = (y * fb_w + x) * 4
+            var pix = FLOOR_COLOR
+            if (y < draw_start) {
+                pix = CEILING_COLOR
+            } else {
+                if (y <= draw_end) {
+                    pix = color
+                }
+            }
+            parallel_poke32(idx, pix)
+            y = y + 1
+        }
+        x = x + 1
+    }
+    if (depth_buf != null) {
+        x = x0
+        while (x < x1) {
+            val camera_x = (x as f64) * 2.0 / fb_wf - 1.0
+            val ray_x = cam_dir_x + cam_plane_x * camera_x
+            val ray_y = cam_dir_y + cam_plane_y * camera_x
+            var map_x = cell_coord(cam_pos_x)
+            var map_y = cell_coord(cam_pos_y)
+            var delta_dist_x = 1000000000.0
+            var delta_dist_y = 1000000000.0
+            if (ray_x != 0.0) {
+                delta_dist_x = abs_f(1.0 / ray_x)
+            }
+            if (ray_y != 0.0) {
+                delta_dist_y = abs_f(1.0 / ray_y)
+            }
+            var step_x: i64 = 0
+            var step_y: i64 = 0
+            var side_dist_x = 0.0
+            var side_dist_y = 0.0
+            if (ray_x < 0.0) {
+                step_x = 0 - 1
+                side_dist_x = (cam_pos_x - (map_x as f64)) * delta_dist_x
+            } else {
+                step_x = 1
+                side_dist_x = ((map_x as f64) + 1.0 - cam_pos_x) * delta_dist_x
+            }
+            if (ray_y < 0.0) {
+                step_y = 0 - 1
+                side_dist_y = (cam_pos_y - (map_y as f64)) * delta_dist_y
+            } else {
+                step_y = 1
+                side_dist_y = ((map_y as f64) + 1.0 - cam_pos_y) * delta_dist_y
+            }
+            var hit = 0
+            var side: i64 = 0
+            var guard = 0
+            while (hit == 0 && guard < 64) {
+                if (side_dist_x < side_dist_y) {
+                    side_dist_x = side_dist_x + delta_dist_x
+                    map_x = map_x + step_x
+                    side = 0
+                } else {
+                    side_dist_y = side_dist_y + delta_dist_y
+                    map_y = map_y + step_y
+                    side = 1
+                }
+                if (parallel_map_solid(map_x, map_y) != 0) {
+                    hit = 1
+                }
+                guard = guard + 1
+            }
+            var dist = 1.0
+            if (side == 0) {
+                dist = side_dist_x - delta_dist_x
+            } else {
+                dist = side_dist_y - delta_dist_y
+            }
+            if (dist < 0.015625) {
+                dist = 0.015625
+            }
+            val zd = depth_from_dist(dist)
+            val zoff = x * 4
+            depth_buf[zoff] = zd & 255
+            depth_buf[zoff + 1] = (zd >> 8) & 255
+            depth_buf[zoff + 2] = (zd >> 16) & 255
+            depth_buf[zoff + 3] = (zd >> 24) & 255
+            x = x + 1
+        }
+    }
+}
+
+fn band0(arg: *byte) {
+    render_columns_range(0, 40)
+}
+
+fn band1(arg: *byte) {
+    render_columns_range(40, 80)
+}
+
+fn band2(arg: *byte) {
+    render_columns_range(80, 120)
+}
+
+fn band3(arg: *byte) {
+    render_columns_range(120, 160)
+}
+
+fn render_frame_parallel() {
+    if (parallel_inited == 0) {
+        return
+    }
+    depth_clear()
+    if (parallel_enabled == 0) {
+        render_columns_range(0, parallel_fb_w)
+        return
+    }
+    go(band0, null)
+    go(band1, null)
+    go(band2, null)
+    go(band3, null)
+    coro_drain()
+}
