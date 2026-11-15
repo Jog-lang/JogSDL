@@ -1,5 +1,8 @@
-// Raw SDL3 error (SDL_error.h) — v2 flat merge.
+// Raw SDL3 error — v2 flat merge (generated).
 @link("SDL3")
 extern {
+    fn SDL_OutOfMemory(): i32
     fn SDL_GetError(): *byte
+    fn SDL_ClearError(): i32
+    fn SDL_SetError(fmt: *byte): i32
 }

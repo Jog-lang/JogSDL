@@ -1,0 +1,12 @@
+// Raw SDL3 loadso — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@opaque struct SDL_SharedObject
+
+@link("SDL3")
+extern {
+    fn SDL_LoadObject(sofile: *const c.char): *SDL_SharedObject
+    fn SDL_LoadFunction(handle: *SDL_SharedObject, name: *const c.char): *void
+    fn SDL_UnloadObject(handle: *SDL_SharedObject)
+}

@@ -1,0 +1,69 @@
+// Raw SDL3 surface — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_CreateSurface(width: i32, height: i32, format: u32): *byte
+    fn SDL_CreateSurfaceFrom(width: i32, height: i32, format: u32, pixels: *byte, pitch: i32): *byte
+    fn SDL_DestroySurface(surface: *byte)
+    fn SDL_GetSurfaceProperties(surface: *byte): u32
+    fn SDL_SetSurfaceColorspace(surface: *byte, colorspace: u32): i32
+    fn SDL_GetSurfaceColorspace(surface: *byte): u32
+    fn SDL_CreateSurfacePalette(surface: *byte): *byte
+    fn SDL_SetSurfacePalette(surface: *byte, palette: *byte): i32
+    fn SDL_GetSurfacePalette(surface: *byte): *byte
+    fn SDL_AddSurfaceAlternateImage(surface: *byte, image: *byte): i32
+    fn SDL_SurfaceHasAlternateImages(surface: *byte): i32
+    fn SDL_GetSurfaceImages(surface: *byte, count: *byte): **byte
+    fn SDL_RemoveSurfaceAlternateImages(surface: *byte)
+    fn SDL_LockSurface(surface: *byte): i32
+    fn SDL_UnlockSurface(surface: *byte)
+    fn SDL_LoadSurface_IO(src: *byte, closeio: i32): *byte
+    fn SDL_LoadSurface(file: *byte): *byte
+    fn SDL_LoadBMP_IO(src: *byte, closeio: i32): *byte
+    fn SDL_LoadBMP(file: *byte): *byte
+    fn SDL_SaveBMP_IO(surface: *byte, dst: *byte, closeio: i32): i32
+    fn SDL_SaveBMP(surface: *byte, file: *byte): i32
+    fn SDL_LoadPNG_IO(src: *byte, closeio: i32): *byte
+    fn SDL_LoadPNG(file: *byte): *byte
+    fn SDL_SavePNG_IO(surface: *byte, dst: *byte, closeio: i32): i32
+    fn SDL_SavePNG(surface: *byte, file: *byte): i32
+    fn SDL_SetSurfaceRLE(surface: *byte, enabled: i32): i32
+    fn SDL_SurfaceHasRLE(surface: *byte): i32
+    fn SDL_SetSurfaceColorKey(surface: *byte, enabled: i32, key: u32): i32
+    fn SDL_SurfaceHasColorKey(surface: *byte): i32
+    fn SDL_GetSurfaceColorKey(surface: *byte, key: *byte): i32
+    fn SDL_SetSurfaceColorMod(surface: *byte, r: u8, g: u8, b: u8): i32
+    fn SDL_GetSurfaceColorMod(surface: *byte, r: *byte, g: *byte, b: *byte): i32
+    fn SDL_SetSurfaceAlphaMod(surface: *byte, alpha: u8): i32
+    fn SDL_GetSurfaceAlphaMod(surface: *byte, alpha: *byte): i32
+    fn SDL_SetSurfaceBlendMode(surface: *byte, blendMode: u32): i32
+    fn SDL_GetSurfaceBlendMode(surface: *byte, blendMode: *byte): i32
+    fn SDL_SetSurfaceClipRect(surface: *byte, rect: *byte): i32
+    fn SDL_GetSurfaceClipRect(surface: *byte, rect: *byte): i32
+    fn SDL_RotateSurface(surface: *byte, angle: f32): *byte
+    fn SDL_DuplicateSurface(surface: *byte): *byte
+    fn SDL_ConvertSurface(surface: *byte, format: u32): *byte
+    fn SDL_ConvertSurfaceAndColorspace(surface: *byte, format: u32, palette: *byte, colorspace: u32, props: u32): *byte
+    fn SDL_ConvertPixels(width: i32, height: i32, src_format: u32, src: *byte, src_pitch: i32, dst_format: u32, dst: *byte, dst_pitch: i32): i32
+    fn SDL_ConvertPixelsAndColorspace(width: i32, height: i32, src_format: u32, src_colorspace: u32, src_properties: u32, src: *byte, src_pitch: i32, dst_format: u32, dst_colorspace: u32, dst_properties: u32, dst: *byte, dst_pitch: i32): i32
+    fn SDL_PremultiplyAlpha(width: i32, height: i32, src_format: u32, src: *byte, src_pitch: i32, dst_format: u32, dst: *byte, dst_pitch: i32, linear: i32): i32
+    fn SDL_PremultiplySurfaceAlpha(surface: *byte, linear: i32): i32
+    fn SDL_ClearSurface(surface: *byte, r: f32, g: f32, b: f32, a: f32): i32
+    fn SDL_FillSurfaceRect(dst: *byte, rect: *byte, color: u32): i32
+    fn SDL_FillSurfaceRects(dst: *byte, rects: *byte, count: i32, color: u32): i32
+    fn SDL_BlitSurface(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte): i32
+    fn SDL_BlitSurfaceUnchecked(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte): i32
+    fn SDL_BlitSurfaceTiled(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte): i32
+    fn SDL_MapSurfaceRGB(surface: *byte, r: u8, g: u8, b: u8): u32
+    fn SDL_MapSurfaceRGBA(surface: *byte, r: u8, g: u8, b: u8, a: u8): u32
+    fn SDL_ReadSurfacePixel(surface: *byte, x: i32, y: i32, r: *byte, g: *byte, b: *byte, a: *byte): i32
+    fn SDL_ReadSurfacePixelFloat(surface: *byte, x: i32, y: i32, r: *byte, g: *byte, b: *byte, a: *byte): i32
+    fn SDL_WriteSurfacePixel(surface: *byte, x: i32, y: i32, r: u8, g: u8, b: u8, a: u8): i32
+    fn SDL_WriteSurfacePixelFloat(surface: *byte, x: i32, y: i32, r: f32, g: f32, b: f32, a: f32): i32
+    fn SDL_BlitSurface9Grid(src: *byte, srcrect: *byte, left_width: i32, right_width: i32, top_height: i32, bottom_height: i32, scale: f32, scaleMode: u32, dst: *byte, dstrect: *byte): i32
+    fn SDL_BlitSurfaceScaled(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte, scaleMode: u32): i32
+    fn SDL_BlitSurfaceTiledWithScale(src: *byte, srcrect: *byte, scale: f32, scaleMode: u32, dst: *byte, dstrect: *byte): i32
+    fn SDL_BlitSurfaceUncheckedScaled(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte, scaleMode: u32): i32
+    fn SDL_FlipSurface(surface: *byte, flip: u32): i32
+    fn SDL_ScaleSurface(surface: *byte, width: i32, height: i32, scaleMode: u32): i32
+    fn SDL_StretchSurface(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte, scaleMode: u32): i32
+}

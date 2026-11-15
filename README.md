@@ -15,33 +15,51 @@ Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are
 
 ## Two-layer model
 
-Public apps import **`jog_sdl.sdl` only**. Raw `@link("SDL3")` / `SDL_*` symbols live in unexported package **`sdl3`** and are not part of the module export list.
+Public apps import **`jog_sdl.sdl`** and exported **`jog_sdl.sdl.*`** subpackages. Raw `@link("SDL3")` / `SDL_*` live in unexported **`sdl3.*`** packages.
 
 ```
-app  →  package sdl (Jog names, errors, Window/Renderer/Texture)  →  package sdl3 (extern)  →  libSDL3
+app  →  sdl / sdl.* (Jog names, errors, handles)  →  sdl3.* (extern)  →  libSDL3
 ```
 
 | Package | Role |
 |---|---|
-| `sdl` | Exported. `Init` / `Quit`, `CreateWindow` / `CreateWindowAndRenderer`, `Window` / `Renderer` / `Texture`, `PollEvent`, `KeyboardIsDown`, `GetTicks`, `Delay`, `SDLError`, Jog constants. |
-| `sdl3` | Internal. `@link`, `@opaque`, `SDL_Event` / `SDL_FRect` / `SDL_Rect` layout, `zero_event` / `frect`. |
+| `sdl` | Facade: `Init` / `Quit`, `SDLError`, shared constants. |
+| `sdl.window` / `sdl.render` / `sdl.events` / `sdl.input` / `sdl.timer` | Hand-written idiomatic demos API. |
+| `sdl.<category>` | Thin stubs or wrappers for each SDL header category (expand as needed). |
+| `sdl3.<category>` | Internal raw externs (~1100 `SDL_*` symbols, pin 3.4.18). |
 
 ## Layout
 
 ```
 JogSDL/
-  jog.mod                 # module jog_sdl (library), export sdl, link.linux SDL3, libdir
-  sdl/sdl.jog             # idiomatic Jog API
-  sdl3/sdl3.jog           # raw extern bindings (unexported)
+  jog.mod                 # module jog_sdl (library), export sdl + sdl.*, link + libdir
+  sdl/sdl.jog             # Init/Quit facade + SDLError + constants
+  sdl/<category>/         # idiomatic packages (window, render, audio, …)
+  sdl3/<category>/        # raw @link("SDL3") per SDL header category
   examples/window/        # window_demo executable
   examples/raycaster/     # Wolfenstein-style DDA software raycaster
+  v2/                     # jog-v2 library + demos (require jog_sdl)
   scripts/fetch-sdl3.sh
   scripts/build-sdl3.sh
   scripts/build-sdl3-emscripten.sh
+  scripts/check-sdl3-sync.sh
+  scripts/gen_sdl3_bindings.py
   prefix/                 # local SDL3 install (gitignored)
   prefix-emscripten/      # Emscripten static SDL3 (gitignored)
   vendor/SDL3-3.4.18/     # extracted source (gitignored)
 ```
+
+### Wave status (SDL3 3.4.18)
+
+| Wave | Categories | Status |
+|---|---|---|
+| 0 | Package split, v2 library, sync script | done |
+| A | init, error, hints, properties, log, assert, version, selective stdinc | done (raw) |
+| B | video, render, pixels, blendmode, rect, surface, clipboard, vulkan, metal, camera | done (raw) |
+| C | events, keyboard, keycode, scancode, mouse, joystick, gamepad, touch, pen, sensor, hidapi | done (raw) |
+| D–K | haptic, audio, gpu, thread/mutex/atomic, timer/time, filesystem/storage/iostream/asyncio, platform/cpuinfo/endian/bits, loadso/process/power/messagebox/dialog/tray/locale/system/guid/misc/main, thin GL bridge | done (raw) |
+
+Keep root and `v2/sdl3` aligned: `./scripts/check-sdl3-sync.sh`.
 
 ## Build SDL3 into `prefix/`
 
@@ -61,7 +79,8 @@ That installs shared `libSDL3.so` under `prefix/lib` (or `prefix/lib64`) and hea
 - Open this folder in Cursor (JogLSP already installed on this machine).
 - Compiler / build tool: `JOG=~/.local/bin/jog`, `JOG_BUILD=~/.local/bin/jog-build`.
 - Rebuild SDL only when upgrading the pin (`SDL3_VERSION` / sha256 in `scripts/fetch-sdl3.sh`).
-- Extend `sdl3/sdl3.jog` for new raw APIs; wrap them in `sdl/sdl.jog` before apps use them.
+- Extend `sdl3/<category>/` for new raw APIs; wrap them in `sdl/<category>/` before apps use them.
+- After changing raw externs: `./scripts/check-sdl3-sync.sh`.
 
 ### Check the library
 
@@ -139,4 +158,4 @@ cd examples/raycaster
 
 ## Out of scope
 
-Full SDL3 surface, textured walls/sprites/audio, bindgen, Windows CI, publishing to a registry.
+`SDL_test_*`, `SDL_oldnames`, glext dump, full stdinc dump, headers absent from 3.4.18, bindgen as a build step, Windows CI, publishing to a registry.

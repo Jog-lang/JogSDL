@@ -1,0 +1,121 @@
+// Raw SDL3 gpu — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.video
+import sdl3.rect
+import sdl3.pixels
+
+@opaque struct SDL_GPUDevice
+@opaque struct SDL_GPUBuffer
+@opaque struct SDL_GPUTransferBuffer
+@opaque struct SDL_GPUTexture
+@opaque struct SDL_GPUSampler
+@opaque struct SDL_GPUShader
+@opaque struct SDL_GPUComputePipeline
+@opaque struct SDL_GPUGraphicsPipeline
+@opaque struct SDL_GPUCommandBuffer
+@opaque struct SDL_GPURenderPass
+@opaque struct SDL_GPUComputePass
+@opaque struct SDL_GPUCopyPass
+@opaque struct SDL_GPUFence
+
+@link("SDL3")
+extern {
+    fn SDL_GPUSupportsShaderFormats(format_flags: u32, name: *const c.char): bool
+    fn SDL_GPUSupportsProperties(props: u32): bool
+    fn SDL_CreateGPUDevice(format_flags: u32, debug_mode: bool, name: *const c.char): *SDL_GPUDevice
+    fn SDL_CreateGPUDeviceWithProperties(props: u32): *SDL_GPUDevice
+    fn SDL_DestroyGPUDevice(device: *SDL_GPUDevice)
+    fn SDL_GetNumGPUDrivers(): c.int
+    fn SDL_GetGPUDriver(index: c.int): *const c.char
+    fn SDL_GetGPUDeviceDriver(device: *SDL_GPUDevice): *const c.char
+    fn SDL_GetGPUShaderFormats(device: *SDL_GPUDevice): u32
+    fn SDL_GetGPUDeviceProperties(device: *SDL_GPUDevice): u32
+    fn SDL_CreateGPUComputePipeline(device: *SDL_GPUDevice, createinfo: *const void): *SDL_GPUComputePipeline
+    fn SDL_CreateGPUGraphicsPipeline(device: *SDL_GPUDevice, createinfo: *const void): *SDL_GPUGraphicsPipeline
+    fn SDL_CreateGPUSampler(device: *SDL_GPUDevice, createinfo: *const void): *SDL_GPUSampler
+    fn SDL_CreateGPUShader(device: *SDL_GPUDevice, createinfo: *const void): *SDL_GPUShader
+    fn SDL_CreateGPUTexture(device: *SDL_GPUDevice, createinfo: *const void): *SDL_GPUTexture
+    fn SDL_CreateGPUBuffer(device: *SDL_GPUDevice, createinfo: *const void): *SDL_GPUBuffer
+    fn SDL_CreateGPUTransferBuffer(device: *SDL_GPUDevice, createinfo: *const void): *SDL_GPUTransferBuffer
+    fn SDL_SetGPUBufferName(device: *SDL_GPUDevice, buffer: *SDL_GPUBuffer, text: *const c.char)
+    fn SDL_SetGPUTextureName(device: *SDL_GPUDevice, texture: *SDL_GPUTexture, text: *const c.char)
+    fn SDL_InsertGPUDebugLabel(command_buffer: *SDL_GPUCommandBuffer, text: *const c.char)
+    fn SDL_PushGPUDebugGroup(command_buffer: *SDL_GPUCommandBuffer, name: *const c.char)
+    fn SDL_PopGPUDebugGroup(command_buffer: *SDL_GPUCommandBuffer)
+    fn SDL_ReleaseGPUTexture(device: *SDL_GPUDevice, texture: *SDL_GPUTexture)
+    fn SDL_ReleaseGPUSampler(device: *SDL_GPUDevice, sampler: *SDL_GPUSampler)
+    fn SDL_ReleaseGPUBuffer(device: *SDL_GPUDevice, buffer: *SDL_GPUBuffer)
+    fn SDL_ReleaseGPUTransferBuffer(device: *SDL_GPUDevice, transfer_buffer: *SDL_GPUTransferBuffer)
+    fn SDL_ReleaseGPUComputePipeline(device: *SDL_GPUDevice, compute_pipeline: *SDL_GPUComputePipeline)
+    fn SDL_ReleaseGPUShader(device: *SDL_GPUDevice, shader: *SDL_GPUShader)
+    fn SDL_ReleaseGPUGraphicsPipeline(device: *SDL_GPUDevice, graphics_pipeline: *SDL_GPUGraphicsPipeline)
+    fn SDL_AcquireGPUCommandBuffer(device: *SDL_GPUDevice): *SDL_GPUCommandBuffer
+    fn SDL_PushGPUVertexUniformData(command_buffer: *SDL_GPUCommandBuffer, slot_index: u32, data: *const void, length: u32)
+    fn SDL_PushGPUFragmentUniformData(command_buffer: *SDL_GPUCommandBuffer, slot_index: u32, data: *const void, length: u32)
+    fn SDL_PushGPUComputeUniformData(command_buffer: *SDL_GPUCommandBuffer, slot_index: u32, data: *const void, length: u32)
+    fn SDL_BeginGPURenderPass(command_buffer: *SDL_GPUCommandBuffer, color_target_infos: *const void, num_color_targets: u32, depth_stencil_target_info: *const void): *SDL_GPURenderPass
+    fn SDL_BindGPUGraphicsPipeline(render_pass: *SDL_GPURenderPass, graphics_pipeline: *SDL_GPUGraphicsPipeline)
+    fn SDL_SetGPUViewport(render_pass: *SDL_GPURenderPass, viewport: *const void)
+    fn SDL_SetGPUScissor(render_pass: *SDL_GPURenderPass, scissor: *const rect.SDL_Rect)
+    fn SDL_SetGPUBlendConstants(render_pass: *SDL_GPURenderPass, blend_constants: pixels.SDL_FColor)
+    fn SDL_SetGPUStencilReference(render_pass: *SDL_GPURenderPass, reference: u8)
+    fn SDL_BindGPUVertexBuffers(render_pass: *SDL_GPURenderPass, first_slot: u32, bindings: *const void, num_bindings: u32)
+    fn SDL_BindGPUIndexBuffer(render_pass: *SDL_GPURenderPass, binding: *const void, index_element_size: u32)
+    fn SDL_BindGPUVertexSamplers(render_pass: *SDL_GPURenderPass, first_slot: u32, texture_sampler_bindings: *const void, num_bindings: u32)
+    fn SDL_BindGPUVertexStorageTextures(render_pass: *SDL_GPURenderPass, first_slot: u32, storage_textures: **SDL_GPUTexture, num_bindings: u32)
+    fn SDL_BindGPUVertexStorageBuffers(render_pass: *SDL_GPURenderPass, first_slot: u32, storage_buffers: **SDL_GPUBuffer, num_bindings: u32)
+    fn SDL_BindGPUFragmentSamplers(render_pass: *SDL_GPURenderPass, first_slot: u32, texture_sampler_bindings: *const void, num_bindings: u32)
+    fn SDL_BindGPUFragmentStorageTextures(render_pass: *SDL_GPURenderPass, first_slot: u32, storage_textures: **SDL_GPUTexture, num_bindings: u32)
+    fn SDL_BindGPUFragmentStorageBuffers(render_pass: *SDL_GPURenderPass, first_slot: u32, storage_buffers: **SDL_GPUBuffer, num_bindings: u32)
+    fn SDL_DrawGPUIndexedPrimitives(render_pass: *SDL_GPURenderPass, num_indices: u32, num_instances: u32, first_index: u32, vertex_offset: i32, first_instance: u32)
+    fn SDL_DrawGPUPrimitives(render_pass: *SDL_GPURenderPass, num_vertices: u32, num_instances: u32, first_vertex: u32, first_instance: u32)
+    fn SDL_DrawGPUPrimitivesIndirect(render_pass: *SDL_GPURenderPass, buffer: *SDL_GPUBuffer, offset: u32, draw_count: u32)
+    fn SDL_DrawGPUIndexedPrimitivesIndirect(render_pass: *SDL_GPURenderPass, buffer: *SDL_GPUBuffer, offset: u32, draw_count: u32)
+    fn SDL_EndGPURenderPass(render_pass: *SDL_GPURenderPass)
+    fn SDL_BeginGPUComputePass(command_buffer: *SDL_GPUCommandBuffer, storage_texture_bindings: *const void, num_storage_texture_bindings: u32, storage_buffer_bindings: *const void, num_storage_buffer_bindings: u32): *SDL_GPUComputePass
+    fn SDL_BindGPUComputePipeline(compute_pass: *SDL_GPUComputePass, compute_pipeline: *SDL_GPUComputePipeline)
+    fn SDL_BindGPUComputeSamplers(compute_pass: *SDL_GPUComputePass, first_slot: u32, texture_sampler_bindings: *const void, num_bindings: u32)
+    fn SDL_BindGPUComputeStorageTextures(compute_pass: *SDL_GPUComputePass, first_slot: u32, storage_textures: **SDL_GPUTexture, num_bindings: u32)
+    fn SDL_BindGPUComputeStorageBuffers(compute_pass: *SDL_GPUComputePass, first_slot: u32, storage_buffers: **SDL_GPUBuffer, num_bindings: u32)
+    fn SDL_DispatchGPUCompute(compute_pass: *SDL_GPUComputePass, groupcount_x: u32, groupcount_y: u32, groupcount_z: u32)
+    fn SDL_DispatchGPUComputeIndirect(compute_pass: *SDL_GPUComputePass, buffer: *SDL_GPUBuffer, offset: u32)
+    fn SDL_EndGPUComputePass(compute_pass: *SDL_GPUComputePass)
+    fn SDL_MapGPUTransferBuffer(device: *SDL_GPUDevice, transfer_buffer: *SDL_GPUTransferBuffer, cycle: bool): *void
+    fn SDL_UnmapGPUTransferBuffer(device: *SDL_GPUDevice, transfer_buffer: *SDL_GPUTransferBuffer)
+    fn SDL_BeginGPUCopyPass(command_buffer: *SDL_GPUCommandBuffer): *SDL_GPUCopyPass
+    fn SDL_UploadToGPUTexture(copy_pass: *SDL_GPUCopyPass, source: *const void, destination: *const void, cycle: bool)
+    fn SDL_UploadToGPUBuffer(copy_pass: *SDL_GPUCopyPass, source: *const void, destination: *const void, cycle: bool)
+    fn SDL_CopyGPUTextureToTexture(copy_pass: *SDL_GPUCopyPass, source: *const void, destination: *const void, w: u32, h: u32, d: u32, cycle: bool)
+    fn SDL_CopyGPUBufferToBuffer(copy_pass: *SDL_GPUCopyPass, source: *const void, destination: *const void, size: u32, cycle: bool)
+    fn SDL_DownloadFromGPUTexture(copy_pass: *SDL_GPUCopyPass, source: *const void, destination: *const void)
+    fn SDL_DownloadFromGPUBuffer(copy_pass: *SDL_GPUCopyPass, source: *const void, destination: *const void)
+    fn SDL_EndGPUCopyPass(copy_pass: *SDL_GPUCopyPass)
+    fn SDL_GenerateMipmapsForGPUTexture(command_buffer: *SDL_GPUCommandBuffer, texture: *SDL_GPUTexture)
+    fn SDL_BlitGPUTexture(command_buffer: *SDL_GPUCommandBuffer, info: *const void)
+    fn SDL_WindowSupportsGPUSwapchainComposition(device: *SDL_GPUDevice, window: *video.SDL_Window, swapchain_composition: u32): bool
+    fn SDL_WindowSupportsGPUPresentMode(device: *SDL_GPUDevice, window: *video.SDL_Window, present_mode: u32): bool
+    fn SDL_ClaimWindowForGPUDevice(device: *SDL_GPUDevice, window: *video.SDL_Window): bool
+    fn SDL_ReleaseWindowFromGPUDevice(device: *SDL_GPUDevice, window: *video.SDL_Window)
+    fn SDL_SetGPUSwapchainParameters(device: *SDL_GPUDevice, window: *video.SDL_Window, swapchain_composition: u32, present_mode: u32): bool
+    fn SDL_SetGPUAllowedFramesInFlight(device: *SDL_GPUDevice, allowed_frames_in_flight: u32): bool
+    fn SDL_GetGPUSwapchainTextureFormat(device: *SDL_GPUDevice, window: *video.SDL_Window): u32
+    fn SDL_AcquireGPUSwapchainTexture(command_buffer: *SDL_GPUCommandBuffer, window: *video.SDL_Window, swapchain_texture: **SDL_GPUTexture, swapchain_texture_width: *u32, swapchain_texture_height: *u32): bool
+    fn SDL_WaitForGPUSwapchain(device: *SDL_GPUDevice, window: *video.SDL_Window): bool
+    fn SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer: *SDL_GPUCommandBuffer, window: *video.SDL_Window, swapchain_texture: **SDL_GPUTexture, swapchain_texture_width: *u32, swapchain_texture_height: *u32): bool
+    fn SDL_SubmitGPUCommandBuffer(command_buffer: *SDL_GPUCommandBuffer): bool
+    fn SDL_SubmitGPUCommandBufferAndAcquireFence(command_buffer: *SDL_GPUCommandBuffer): *SDL_GPUFence
+    fn SDL_CancelGPUCommandBuffer(command_buffer: *SDL_GPUCommandBuffer): bool
+    fn SDL_WaitForGPUIdle(device: *SDL_GPUDevice): bool
+    fn SDL_WaitForGPUFences(device: *SDL_GPUDevice, wait_all: bool, fences: **SDL_GPUFence, num_fences: u32): bool
+    fn SDL_QueryGPUFence(device: *SDL_GPUDevice, fence: *SDL_GPUFence): bool
+    fn SDL_ReleaseGPUFence(device: *SDL_GPUDevice, fence: *SDL_GPUFence)
+    fn SDL_GPUTextureFormatTexelBlockSize(format: u32): u32
+    fn SDL_GPUTextureSupportsFormat(device: *SDL_GPUDevice, format: u32, type_: u32, usage: u32): bool
+    fn SDL_GPUTextureSupportsSampleCount(device: *SDL_GPUDevice, format: u32, sample_count: u32): bool
+    fn SDL_CalculateGPUTextureFormatSize(format: u32, width: u32, height: u32, depth_or_layer_count: u32): u32
+    fn SDL_GetPixelFormatFromGPUTextureFormat(format: u32): u32
+    fn SDL_GetGPUTextureFormatFromPixelFormat(format: u32): u32
+    fn SDL_GDKSuspendGPU(device: *SDL_GPUDevice)
+    fn SDL_GDKResumeGPU(device: *SDL_GPUDevice)
+}

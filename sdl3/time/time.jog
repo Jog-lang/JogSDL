@@ -1,0 +1,16 @@
+// Raw SDL3 time — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetDateTimeLocalePreferences(dateFormat: *u32, timeFormat: *u32): bool
+    fn SDL_GetCurrentTime(ticks: *i64): bool
+    fn SDL_TimeToDateTime(ticks: i64, dt: *void, localTime: bool): bool
+    fn SDL_DateTimeToTime(dt: *const void, ticks: *i64): bool
+    fn SDL_TimeToWindows(ticks: i64, dwLowDateTime: *u32, dwHighDateTime: *u32)
+    fn SDL_TimeFromWindows(dwLowDateTime: u32, dwHighDateTime: u32): i64
+    fn SDL_GetDaysInMonth(year: c.int, month: c.int): c.int
+    fn SDL_GetDayOfYear(year: c.int, month: c.int, day: c.int): c.int
+    fn SDL_GetDayOfWeek(year: c.int, month: c.int, day: c.int): c.int
+}

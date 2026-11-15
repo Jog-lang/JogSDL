@@ -1,0 +1,18 @@
+// Raw SDL3 camera — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_GetNumCameraDrivers(): i32
+    fn SDL_GetCameraDriver(index: i32): *byte
+    fn SDL_GetCurrentCameraDriver(): *byte
+    fn SDL_GetCameras(count: *byte): *byte
+    fn SDL_GetCameraSupportedFormats(instance_id: u32, count: *byte): **byte
+    fn SDL_GetCameraName(instance_id: u32): *byte
+    fn SDL_OpenCamera(instance_id: u32, spec: *byte): *byte
+    fn SDL_GetCameraID(camera: *byte): u32
+    fn SDL_GetCameraProperties(camera: *byte): u32
+    fn SDL_GetCameraFormat(camera: *byte, spec: *byte): i32
+    fn SDL_AcquireCameraFrame(camera: *byte, timestampNS: *byte): *byte
+    fn SDL_ReleaseCameraFrame(camera: *byte, frame: *byte)
+    fn SDL_CloseCamera(camera: *byte)
+    fn SDL_GetCameraPosition(instance_id: u32): *byte
+}

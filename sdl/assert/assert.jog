@@ -1,0 +1,2 @@
+// Idiomatic sdl.assert — expand wrappers over sdl3.assert as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.assert.

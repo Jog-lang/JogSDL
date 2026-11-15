@@ -1,6 +1,14 @@
-// Raw SDL3 initialization (SDL_init.h) — v2 flat merge.
+// Raw SDL3 init — v2 flat merge (generated).
 @link("SDL3")
 extern {
     fn SDL_Init(flags: u32): i32
+    fn SDL_InitSubSystem(flags: u32): i32
+    fn SDL_QuitSubSystem(flags: u32)
+    fn SDL_WasInit(flags: u32): u32
     fn SDL_Quit()
+    fn SDL_IsMainThread(): i32
+    fn SDL_SetAppMetadata(appname: *byte, appversion: *byte, appidentifier: *byte): i32
+    fn SDL_SetAppMetadataProperty(name: *byte, value: *byte): i32
+    fn SDL_GetAppMetadataProperty(name: *byte): *byte
+    fn SDL_RunOnMainThread(callback: *byte, userdata: *byte, wait_complete: i32): i32
 }

@@ -1,0 +1,19 @@
+// Raw SDL3 process — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.iostream
+
+@opaque struct SDL_Process
+
+@link("SDL3")
+extern {
+    fn SDL_CreateProcess(args: **c.char, pipe_stdio: bool): *SDL_Process
+    fn SDL_CreateProcessWithProperties(props: u32): *SDL_Process
+    fn SDL_GetProcessProperties(process: *SDL_Process): u32
+    fn SDL_ReadProcess(process: *SDL_Process, datasize: *c.size_t, exitcode: *c.int): *void
+    fn SDL_GetProcessInput(process: *SDL_Process): *iostream.SDL_IOStream
+    fn SDL_GetProcessOutput(process: *SDL_Process): *iostream.SDL_IOStream
+    fn SDL_KillProcess(process: *SDL_Process, force: bool): bool
+    fn SDL_WaitProcess(process: *SDL_Process, block: bool, exitcode: *c.int): bool
+    fn SDL_DestroyProcess(process: *SDL_Process)
+}

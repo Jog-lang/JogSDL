@@ -1,7 +1,11 @@
-// Raw SDL3 error (SDL_error.h). Unexported — apps use jog_sdl.sdl.
+// Raw SDL3 error — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
 import std.c
 
 @link("SDL3")
 extern {
+    fn SDL_SetError(fmt: *const c.char, ...): bool
+    fn SDL_OutOfMemory(): bool
     fn SDL_GetError(): *const c.char
+    fn SDL_ClearError(): bool
 }

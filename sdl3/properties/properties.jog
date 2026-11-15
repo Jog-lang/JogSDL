@@ -1,0 +1,28 @@
+// Raw SDL3 properties — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetGlobalProperties(): u32
+    fn SDL_CreateProperties(): u32
+    fn SDL_CopyProperties(src: u32, dst: u32): bool
+    fn SDL_LockProperties(props: u32): bool
+    fn SDL_UnlockProperties(props: u32)
+    fn SDL_SetPointerPropertyWithCleanup(props: u32, name: *const c.char, value: *void, cleanup: *void, userdata: *void): bool
+    fn SDL_SetPointerProperty(props: u32, name: *const c.char, value: *void): bool
+    fn SDL_SetStringProperty(props: u32, name: *const c.char, value: *const c.char): bool
+    fn SDL_SetNumberProperty(props: u32, name: *const c.char, value: i64): bool
+    fn SDL_SetFloatProperty(props: u32, name: *const c.char, value: f32): bool
+    fn SDL_SetBooleanProperty(props: u32, name: *const c.char, value: bool): bool
+    fn SDL_HasProperty(props: u32, name: *const c.char): bool
+    fn SDL_GetPropertyType(props: u32, name: *const c.char): u32
+    fn SDL_GetPointerProperty(props: u32, name: *const c.char, default_value: *void): *void
+    fn SDL_GetStringProperty(props: u32, name: *const c.char, default_value: *const c.char): *const c.char
+    fn SDL_GetNumberProperty(props: u32, name: *const c.char, default_value: i64): i64
+    fn SDL_GetFloatProperty(props: u32, name: *const c.char, default_value: f32): f32
+    fn SDL_GetBooleanProperty(props: u32, name: *const c.char, default_value: bool): bool
+    fn SDL_ClearProperty(props: u32, name: *const c.char): bool
+    fn SDL_EnumerateProperties(props: u32, callback: *void, userdata: *void): bool
+    fn SDL_DestroyProperties(props: u32)
+}

@@ -1,0 +1,15 @@
+import sdl3.video
+// Raw SDL3 vulkan — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_Vulkan_LoadLibrary(path: *const c.char): bool
+    fn SDL_Vulkan_GetVkGetInstanceProcAddr(): *void
+    fn SDL_Vulkan_UnloadLibrary()
+    fn SDL_Vulkan_GetInstanceExtensions(count: *u32): **c.char
+    fn SDL_Vulkan_CreateSurface(window: *video.SDL_Window, instance: *void, allocator: *const void, surface: *void): bool
+    fn SDL_Vulkan_DestroySurface(instance: *void, surface: *void, allocator: *const void)
+    fn SDL_Vulkan_GetPresentationSupport(instance: *void, physicalDevice: *void, queueFamilyIndex: u32): bool
+}

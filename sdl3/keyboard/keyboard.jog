@@ -1,7 +1,33 @@
-// Raw SDL3 keyboard (SDL_keyboard.h). Unexported — apps use jog_sdl.sdl.
+// Raw SDL3 keyboard — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
 import std.c
+import sdl3.video
+import sdl3.rect
 
 @link("SDL3")
 extern {
+    fn SDL_HasKeyboard(): bool
+    fn SDL_GetKeyboards(count: *c.int): *u32
+    fn SDL_GetKeyboardNameForID(instance_id: u32): *const c.char
+    fn SDL_GetKeyboardFocus(): *video.SDL_Window
     fn SDL_GetKeyboardState(numkeys: *c.int): *const u8
+    fn SDL_ResetKeyboard()
+    fn SDL_GetModState(): u16
+    fn SDL_SetModState(modstate: u16)
+    fn SDL_GetKeyFromScancode(scancode: u32, modstate: u16, key_event: bool): u32
+    fn SDL_GetScancodeFromKey(key: u32, modstate: *u16): u32
+    fn SDL_SetScancodeName(scancode: u32, name: *const c.char): bool
+    fn SDL_GetScancodeName(scancode: u32): *const c.char
+    fn SDL_GetScancodeFromName(name: *const c.char): u32
+    fn SDL_GetKeyName(key: u32): *const c.char
+    fn SDL_GetKeyFromName(name: *const c.char): u32
+    fn SDL_StartTextInput(window: *video.SDL_Window): bool
+    fn SDL_StartTextInputWithProperties(window: *video.SDL_Window, props: u32): bool
+    fn SDL_TextInputActive(window: *video.SDL_Window): bool
+    fn SDL_StopTextInput(window: *video.SDL_Window): bool
+    fn SDL_ClearComposition(window: *video.SDL_Window): bool
+    fn SDL_SetTextInputArea(window: *video.SDL_Window, rect: *const rect.SDL_Rect, cursor: c.int): bool
+    fn SDL_GetTextInputArea(window: *video.SDL_Window, rect: *rect.SDL_Rect, cursor: *c.int): bool
+    fn SDL_HasScreenKeyboardSupport(): bool
+    fn SDL_ScreenKeyboardShown(window: *video.SDL_Window): bool
 }

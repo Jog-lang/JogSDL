@@ -1,0 +1,2 @@
+// Idiomatic sdl.rect — expand wrappers over sdl3.rect as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.rect.

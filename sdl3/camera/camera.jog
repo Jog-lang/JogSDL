@@ -1,0 +1,24 @@
+// Raw SDL3 camera — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.surface
+
+@opaque struct SDL_Camera
+
+@link("SDL3")
+extern {
+    fn SDL_GetNumCameraDrivers(): c.int
+    fn SDL_GetCameraDriver(index: c.int): *const c.char
+    fn SDL_GetCurrentCameraDriver(): *const c.char
+    fn SDL_GetCameras(count: *c.int): *u32
+    fn SDL_GetCameraSupportedFormats(instance_id: u32, count: *c.int): **void
+    fn SDL_GetCameraName(instance_id: u32): *const c.char
+    fn SDL_GetCameraPosition(instance_id: u32): u32
+    fn SDL_OpenCamera(instance_id: u32, spec: *const void): *SDL_Camera
+    fn SDL_GetCameraID(camera: *SDL_Camera): u32
+    fn SDL_GetCameraProperties(camera: *SDL_Camera): u32
+    fn SDL_GetCameraFormat(camera: *SDL_Camera, spec: *void): bool
+    fn SDL_AcquireCameraFrame(camera: *SDL_Camera, timestampNS: *u64): *surface.SDL_Surface
+    fn SDL_ReleaseCameraFrame(camera: *SDL_Camera, frame: *surface.SDL_Surface)
+    fn SDL_CloseCamera(camera: *SDL_Camera)
+}

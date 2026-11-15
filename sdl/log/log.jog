@@ -1,0 +1,2 @@
+// Idiomatic sdl.log — expand wrappers over sdl3.log as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.log.

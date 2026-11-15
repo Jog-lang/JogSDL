@@ -1,7 +1,17 @@
-// Raw SDL3 initialization (SDL_init.h). Unexported — apps use jog_sdl.sdl.
+// Raw SDL3 init — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
 
 @link("SDL3")
 extern {
     fn SDL_Init(flags: u32): bool
+    fn SDL_InitSubSystem(flags: u32): bool
+    fn SDL_QuitSubSystem(flags: u32)
+    fn SDL_WasInit(flags: u32): u32
     fn SDL_Quit()
+    fn SDL_IsMainThread(): bool
+    fn SDL_RunOnMainThread(callback: *void, userdata: *void, wait_complete: bool): bool
+    fn SDL_SetAppMetadata(appname: *const c.char, appversion: *const c.char, appidentifier: *const c.char): bool
+    fn SDL_SetAppMetadataProperty(name: *const c.char, value: *const c.char): bool
+    fn SDL_GetAppMetadataProperty(name: *const c.char): *const c.char
 }

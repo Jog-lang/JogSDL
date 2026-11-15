@@ -8,8 +8,10 @@ Root `sdl/` + `examples/` stay on develop/`jogc`. This tree is the v2 port (JOG-
 
 ```
 v2/
-  sdl3.jog                      # @link("SDL3") raw externs (+ relative mouse)
-  sdl.jog                       # Window / Renderer / Texture / FRect / mouse / keys
+  jog.mod                       # library jog_sdl; examples require jog_sdl ../..
+  sdl/sdl.jog                   # Init/Quit facade + constants
+  sdl/<category>/               # idiomatic helpers (window, render, events, input, timer, …)
+  sdl3/<category>/              # raw @link("SDL3") — synced with root via check-sdl3-sync.sh
   examples/window/              # native smoke (~1.5s auto-exit, while-loop)
   examples/raycaster/           # proto-3D: pitch, textures, cube, parallel bands
   examples/raycaster/timing.jog # GetTicks dt + Delay-to-cap ~60 FPS (JogSDL #19)
@@ -21,6 +23,13 @@ v2/
   examples/raycaster-emscripten/# browser full CPU-3D (pitch/mesh/timing/RTC go)
   examples/raycaster-wasm-smoke/# headless emcc/node smoke: pitch/mesh/occlusion + RTC go
 ```
+
+### Wave status (tracks root)
+
+| Wave | Status |
+|---|---|
+| 0 — split + `require jog_sdl` | done |
+| A–K — full non-test 3.4.18 raw `SDL_*` in `sdl3.*` | done (~1100 symbols; `../scripts/check-sdl3-sync.sh`) |
 
 ## Prerequisites
 

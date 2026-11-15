@@ -1,0 +1,16 @@
+// Raw SDL3 sensor — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_GetSensors(count: *byte): *byte
+    fn SDL_GetSensorNameForID(instance_id: u32): *byte
+    fn SDL_GetSensorNonPortableTypeForID(instance_id: u32): i32
+    fn SDL_OpenSensor(instance_id: u32): *byte
+    fn SDL_GetSensorFromID(instance_id: u32): *byte
+    fn SDL_GetSensorProperties(sensor: *byte): u32
+    fn SDL_GetSensorName(sensor: *byte): *byte
+    fn SDL_GetSensorNonPortableType(sensor: *byte): i32
+    fn SDL_GetSensorID(sensor: *byte): u32
+    fn SDL_GetSensorData(sensor: *byte, data: *byte, num_values: i32): i32
+    fn SDL_CloseSensor(sensor: *byte)
+    fn SDL_UpdateSensors()
+}

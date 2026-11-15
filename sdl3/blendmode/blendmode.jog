@@ -1,0 +1,7 @@
+// Raw SDL3 blendmode — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+
+@link("SDL3")
+extern {
+    fn SDL_ComposeCustomBlendMode(srcColorFactor: u32, dstColorFactor: u32, colorOperation: u32, srcAlphaFactor: u32, dstAlphaFactor: u32, alphaOperation: u32): u32
+}

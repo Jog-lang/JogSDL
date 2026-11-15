@@ -1,0 +1,9 @@
+// Raw SDL3 assert — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_GetAssertionReport(): *byte
+    fn SDL_ResetAssertionReport()
+    fn SDL_GetAssertionHandler(puserdata: **byte): *byte
+    fn SDL_GetDefaultAssertionHandler(): *byte
+    fn SDL_SetAssertionHandler(handler: *byte, userdata: *byte): i32
+}

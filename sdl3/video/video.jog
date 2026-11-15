@@ -1,22 +1,123 @@
-// Raw SDL3 video / window (SDL_video.h). Unexported — apps use jog_sdl.sdl.
-// SDL_Renderer is owned by sdl3.render; this package only forward-declares the
-// opaque so CreateWindowAndRenderer can take **SDL_Renderer without a cycle.
+// Raw SDL3 video — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
 import std.c
+import sdl3.surface
+import sdl3.rect
 
 @opaque struct SDL_Window
 @opaque struct SDL_Renderer
 
 @link("SDL3")
 extern {
+    fn SDL_GetNumVideoDrivers(): c.int
+    fn SDL_GetVideoDriver(index: c.int): *const c.char
+    fn SDL_GetCurrentVideoDriver(): *const c.char
+    fn SDL_GetSystemTheme(): u32
+    fn SDL_GetDisplays(count: *c.int): *u32
+    fn SDL_GetPrimaryDisplay(): u32
+    fn SDL_GetDisplayProperties(displayID: u32): u32
+    fn SDL_GetDisplayName(displayID: u32): *const c.char
+    fn SDL_GetDisplayBounds(displayID: u32, rect: *rect.SDL_Rect): bool
+    fn SDL_GetDisplayUsableBounds(displayID: u32, rect: *rect.SDL_Rect): bool
+    fn SDL_GetNaturalDisplayOrientation(displayID: u32): u32
+    fn SDL_GetCurrentDisplayOrientation(displayID: u32): u32
+    fn SDL_GetDisplayContentScale(displayID: u32): f32
+    fn SDL_GetFullscreenDisplayModes(displayID: u32, count: *c.int): **void
+    fn SDL_GetClosestFullscreenDisplayMode(displayID: u32, w: c.int, h: c.int, refresh_rate: f32, include_high_density_modes: bool, closest: *void): bool
+    fn SDL_GetDesktopDisplayMode(displayID: u32): *const void
+    fn SDL_GetCurrentDisplayMode(displayID: u32): *const void
+    fn SDL_GetDisplayForPoint(point: *const rect.SDL_Point): u32
+    fn SDL_GetDisplayForRect(rect: *const rect.SDL_Rect): u32
+    fn SDL_GetDisplayForWindow(window: *SDL_Window): u32
+    fn SDL_GetWindowPixelDensity(window: *SDL_Window): f32
+    fn SDL_GetWindowDisplayScale(window: *SDL_Window): f32
+    fn SDL_SetWindowFullscreenMode(window: *SDL_Window, mode: *const void): bool
+    fn SDL_GetWindowFullscreenMode(window: *SDL_Window): *const void
+    fn SDL_GetWindowICCProfile(window: *SDL_Window, size: *c.size_t): *void
+    fn SDL_GetWindowPixelFormat(window: *SDL_Window): u32
+    fn SDL_GetWindows(count: *c.int): **SDL_Window
     fn SDL_CreateWindow(title: *const c.char, w: c.int, h: c.int, flags: u64): *SDL_Window?
+    fn SDL_CreatePopupWindow(parent: *SDL_Window, offset_x: c.int, offset_y: c.int, w: c.int, h: c.int, flags: u64): *SDL_Window
+    fn SDL_CreateWindowWithProperties(props: u32): *SDL_Window
+    fn SDL_GetWindowID(window: *SDL_Window): u32
+    fn SDL_GetWindowFromID(id: u32): *SDL_Window
+    fn SDL_GetWindowParent(window: *SDL_Window): *SDL_Window
+    fn SDL_GetWindowProperties(window: *SDL_Window): u32
+    fn SDL_GetWindowFlags(window: *SDL_Window): u64
+    fn SDL_SetWindowTitle(window: *SDL_Window, title: *const c.char): bool
+    fn SDL_GetWindowTitle(window: *SDL_Window): *const c.char
+    fn SDL_SetWindowIcon(window: *SDL_Window, icon: *surface.SDL_Surface): bool
+    fn SDL_SetWindowPosition(window: *SDL_Window, x: c.int, y: c.int): bool
+    fn SDL_GetWindowPosition(window: *SDL_Window, x: *c.int, y: *c.int): bool
+    fn SDL_SetWindowSize(window: *SDL_Window, w: c.int, h: c.int): bool
+    fn SDL_GetWindowSize(window: *SDL_Window, w: *c.int, h: *c.int): bool
+    fn SDL_GetWindowSafeArea(window: *SDL_Window, rect: *rect.SDL_Rect): bool
+    fn SDL_SetWindowAspectRatio(window: *SDL_Window, min_aspect: f32, max_aspect: f32): bool
+    fn SDL_GetWindowAspectRatio(window: *SDL_Window, min_aspect: *f32, max_aspect: *f32): bool
+    fn SDL_GetWindowBordersSize(window: *SDL_Window, top: *c.int, left: *c.int, bottom: *c.int, right: *c.int): bool
+    fn SDL_GetWindowSizeInPixels(window: *SDL_Window, w: *c.int, h: *c.int): bool
+    fn SDL_SetWindowMinimumSize(window: *SDL_Window, min_w: c.int, min_h: c.int): bool
+    fn SDL_GetWindowMinimumSize(window: *SDL_Window, w: *c.int, h: *c.int): bool
+    fn SDL_SetWindowMaximumSize(window: *SDL_Window, max_w: c.int, max_h: c.int): bool
+    fn SDL_GetWindowMaximumSize(window: *SDL_Window, w: *c.int, h: *c.int): bool
+    fn SDL_SetWindowBordered(window: *SDL_Window, bordered: bool): bool
+    fn SDL_SetWindowResizable(window: *SDL_Window, resizable: bool): bool
+    fn SDL_SetWindowAlwaysOnTop(window: *SDL_Window, on_top: bool): bool
+    fn SDL_SetWindowFillDocument(window: *SDL_Window, fill: bool): bool
+    fn SDL_ShowWindow(window: *SDL_Window): bool
+    fn SDL_HideWindow(window: *SDL_Window): bool
+    fn SDL_RaiseWindow(window: *SDL_Window): bool
+    fn SDL_MaximizeWindow(window: *SDL_Window): bool
+    fn SDL_MinimizeWindow(window: *SDL_Window): bool
+    fn SDL_RestoreWindow(window: *SDL_Window): bool
+    fn SDL_SetWindowFullscreen(window: *SDL_Window, fullscreen: bool): bool
+    fn SDL_SyncWindow(window: *SDL_Window): bool
+    fn SDL_WindowHasSurface(window: *SDL_Window): bool
+    fn SDL_GetWindowSurface(window: *SDL_Window): *surface.SDL_Surface
+    fn SDL_SetWindowSurfaceVSync(window: *SDL_Window, vsync: c.int): bool
+    fn SDL_GetWindowSurfaceVSync(window: *SDL_Window, vsync: *c.int): bool
+    fn SDL_UpdateWindowSurface(window: *SDL_Window): bool
+    fn SDL_UpdateWindowSurfaceRects(window: *SDL_Window, rects: *const rect.SDL_Rect, numrects: c.int): bool
+    fn SDL_DestroyWindowSurface(window: *SDL_Window): bool
+    fn SDL_SetWindowKeyboardGrab(window: *SDL_Window, grabbed: bool): bool
+    fn SDL_SetWindowMouseGrab(window: *SDL_Window, grabbed: bool): bool
+    fn SDL_GetWindowKeyboardGrab(window: *SDL_Window): bool
+    fn SDL_GetWindowMouseGrab(window: *SDL_Window): bool
+    fn SDL_GetGrabbedWindow(): *SDL_Window
+    fn SDL_SetWindowMouseRect(window: *SDL_Window, rect: *const rect.SDL_Rect): bool
+    fn SDL_GetWindowMouseRect(window: *SDL_Window): *const rect.SDL_Rect
+    fn SDL_SetWindowOpacity(window: *SDL_Window, opacity: f32): bool
+    fn SDL_GetWindowOpacity(window: *SDL_Window): f32
+    fn SDL_SetWindowParent(window: *SDL_Window, parent: *SDL_Window): bool
+    fn SDL_SetWindowModal(window: *SDL_Window, modal: bool): bool
+    fn SDL_SetWindowFocusable(window: *SDL_Window, focusable: bool): bool
+    fn SDL_ShowWindowSystemMenu(window: *SDL_Window, x: c.int, y: c.int): bool
+    fn SDL_SetWindowShape(window: *SDL_Window, shape: *surface.SDL_Surface): bool
+    fn SDL_FlashWindow(window: *SDL_Window, operation: u32): bool
+    fn SDL_SetWindowProgressValue(window: *SDL_Window, value: f32): bool
+    fn SDL_GetWindowProgressValue(window: *SDL_Window): f32
     fn SDL_DestroyWindow(window: *SDL_Window)
-    fn SDL_CreateWindowAndRenderer(
-        title: *const c.char,
-        w: c.int,
-        h: c.int,
-        flags: u64,
-        window: **SDL_Window,
-        renderer: **SDL_Renderer
-    ): bool
-    fn SDL_SetWindowRelativeMouseMode(window: *SDL_Window, enabled: bool): bool
+    fn SDL_ScreenSaverEnabled(): bool
+    fn SDL_EnableScreenSaver(): bool
+    fn SDL_DisableScreenSaver(): bool
+    fn SDL_GL_LoadLibrary(path: *const c.char): bool
+    fn SDL_GL_GetProcAddress(proc: *const c.char): *void
+    fn SDL_EGL_GetProcAddress(proc: *const c.char): *void
+    fn SDL_GL_UnloadLibrary()
+    fn SDL_GL_ExtensionSupported(extension: *const c.char): bool
+    fn SDL_GL_ResetAttributes()
+    fn SDL_GL_SetAttribute(attr: u32, value: c.int): bool
+    fn SDL_GL_GetAttribute(attr: u32, value: *c.int): bool
+    fn SDL_GL_CreateContext(window: *SDL_Window): *void
+    fn SDL_GL_MakeCurrent(window: *SDL_Window, context: *void): bool
+    fn SDL_GL_GetCurrentWindow(): *SDL_Window
+    fn SDL_GL_GetCurrentContext(): *void
+    fn SDL_EGL_GetCurrentDisplay(): *void
+    fn SDL_EGL_GetCurrentConfig(): *void
+    fn SDL_EGL_GetWindowSurface(window: *SDL_Window): *void
+    fn SDL_EGL_SetAttributeCallbacks(platformAttribCallback: *void, surfaceAttribCallback: *void, contextAttribCallback: *void, userdata: *void)
+    fn SDL_GL_SetSwapInterval(interval: c.int): bool
+    fn SDL_GL_GetSwapInterval(interval: *c.int): bool
+    fn SDL_GL_SwapWindow(window: *SDL_Window): bool
+    fn SDL_GL_DestroyContext(context: *void): bool
 }

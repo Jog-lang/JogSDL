@@ -1,14 +1,106 @@
-// Raw SDL3 render / texture (SDL_render.h) — v2 flat merge.
+// Raw SDL3 render — v2 flat merge (generated).
 @link("SDL3")
 extern {
+    fn SDL_GetNumRenderDrivers(): i32
+    fn SDL_GetRenderDriver(index: i32): *byte
+    fn SDL_CreateWindowAndRenderer(title: *byte, width: i32, height: i32, window_flags: u64, window: **byte, renderer: **byte): i32
     fn SDL_CreateRenderer(window: *byte, name: *byte): *byte
-    fn SDL_DestroyRenderer(renderer: *byte)
-    fn SDL_SetRenderDrawColor(renderer: *byte, r: u8, g: u8, b: u8, a: u8): i32
-    fn SDL_RenderClear(renderer: *byte): i32
-    fn SDL_RenderPresent(renderer: *byte): i32
-    fn SDL_RenderFillRect(renderer: *byte, rect: *byte): i32
+    fn SDL_CreateRendererWithProperties(props: u32): *byte
+    fn SDL_CreateGPURenderer(device: *byte, window: *byte): *byte
+    fn SDL_GetGPURendererDevice(renderer: *byte): *byte
+    fn SDL_CreateSoftwareRenderer(surface: *byte): *byte
+    fn SDL_GetRenderer(window: *byte): *byte
+    fn SDL_GetRenderWindow(renderer: *byte): *byte
+    fn SDL_GetRendererName(renderer: *byte): *byte
+    fn SDL_GetRendererProperties(renderer: *byte): u32
+    fn SDL_GetRenderOutputSize(renderer: *byte, w: *byte, h: *byte): i32
+    fn SDL_GetCurrentRenderOutputSize(renderer: *byte, w: *byte, h: *byte): i32
     fn SDL_CreateTexture(renderer: *byte, format: u32, access: i32, w: i32, h: i32): *byte
-    fn SDL_DestroyTexture(texture: *byte)
+    fn SDL_CreateTextureFromSurface(renderer: *byte, surface: *byte): *byte
+    fn SDL_CreateTextureWithProperties(renderer: *byte, props: u32): *byte
+    fn SDL_GetTextureProperties(texture: *byte): u32
+    fn SDL_GetRendererFromTexture(texture: *byte): *byte
+    fn SDL_GetTextureSize(texture: *byte, w: *byte, h: *byte): i32
+    fn SDL_SetTexturePalette(texture: *byte, palette: *byte): i32
+    fn SDL_GetTexturePalette(texture: *byte): *byte
+    fn SDL_SetTextureColorMod(texture: *byte, r: u8, g: u8, b: u8): i32
+    fn SDL_SetTextureColorModFloat(texture: *byte, r: f32, g: f32, b: f32): i32
+    fn SDL_GetTextureColorMod(texture: *byte, r: *byte, g: *byte, b: *byte): i32
+    fn SDL_GetTextureColorModFloat(texture: *byte, r: *byte, g: *byte, b: *byte): i32
+    fn SDL_SetTextureAlphaMod(texture: *byte, alpha: u8): i32
+    fn SDL_SetTextureAlphaModFloat(texture: *byte, alpha: f32): i32
+    fn SDL_GetTextureAlphaMod(texture: *byte, alpha: *byte): i32
+    fn SDL_GetTextureAlphaModFloat(texture: *byte, alpha: *byte): i32
+    fn SDL_SetTextureBlendMode(texture: *byte, blendMode: u32): i32
+    fn SDL_GetTextureBlendMode(texture: *byte, blendMode: *byte): i32
+    fn SDL_GetTextureScaleMode(texture: *byte, scaleMode: *byte): i32
     fn SDL_UpdateTexture(texture: *byte, rect: *byte, pixels: *byte, pitch: i32): i32
+    fn SDL_UpdateYUVTexture(texture: *byte, rect: *byte, Yplane: *byte, Ypitch: i32, Uplane: *byte, Upitch: i32, Vplane: *byte, Vpitch: i32): i32
+    fn SDL_UpdateNVTexture(texture: *byte, rect: *byte, Yplane: *byte, Ypitch: i32, UVplane: *byte, UVpitch: i32): i32
+    fn SDL_LockTexture(texture: *byte, rect: *byte, pixels: **byte, pitch: *byte): i32
+    fn SDL_LockTextureToSurface(texture: *byte, rect: *byte, surface: **byte): i32
+    fn SDL_UnlockTexture(texture: *byte)
+    fn SDL_SetRenderTarget(renderer: *byte, texture: *byte): i32
+    fn SDL_GetRenderTarget(renderer: *byte): *byte
+    fn SDL_GetRenderLogicalPresentation(renderer: *byte, w: *byte, h: *byte, mode: *byte): i32
+    fn SDL_GetRenderLogicalPresentationRect(renderer: *byte, rect: *byte): i32
+    fn SDL_RenderCoordinatesFromWindow(renderer: *byte, window_x: f32, window_y: f32, x: *byte, y: *byte): i32
+    fn SDL_RenderCoordinatesToWindow(renderer: *byte, x: f32, y: f32, window_x: *byte, window_y: *byte): i32
+    fn SDL_ConvertEventToRenderCoordinates(renderer: *byte, event: *byte): i32
+    fn SDL_SetRenderViewport(renderer: *byte, rect: *byte): i32
+    fn SDL_GetRenderViewport(renderer: *byte, rect: *byte): i32
+    fn SDL_RenderViewportSet(renderer: *byte): i32
+    fn SDL_GetRenderSafeArea(renderer: *byte, rect: *byte): i32
+    fn SDL_SetRenderClipRect(renderer: *byte, rect: *byte): i32
+    fn SDL_GetRenderClipRect(renderer: *byte, rect: *byte): i32
+    fn SDL_RenderClipEnabled(renderer: *byte): i32
+    fn SDL_SetRenderScale(renderer: *byte, scaleX: f32, scaleY: f32): i32
+    fn SDL_GetRenderScale(renderer: *byte, scaleX: *byte, scaleY: *byte): i32
+    fn SDL_SetRenderDrawColor(renderer: *byte, r: u8, g: u8, b: u8, a: u8): i32
+    fn SDL_SetRenderDrawColorFloat(renderer: *byte, r: f32, g: f32, b: f32, a: f32): i32
+    fn SDL_GetRenderDrawColor(renderer: *byte, r: *byte, g: *byte, b: *byte, a: *byte): i32
+    fn SDL_GetRenderDrawColorFloat(renderer: *byte, r: *byte, g: *byte, b: *byte, a: *byte): i32
+    fn SDL_SetRenderColorScale(renderer: *byte, scale: f32): i32
+    fn SDL_GetRenderColorScale(renderer: *byte, scale: *byte): i32
+    fn SDL_SetRenderDrawBlendMode(renderer: *byte, blendMode: u32): i32
+    fn SDL_GetRenderDrawBlendMode(renderer: *byte, blendMode: *byte): i32
+    fn SDL_RenderClear(renderer: *byte): i32
+    fn SDL_RenderPoint(renderer: *byte, x: f32, y: f32): i32
+    fn SDL_RenderPoints(renderer: *byte, points: *byte, count: i32): i32
+    fn SDL_RenderLine(renderer: *byte, x1: f32, y1: f32, x2: f32, y2: f32): i32
+    fn SDL_RenderLines(renderer: *byte, points: *byte, count: i32): i32
+    fn SDL_RenderRect(renderer: *byte, rect: *byte): i32
+    fn SDL_RenderRects(renderer: *byte, rects: *byte, count: i32): i32
+    fn SDL_RenderFillRect(renderer: *byte, rect: *byte): i32
+    fn SDL_RenderFillRects(renderer: *byte, rects: *byte, count: i32): i32
     fn SDL_RenderTexture(renderer: *byte, texture: *byte, srcrect: *byte, dstrect: *byte): i32
+    fn SDL_RenderTextureAffine(renderer: *byte, texture: *byte, srcrect: *byte, origin: *byte, right: *byte, down: *byte): i32
+    fn SDL_RenderTextureTiled(renderer: *byte, texture: *byte, srcrect: *byte, scale: f32, dstrect: *byte): i32
+    fn SDL_RenderTexture9Grid(renderer: *byte, texture: *byte, srcrect: *byte, left_width: f32, right_width: f32, top_height: f32, bottom_height: f32, scale: f32, dstrect: *byte): i32
+    fn SDL_RenderTexture9GridTiled(renderer: *byte, texture: *byte, srcrect: *byte, left_width: f32, right_width: f32, top_height: f32, bottom_height: f32, scale: f32, dstrect: *byte, tileScale: f32): i32
+    fn SDL_RenderGeometry(renderer: *byte, texture: *byte, vertices: *byte, num_vertices: i32, indices: *byte, num_indices: i32): i32
+    fn SDL_RenderGeometryRaw(renderer: *byte, texture: *byte, xy: *byte, xy_stride: i32, color: *byte, color_stride: i32, uv: *byte, uv_stride: i32, num_vertices: i32, indices: *byte, num_indices: i32, size_indices: i32): i32
+    fn SDL_GetRenderTextureAddressMode(renderer: *byte, u_mode: *byte, v_mode: *byte): i32
+    fn SDL_RenderReadPixels(renderer: *byte, rect: *byte): *byte
+    fn SDL_RenderPresent(renderer: *byte): i32
+    fn SDL_DestroyTexture(texture: *byte)
+    fn SDL_DestroyRenderer(renderer: *byte)
+    fn SDL_FlushRenderer(renderer: *byte): i32
+    fn SDL_GetRenderMetalLayer(renderer: *byte): *byte
+    fn SDL_GetRenderMetalCommandEncoder(renderer: *byte): *byte
+    fn SDL_AddVulkanRenderSemaphores(renderer: *byte, wait_stage_mask: u32, wait_semaphore: i64, signal_semaphore: i64): i32
+    fn SDL_SetRenderVSync(renderer: *byte, vsync: i32): i32
+    fn SDL_GetRenderVSync(renderer: *byte, vsync: *byte): i32
+    fn SDL_RenderDebugText(renderer: *byte, x: f32, y: f32, str: *byte): i32
+    fn SDL_GetDefaultTextureScaleMode(renderer: *byte, scale_mode: *byte): i32
+    fn SDL_CreateGPURenderState(renderer: *byte, createinfo: *byte): *byte
+    fn SDL_SetGPURenderStateFragmentUniforms(state: *byte, slot_index: u32, data: *byte, length: u32): i32
+    fn SDL_SetGPURenderState(renderer: *byte, state: *byte): i32
+    fn SDL_DestroyGPURenderState(state: *byte)
+    fn SDL_RenderDebugTextFormat(renderer: *byte, x: f32, y: f32, fmt: *byte): i32
+    fn SDL_RenderTextureRotated(renderer: *byte, texture: *byte, srcrect: *byte, dstrect: *byte, angle: f64, center: *byte, flip: u32): i32
+    fn SDL_SetDefaultTextureScaleMode(renderer: *byte, scale_mode: u32): i32
+    fn SDL_SetRenderLogicalPresentation(renderer: *byte, w: i32, h: i32, mode: u32): i32
+    fn SDL_SetRenderTextureAddressMode(renderer: *byte, u_mode: u32, v_mode: u32): i32
+    fn SDL_SetTextureScaleMode(texture: *byte, scaleMode: u32): i32
 }

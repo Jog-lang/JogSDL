@@ -1,7 +1,31 @@
-// Raw SDL3 mouse (SDL_mouse.h). Unexported — apps use jog_sdl.sdl.input.
+// Raw SDL3 mouse — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
 import std.c
+import sdl3.surface
+import sdl3.video
+
+@opaque struct SDL_Cursor
 
 @link("SDL3")
 extern {
     fn SDL_GetRelativeMouseState(x: *f32, y: *f32): u32
+    fn SDL_HasMouse(): bool
+    fn SDL_GetMice(count: *c.int): *u32
+    fn SDL_GetMouseNameForID(instance_id: u32): *const c.char
+    fn SDL_GetMouseFocus(): *video.SDL_Window
+    fn SDL_WarpMouseInWindow(window: *video.SDL_Window, x: f32, y: f32)
+    fn SDL_WarpMouseGlobal(x: f32, y: f32): bool
+    fn SDL_SetRelativeMouseTransform(callback: *void, userdata: *void): bool
+    fn SDL_SetWindowRelativeMouseMode(window: *video.SDL_Window, enabled: bool): bool
+    fn SDL_GetWindowRelativeMouseMode(window: *video.SDL_Window): bool
+    fn SDL_CaptureMouse(enabled: bool): bool
+    fn SDL_CreateCursor(data: *const u8, mask: *const u8, w: c.int, h: c.int, hot_x: c.int, hot_y: c.int): *SDL_Cursor
+    fn SDL_CreateColorCursor(surface: *surface.SDL_Surface, hot_x: c.int, hot_y: c.int): *SDL_Cursor
+    fn SDL_SetCursor(cursor: *SDL_Cursor): bool
+    fn SDL_GetCursor(): *SDL_Cursor
+    fn SDL_GetDefaultCursor(): *SDL_Cursor
+    fn SDL_DestroyCursor(cursor: *SDL_Cursor)
+    fn SDL_ShowCursor(): bool
+    fn SDL_HideCursor(): bool
+    fn SDL_CursorVisible(): bool
 }

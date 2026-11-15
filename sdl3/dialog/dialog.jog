@@ -1,0 +1,12 @@
+// Raw SDL3 dialog — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.video
+
+@link("SDL3")
+extern {
+    fn SDL_ShowOpenFileDialog(callback: *void, userdata: *void, window: *video.SDL_Window, filters: *const void, nfilters: c.int, default_location: *const c.char, allow_many: bool)
+    fn SDL_ShowSaveFileDialog(callback: *void, userdata: *void, window: *video.SDL_Window, filters: *const void, nfilters: c.int, default_location: *const c.char)
+    fn SDL_ShowOpenFolderDialog(callback: *void, userdata: *void, window: *video.SDL_Window, default_location: *const c.char, allow_many: bool)
+    fn SDL_ShowFileDialogWithProperties(type_: u32, callback: *void, userdata: *void, props: u32)
+}

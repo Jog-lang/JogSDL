@@ -1,6 +1,14 @@
-// Raw SDL3 timer (SDL_timer.h) — v2 flat merge.
+// Raw SDL3 timer — v2 flat merge (generated).
 @link("SDL3")
 extern {
-    fn SDL_Delay(ms: u32)
     fn SDL_GetTicks(): u64
+    fn SDL_GetTicksNS(): u64
+    fn SDL_GetPerformanceCounter(): u64
+    fn SDL_GetPerformanceFrequency(): u64
+    fn SDL_Delay(ms: u32)
+    fn SDL_DelayNS(ns: u64)
+    fn SDL_DelayPrecise(ns: u64)
+    fn SDL_RemoveTimer(id: u32): i32
+    fn SDL_AddTimer(interval: u32, callback: *byte, userdata: *byte): i32
+    fn SDL_AddTimerNS(interval: u64, callback: *byte, userdata: *byte): i32
 }

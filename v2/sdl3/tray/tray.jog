@@ -1,0 +1,26 @@
+// Raw SDL3 tray — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_CreateTray(icon: *byte, tooltip: *byte): *byte
+    fn SDL_SetTrayIcon(tray: *byte, icon: *byte)
+    fn SDL_SetTrayTooltip(tray: *byte, tooltip: *byte)
+    fn SDL_CreateTrayMenu(tray: *byte): *byte
+    fn SDL_CreateTraySubmenu(entry: *byte): *byte
+    fn SDL_GetTrayMenu(tray: *byte): *byte
+    fn SDL_GetTraySubmenu(entry: *byte): *byte
+    fn SDL_GetTrayEntries(menu: *byte, count: *byte): **byte
+    fn SDL_RemoveTrayEntry(entry: *byte)
+    fn SDL_SetTrayEntryLabel(entry: *byte, label: *byte)
+    fn SDL_GetTrayEntryLabel(entry: *byte): *byte
+    fn SDL_SetTrayEntryChecked(entry: *byte, checked: i32)
+    fn SDL_GetTrayEntryChecked(entry: *byte): i32
+    fn SDL_SetTrayEntryEnabled(entry: *byte, enabled: i32)
+    fn SDL_GetTrayEntryEnabled(entry: *byte): i32
+    fn SDL_ClickTrayEntry(entry: *byte)
+    fn SDL_DestroyTray(tray: *byte)
+    fn SDL_GetTrayEntryParent(entry: *byte): *byte
+    fn SDL_GetTrayMenuParentEntry(menu: *byte): *byte
+    fn SDL_GetTrayMenuParentTray(menu: *byte): *byte
+    fn SDL_UpdateTrays()
+    fn SDL_SetTrayEntryCallback(entry: *byte, callback: *byte, userdata: *byte): i32
+}

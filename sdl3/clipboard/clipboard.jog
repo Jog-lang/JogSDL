@@ -1,0 +1,18 @@
+// Raw SDL3 clipboard — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_SetClipboardText(text: *const c.char): bool
+    fn SDL_GetClipboardText(): *c.char
+    fn SDL_HasClipboardText(): bool
+    fn SDL_SetPrimarySelectionText(text: *const c.char): bool
+    fn SDL_GetPrimarySelectionText(): *c.char
+    fn SDL_HasPrimarySelectionText(): bool
+    fn SDL_SetClipboardData(callback: *void, cleanup: *void, userdata: *void, mime_types: **c.char, num_mime_types: c.size_t): bool
+    fn SDL_ClearClipboardData(): bool
+    fn SDL_GetClipboardData(mime_type: *const c.char, size: *c.size_t): *void
+    fn SDL_HasClipboardData(mime_type: *const c.char): bool
+    fn SDL_GetClipboardMimeTypes(num_mime_types: *c.size_t): **c.char
+}

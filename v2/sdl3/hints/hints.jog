@@ -1,0 +1,10 @@
+// Raw SDL3 hints — v2 flat merge (generated).
+@link("SDL3")
+extern {
+    fn SDL_SetHint(name: *byte, value: *byte): i32
+    fn SDL_ResetHint(name: *byte): i32
+    fn SDL_ResetHints()
+    fn SDL_GetHintBoolean(name: *byte, default_value: i32): i32
+    fn SDL_AddHintCallback(name: *byte, callback: *byte, userdata: *byte): i32
+    fn SDL_RemoveHintCallback(name: *byte, callback: *byte, userdata: *byte): i32
+}

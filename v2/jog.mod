@@ -1,27 +1,71 @@
 # JogSDL library for JogCompiler v2 (flat source merge via require).
 # Examples: require jog_sdl ../..
-# Directory layout mirrors root sdl/ + sdl3/; v2 keeps *byte FFI and v2-only helpers.
 module jog_sdl
 version 0.1.0
 
-# Facade first, then raw categories, then idiomatic helpers.
 root sdl/sdl.jog
 
-source sdl3/init/init.jog
+source sdl3/assert/assert.jog
+source sdl3/asyncio/asyncio.jog
+source sdl3/atomic/atomic.jog
+source sdl3/audio/audio.jog
+source sdl3/bits/bits.jog
+source sdl3/blendmode/blendmode.jog
+source sdl3/camera/camera.jog
+source sdl3/clipboard/clipboard.jog
+source sdl3/cpuinfo/cpuinfo.jog
+source sdl3/dialog/dialog.jog
+source sdl3/endian/endian.jog
 source sdl3/error/error.jog
-source sdl3/rect/rect.jog
-source sdl3/video/video.jog
-source sdl3/render/render.jog
 source sdl3/events/events.jog
+source sdl3/filesystem/filesystem.jog
+source sdl3/gamepad/gamepad.jog
+source sdl3/gpu/gpu.jog
+source sdl3/guid/guid.jog
+source sdl3/haptic/haptic.jog
+source sdl3/hidapi/hidapi.jog
+source sdl3/hints/hints.jog
+source sdl3/init/init.jog
+source sdl3/iostream/iostream.jog
+source sdl3/joystick/joystick.jog
 source sdl3/keyboard/keyboard.jog
+source sdl3/keycode/keycode.jog
+source sdl3/loadso/loadso.jog
+source sdl3/locale/locale.jog
+source sdl3/log/log.jog
+source sdl3/main/main.jog
+source sdl3/messagebox/messagebox.jog
+source sdl3/metal/metal.jog
+source sdl3/misc/misc.jog
 source sdl3/mouse/mouse.jog
+source sdl3/mutex/mutex.jog
+source sdl3/pen/pen.jog
+source sdl3/pixels/pixels.jog
+source sdl3/platform/platform.jog
+source sdl3/power/power.jog
+source sdl3/process/process.jog
+source sdl3/properties/properties.jog
+source sdl3/rect/rect.jog
+source sdl3/render/render.jog
+source sdl3/scancode/scancode.jog
+source sdl3/sensor/sensor.jog
+source sdl3/stdinc/stdinc.jog
+source sdl3/storage/storage.jog
+source sdl3/surface/surface.jog
+source sdl3/system/system.jog
+source sdl3/thread/thread.jog
+source sdl3/time/time.jog
 source sdl3/timer/timer.jog
-
-source sdl/window/window.jog
-source sdl/render/render.jog
+source sdl3/touch/touch.jog
+source sdl3/tray/tray.jog
+source sdl3/version/version.jog
+source sdl3/video/video.jog
+source sdl3/vulkan/vulkan.jog
 source sdl/events/events.jog
 source sdl/input/input.jog
+source sdl/render/render.jog
 source sdl/timer/timer.jog
+source sdl/window/window.jog
 
 link.linux SDL3
 link.emscripten SDL3

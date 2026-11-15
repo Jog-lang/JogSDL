@@ -1,0 +1,8 @@
+// Raw SDL3 power — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetPowerInfo(seconds: *c.int, percent: *c.int): u32
+}

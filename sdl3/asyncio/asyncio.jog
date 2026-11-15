@@ -1,0 +1,21 @@
+// Raw SDL3 asyncio — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@opaque struct SDL_AsyncIO
+@opaque struct SDL_AsyncIOQueue
+
+@link("SDL3")
+extern {
+    fn SDL_AsyncIOFromFile(file: *const c.char, mode: *const c.char): *SDL_AsyncIO
+    fn SDL_GetAsyncIOSize(asyncio: *SDL_AsyncIO): i64
+    fn SDL_ReadAsyncIO(asyncio: *SDL_AsyncIO, ptr: *void, offset: u64, size: u64, queue: *SDL_AsyncIOQueue, userdata: *void): bool
+    fn SDL_WriteAsyncIO(asyncio: *SDL_AsyncIO, ptr: *void, offset: u64, size: u64, queue: *SDL_AsyncIOQueue, userdata: *void): bool
+    fn SDL_CloseAsyncIO(asyncio: *SDL_AsyncIO, flush: bool, queue: *SDL_AsyncIOQueue, userdata: *void): bool
+    fn SDL_CreateAsyncIOQueue(): *SDL_AsyncIOQueue
+    fn SDL_DestroyAsyncIOQueue(queue: *SDL_AsyncIOQueue)
+    fn SDL_GetAsyncIOResult(queue: *SDL_AsyncIOQueue, outcome: *void): bool
+    fn SDL_WaitAsyncIOResult(queue: *SDL_AsyncIOQueue, outcome: *void, timeoutMS: i32): bool
+    fn SDL_SignalAsyncIOQueue(queue: *SDL_AsyncIOQueue)
+    fn SDL_LoadFileAsync(file: *const c.char, queue: *SDL_AsyncIOQueue, userdata: *void): bool
+}

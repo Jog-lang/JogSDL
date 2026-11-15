@@ -1,4 +1,4 @@
-// Raw SDL3 rect layouts (SDL_rect.h). Unexported — apps use jog_sdl.sdl.
+// Raw SDL3 rect layouts + helpers (SDL_rect.h).
 import std.c
 
 struct SDL_FRect {
@@ -15,6 +15,16 @@ struct SDL_Rect {
     h: c.int
 }
 
+struct SDL_Point {
+    x: c.int
+    y: c.int
+}
+
+struct SDL_FPoint {
+    x: f32
+    y: f32
+}
+
 fn frect(x: f32, y: f32, w: f32, h: f32): SDL_FRect {
     var r: SDL_FRect
     r.x = x
@@ -22,4 +32,18 @@ fn frect(x: f32, y: f32, w: f32, h: f32): SDL_FRect {
     r.w = w
     r.h = h
     return r
+}
+
+@link("SDL3")
+extern {
+    fn SDL_HasRectIntersection(A: *const SDL_Rect, B: *const SDL_Rect): bool
+    fn SDL_GetRectIntersection(A: *const SDL_Rect, B: *const SDL_Rect, result: *SDL_Rect): bool
+    fn SDL_GetRectUnion(A: *const SDL_Rect, B: *const SDL_Rect, result: *SDL_Rect): bool
+    fn SDL_GetRectEnclosingPoints(points: *const SDL_Point, count: c.int, clip: *const SDL_Rect, result: *SDL_Rect): bool
+    fn SDL_GetRectAndLineIntersection(rect: *const SDL_Rect, X1: *c.int, Y1: *c.int, X2: *c.int, Y2: *c.int): bool
+    fn SDL_HasRectIntersectionFloat(A: *const SDL_FRect, B: *const SDL_FRect): bool
+    fn SDL_GetRectIntersectionFloat(A: *const SDL_FRect, B: *const SDL_FRect, result: *SDL_FRect): bool
+    fn SDL_GetRectUnionFloat(A: *const SDL_FRect, B: *const SDL_FRect, result: *SDL_FRect): bool
+    fn SDL_GetRectEnclosingPointsFloat(points: *const SDL_FPoint, count: c.int, clip: *const SDL_FRect, result: *SDL_FRect): bool
+    fn SDL_GetRectAndLineIntersectionFloat(rect: *const SDL_FRect, X1: *f32, Y1: *f32, X2: *f32, Y2: *f32): bool
 }

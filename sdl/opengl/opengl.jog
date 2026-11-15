@@ -1,0 +1,46 @@
+// Thin OpenGL window/context bridge over sdl3.video SDL_GL_* entry points.
+// Not a Khronos glext dump — see plan non-goals.
+import sdl3.video as raw
+import sdl
+import std.c
+
+fn GL_LoadLibrary(path: *const c.char): sdl.SDLError? {
+    if !raw.SDL_GL_LoadLibrary(path) {
+        return sdl.last_error("GL_LoadLibrary failed")
+    }
+    return null
+}
+
+fn GL_GetProcAddress(proc: *const c.char): *void {
+    return raw.SDL_GL_GetProcAddress(proc)
+}
+
+fn GL_UnloadLibrary() {
+    raw.SDL_GL_UnloadLibrary()
+}
+
+fn GL_ExtensionSupported(extension: *const c.char): bool {
+    return raw.SDL_GL_ExtensionSupported(extension)
+}
+
+fn GL_CreateContext(window: *raw.SDL_Window): *void {
+    return raw.SDL_GL_CreateContext(window)
+}
+
+fn GL_MakeCurrent(window: *raw.SDL_Window, ctx: *void): sdl.SDLError? {
+    if !raw.SDL_GL_MakeCurrent(window, ctx) {
+        return sdl.last_error("GL_MakeCurrent failed")
+    }
+    return null
+}
+
+fn GL_SwapWindow(window: *raw.SDL_Window): sdl.SDLError? {
+    if !raw.SDL_GL_SwapWindow(window) {
+        return sdl.last_error("GL_SwapWindow failed")
+    }
+    return null
+}
+
+fn GL_DestroyContext(ctx: *void): bool {
+    return raw.SDL_GL_DestroyContext(ctx)
+}

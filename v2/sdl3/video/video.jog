@@ -1,15 +1,117 @@
-// Raw SDL3 video / window (SDL_video.h) — v2 flat merge.
+// Raw SDL3 video — v2 flat merge (generated).
 @link("SDL3")
 extern {
+    fn SDL_GetNumVideoDrivers(): i32
+    fn SDL_GetVideoDriver(index: i32): *byte
+    fn SDL_GetCurrentVideoDriver(): *byte
+    fn SDL_GetDisplays(count: *byte): *byte
+    fn SDL_GetPrimaryDisplay(): u32
+    fn SDL_GetDisplayProperties(displayID: u32): u32
+    fn SDL_GetDisplayName(displayID: u32): *byte
+    fn SDL_GetDisplayBounds(displayID: u32, rect: *byte): i32
+    fn SDL_GetDisplayUsableBounds(displayID: u32, rect: *byte): i32
+    fn SDL_GetDisplayContentScale(displayID: u32): f32
+    fn SDL_GetFullscreenDisplayModes(displayID: u32, count: *byte): **byte
+    fn SDL_GetClosestFullscreenDisplayMode(displayID: u32, w: i32, h: i32, refresh_rate: f32, include_high_density_modes: i32, closest: *byte): i32
+    fn SDL_GetDesktopDisplayMode(displayID: u32): *byte
+    fn SDL_GetCurrentDisplayMode(displayID: u32): *byte
+    fn SDL_GetDisplayForPoint(point: *byte): u32
+    fn SDL_GetDisplayForRect(rect: *byte): u32
+    fn SDL_GetDisplayForWindow(window: *byte): u32
+    fn SDL_GetWindowPixelDensity(window: *byte): f32
+    fn SDL_GetWindowDisplayScale(window: *byte): f32
+    fn SDL_SetWindowFullscreenMode(window: *byte, mode: *byte): i32
+    fn SDL_GetWindowFullscreenMode(window: *byte): *byte
+    fn SDL_GetWindowICCProfile(window: *byte, size: *byte): *byte
+    fn SDL_GetWindowPixelFormat(window: *byte): u32
+    fn SDL_GetWindows(count: *byte): **byte
     fn SDL_CreateWindow(title: *byte, w: i32, h: i32, flags: u64): *byte
+    fn SDL_CreatePopupWindow(parent: *byte, offset_x: i32, offset_y: i32, w: i32, h: i32, flags: u64): *byte
+    fn SDL_CreateWindowWithProperties(props: u32): *byte
+    fn SDL_GetWindowID(window: *byte): u32
+    fn SDL_GetWindowFromID(id: u32): *byte
+    fn SDL_GetWindowParent(window: *byte): *byte
+    fn SDL_GetWindowProperties(window: *byte): u32
+    fn SDL_GetWindowFlags(window: *byte): u64
+    fn SDL_SetWindowTitle(window: *byte, title: *byte): i32
+    fn SDL_GetWindowTitle(window: *byte): *byte
+    fn SDL_SetWindowIcon(window: *byte, icon: *byte): i32
+    fn SDL_SetWindowPosition(window: *byte, x: i32, y: i32): i32
+    fn SDL_GetWindowPosition(window: *byte, x: *byte, y: *byte): i32
+    fn SDL_SetWindowSize(window: *byte, w: i32, h: i32): i32
+    fn SDL_GetWindowSize(window: *byte, w: *byte, h: *byte): i32
+    fn SDL_GetWindowSafeArea(window: *byte, rect: *byte): i32
+    fn SDL_SetWindowAspectRatio(window: *byte, min_aspect: f32, max_aspect: f32): i32
+    fn SDL_GetWindowAspectRatio(window: *byte, min_aspect: *byte, max_aspect: *byte): i32
+    fn SDL_GetWindowBordersSize(window: *byte, top: *byte, left: *byte, bottom: *byte, right: *byte): i32
+    fn SDL_GetWindowSizeInPixels(window: *byte, w: *byte, h: *byte): i32
+    fn SDL_SetWindowMinimumSize(window: *byte, min_w: i32, min_h: i32): i32
+    fn SDL_GetWindowMinimumSize(window: *byte, w: *byte, h: *byte): i32
+    fn SDL_SetWindowMaximumSize(window: *byte, max_w: i32, max_h: i32): i32
+    fn SDL_GetWindowMaximumSize(window: *byte, w: *byte, h: *byte): i32
+    fn SDL_SetWindowBordered(window: *byte, bordered: i32): i32
+    fn SDL_SetWindowResizable(window: *byte, resizable: i32): i32
+    fn SDL_SetWindowAlwaysOnTop(window: *byte, on_top: i32): i32
+    fn SDL_SetWindowFillDocument(window: *byte, fill: i32): i32
+    fn SDL_ShowWindow(window: *byte): i32
+    fn SDL_HideWindow(window: *byte): i32
+    fn SDL_RaiseWindow(window: *byte): i32
+    fn SDL_MaximizeWindow(window: *byte): i32
+    fn SDL_MinimizeWindow(window: *byte): i32
+    fn SDL_RestoreWindow(window: *byte): i32
+    fn SDL_SetWindowFullscreen(window: *byte, fullscreen: i32): i32
+    fn SDL_SyncWindow(window: *byte): i32
+    fn SDL_WindowHasSurface(window: *byte): i32
+    fn SDL_GetWindowSurface(window: *byte): *byte
+    fn SDL_SetWindowSurfaceVSync(window: *byte, vsync: i32): i32
+    fn SDL_GetWindowSurfaceVSync(window: *byte, vsync: *byte): i32
+    fn SDL_UpdateWindowSurface(window: *byte): i32
+    fn SDL_UpdateWindowSurfaceRects(window: *byte, rects: *byte, numrects: i32): i32
+    fn SDL_DestroyWindowSurface(window: *byte): i32
+    fn SDL_SetWindowKeyboardGrab(window: *byte, grabbed: i32): i32
+    fn SDL_SetWindowMouseGrab(window: *byte, grabbed: i32): i32
+    fn SDL_GetWindowKeyboardGrab(window: *byte): i32
+    fn SDL_GetWindowMouseGrab(window: *byte): i32
+    fn SDL_GetGrabbedWindow(): *byte
+    fn SDL_SetWindowMouseRect(window: *byte, rect: *byte): i32
+    fn SDL_GetWindowMouseRect(window: *byte): *byte
+    fn SDL_SetWindowOpacity(window: *byte, opacity: f32): i32
+    fn SDL_GetWindowOpacity(window: *byte): f32
+    fn SDL_SetWindowParent(window: *byte, parent: *byte): i32
+    fn SDL_SetWindowModal(window: *byte, modal: i32): i32
+    fn SDL_SetWindowFocusable(window: *byte, focusable: i32): i32
+    fn SDL_ShowWindowSystemMenu(window: *byte, x: i32, y: i32): i32
+    fn SDL_SetWindowShape(window: *byte, shape: *byte): i32
+    fn SDL_SetWindowProgressValue(window: *byte, value: f32): i32
+    fn SDL_GetWindowProgressValue(window: *byte): f32
     fn SDL_DestroyWindow(window: *byte)
-    fn SDL_CreateWindowAndRenderer(
-        title: *byte,
-        w: i32,
-        h: i32,
-        flags: u64,
-        window: **byte,
-        renderer: **byte
-    ): i32
+    fn SDL_ScreenSaverEnabled(): i32
+    fn SDL_EnableScreenSaver(): i32
+    fn SDL_DisableScreenSaver(): i32
+    fn SDL_GL_LoadLibrary(path: *byte): i32
+    fn SDL_GL_UnloadLibrary()
+    fn SDL_GL_ExtensionSupported(extension: *byte): i32
+    fn SDL_GL_ResetAttributes()
+    fn SDL_GL_GetCurrentWindow(): *byte
+    fn SDL_GL_SetSwapInterval(interval: i32): i32
+    fn SDL_GL_GetSwapInterval(interval: *byte): i32
+    fn SDL_GL_SwapWindow(window: *byte): i32
+
     fn SDL_SetWindowRelativeMouseMode(window: *byte, enabled: i32): i32
+    fn SDL_EGL_GetCurrentConfig(): i32
+    fn SDL_EGL_GetCurrentDisplay(): i32
+    fn SDL_EGL_GetProcAddress(proc: *byte): i32
+    fn SDL_EGL_GetWindowSurface(window: *byte): i32
+    fn SDL_EGL_SetAttributeCallbacks(platformAttribCallback: *byte, surfaceAttribCallback: *byte, contextAttribCallback: *byte, userdata: *byte): i32
+    fn SDL_FlashWindow(window: *byte, operation: u32): i32
+    fn SDL_GL_CreateContext(window: *byte): i32
+    fn SDL_GL_DestroyContext(context: *byte): i32
+    fn SDL_GL_GetAttribute(attr: u32, value: *byte): i32
+    fn SDL_GL_GetCurrentContext(): i32
+    fn SDL_GL_GetProcAddress(proc: *byte): i32
+    fn SDL_GL_MakeCurrent(window: *byte, context: *byte): i32
+    fn SDL_GL_SetAttribute(attr: u32, value: i32): i32
+    fn SDL_GetCurrentDisplayOrientation(displayID: u32): *byte
+    fn SDL_GetNaturalDisplayOrientation(displayID: u32): *byte
+    fn SDL_GetSystemTheme(): *byte
 }

@@ -1,0 +1,17 @@
+// Raw SDL3 filesystem — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetBasePath(): *const c.char
+    fn SDL_GetPrefPath(org: *const c.char, app: *const c.char): *c.char
+    fn SDL_GetUserFolder(folder: u32): *const c.char
+    fn SDL_CreateDirectory(path: *const c.char): bool
+    fn SDL_EnumerateDirectory(path: *const c.char, callback: *void, userdata: *void): bool
+    fn SDL_RemovePath(path: *const c.char): bool
+    fn SDL_RenamePath(oldpath: *const c.char, newpath: *const c.char): bool
+    fn SDL_CopyFile(oldpath: *const c.char, newpath: *const c.char): bool
+    fn SDL_GetPathInfo(path: *const c.char, info: *void): bool
+    fn SDL_GetCurrentDirectory(): *c.char
+}

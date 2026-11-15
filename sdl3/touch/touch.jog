@@ -1,0 +1,10 @@
+// Raw SDL3 touch — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetTouchDevices(count: *c.int): *u64
+    fn SDL_GetTouchDeviceName(touchID: u64): *const c.char
+    fn SDL_GetTouchFingers(touchID: u64, count: *c.int): **void
+}

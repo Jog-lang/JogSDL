@@ -43,7 +43,7 @@ fn CreateWindowAndRenderer(title: str, w: i32, h: i32, flags: u64): (Window, ren
         defer text.free_cstr(ctitle, title.len)
         var win_raw: *video.SDL_Window? = null
         var ren_raw: *video.SDL_Renderer? = null
-        if !video.SDL_CreateWindowAndRenderer(
+        if !raw.SDL_CreateWindowAndRenderer(
             ctitle,
             w as c.int,
             h as c.int,

@@ -1,0 +1,10 @@
+// Raw SDL3 messagebox — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+import sdl3.video
+
+@link("SDL3")
+extern {
+    fn SDL_ShowMessageBox(messageboxdata: *const void, buttonid: *c.int): bool
+    fn SDL_ShowSimpleMessageBox(flags: u32, title: *const c.char, message: *const c.char, window: *video.SDL_Window): bool
+}

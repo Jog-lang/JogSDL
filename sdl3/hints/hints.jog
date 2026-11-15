@@ -1,0 +1,13 @@
+// Raw SDL3 hints — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_SetHint(name: *const c.char, value: *const c.char): bool
+    fn SDL_ResetHint(name: *const c.char): bool
+    fn SDL_ResetHints()
+    fn SDL_GetHintBoolean(name: *const c.char, default_value: bool): bool
+    fn SDL_AddHintCallback(name: *const c.char, callback: *void, userdata: *void): bool
+    fn SDL_RemoveHintCallback(name: *const c.char, callback: *void, userdata: *void)
+}

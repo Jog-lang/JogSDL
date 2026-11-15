@@ -1,0 +1,2 @@
+// Idiomatic sdl.audio — expand wrappers over sdl3.audio as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.audio.

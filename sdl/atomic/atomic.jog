@@ -1,0 +1,2 @@
+// Idiomatic sdl.atomic — expand wrappers over sdl3.atomic as needed.
+// Full raw SDL_* surface for this category lives in unexported package sdl3.atomic.

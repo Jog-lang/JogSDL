@@ -1,36 +1,116 @@
-// Raw SDL3 render / texture (SDL_render.h). Unexported — apps use jog_sdl.sdl.
+// Raw SDL3 render — generated from headers; hand-maintain.
+// Unexported — apps use jog_sdl.sdl*.
 import std.c
-import sdl3.rect
+import sdl3.pixels
+import sdl3.events
 import sdl3.video
+import sdl3.rect
+import sdl3.surface
 
 @opaque struct SDL_Texture
 
 @link("SDL3")
 extern {
+    fn SDL_GetNumRenderDrivers(): c.int
+    fn SDL_GetRenderDriver(index: c.int): *const c.char
+    fn SDL_CreateWindowAndRenderer(title: *const c.char, width: c.int, height: c.int, window_flags: u64, window: **video.SDL_Window, renderer: **video.SDL_Renderer): bool
     fn SDL_CreateRenderer(window: *video.SDL_Window, name: *const c.char?): *video.SDL_Renderer?
-    fn SDL_DestroyRenderer(renderer: *video.SDL_Renderer)
+    fn SDL_CreateRendererWithProperties(props: u32): *video.SDL_Renderer
+    fn SDL_CreateGPURenderer(device: *void, window: *video.SDL_Window): *video.SDL_Renderer
+    fn SDL_GetGPURendererDevice(renderer: *video.SDL_Renderer): *void
+    fn SDL_CreateSoftwareRenderer(surface: *surface.SDL_Surface): *video.SDL_Renderer
+    fn SDL_GetRenderer(window: *video.SDL_Window): *video.SDL_Renderer
+    fn SDL_GetRenderWindow(renderer: *video.SDL_Renderer): *video.SDL_Window
+    fn SDL_GetRendererName(renderer: *video.SDL_Renderer): *const c.char
+    fn SDL_GetRendererProperties(renderer: *video.SDL_Renderer): u32
+    fn SDL_GetRenderOutputSize(renderer: *video.SDL_Renderer, w: *c.int, h: *c.int): bool
+    fn SDL_GetCurrentRenderOutputSize(renderer: *video.SDL_Renderer, w: *c.int, h: *c.int): bool
+    fn SDL_CreateTexture(renderer: *video.SDL_Renderer, format: u32, access: c.int, w: c.int, h: c.int): *SDL_Texture?
+    fn SDL_CreateTextureFromSurface(renderer: *video.SDL_Renderer, surface: *surface.SDL_Surface): *SDL_Texture
+    fn SDL_CreateTextureWithProperties(renderer: *video.SDL_Renderer, props: u32): *SDL_Texture
+    fn SDL_GetTextureProperties(texture: *SDL_Texture): u32
+    fn SDL_GetRendererFromTexture(texture: *SDL_Texture): *video.SDL_Renderer
+    fn SDL_GetTextureSize(texture: *SDL_Texture, w: *f32, h: *f32): bool
+    fn SDL_SetTexturePalette(texture: *SDL_Texture, palette: *pixels.SDL_Palette): bool
+    fn SDL_GetTexturePalette(texture: *SDL_Texture): *pixels.SDL_Palette
+    fn SDL_SetTextureColorMod(texture: *SDL_Texture, r: u8, g: u8, b: u8): bool
+    fn SDL_SetTextureColorModFloat(texture: *SDL_Texture, r: f32, g: f32, b: f32): bool
+    fn SDL_GetTextureColorMod(texture: *SDL_Texture, r: *u8, g: *u8, b: *u8): bool
+    fn SDL_GetTextureColorModFloat(texture: *SDL_Texture, r: *f32, g: *f32, b: *f32): bool
+    fn SDL_SetTextureAlphaMod(texture: *SDL_Texture, alpha: u8): bool
+    fn SDL_SetTextureAlphaModFloat(texture: *SDL_Texture, alpha: f32): bool
+    fn SDL_GetTextureAlphaMod(texture: *SDL_Texture, alpha: *u8): bool
+    fn SDL_GetTextureAlphaModFloat(texture: *SDL_Texture, alpha: *f32): bool
+    fn SDL_SetTextureBlendMode(texture: *SDL_Texture, blendMode: u32): bool
+    fn SDL_GetTextureBlendMode(texture: *SDL_Texture, blendMode: *u32): bool
+    fn SDL_SetTextureScaleMode(texture: *SDL_Texture, scaleMode: u32): bool
+    fn SDL_GetTextureScaleMode(texture: *SDL_Texture, scaleMode: *u32): bool
+    fn SDL_UpdateTexture(texture: *SDL_Texture, rect: *const rect.SDL_Rect?, pixels: *const void, pitch: c.int): bool
+    fn SDL_UpdateYUVTexture(texture: *SDL_Texture, rect: *const rect.SDL_Rect, Yplane: *const u8, Ypitch: c.int, Uplane: *const u8, Upitch: c.int, Vplane: *const u8, Vpitch: c.int): bool
+    fn SDL_UpdateNVTexture(texture: *SDL_Texture, rect: *const rect.SDL_Rect, Yplane: *const u8, Ypitch: c.int, UVplane: *const u8, UVpitch: c.int): bool
+    fn SDL_LockTexture(texture: *SDL_Texture, rect: *const rect.SDL_Rect, pixels: **void, pitch: *c.int): bool
+    fn SDL_LockTextureToSurface(texture: *SDL_Texture, rect: *const rect.SDL_Rect, surface: **surface.SDL_Surface): bool
+    fn SDL_UnlockTexture(texture: *SDL_Texture)
+    fn SDL_SetRenderTarget(renderer: *video.SDL_Renderer, texture: *SDL_Texture): bool
+    fn SDL_GetRenderTarget(renderer: *video.SDL_Renderer): *SDL_Texture
+    fn SDL_SetRenderLogicalPresentation(renderer: *video.SDL_Renderer, w: c.int, h: c.int, mode: u32): bool
+    fn SDL_GetRenderLogicalPresentation(renderer: *video.SDL_Renderer, w: *c.int, h: *c.int, mode: *u32): bool
+    fn SDL_GetRenderLogicalPresentationRect(renderer: *video.SDL_Renderer, rect: *rect.SDL_FRect): bool
+    fn SDL_RenderCoordinatesFromWindow(renderer: *video.SDL_Renderer, window_x: f32, window_y: f32, x: *f32, y: *f32): bool
+    fn SDL_RenderCoordinatesToWindow(renderer: *video.SDL_Renderer, x: f32, y: f32, window_x: *f32, window_y: *f32): bool
+    fn SDL_ConvertEventToRenderCoordinates(renderer: *video.SDL_Renderer, event: *events.SDL_Event): bool
+    fn SDL_SetRenderViewport(renderer: *video.SDL_Renderer, rect: *const rect.SDL_Rect): bool
+    fn SDL_GetRenderViewport(renderer: *video.SDL_Renderer, rect: *rect.SDL_Rect): bool
+    fn SDL_RenderViewportSet(renderer: *video.SDL_Renderer): bool
+    fn SDL_GetRenderSafeArea(renderer: *video.SDL_Renderer, rect: *rect.SDL_Rect): bool
+    fn SDL_SetRenderClipRect(renderer: *video.SDL_Renderer, rect: *const rect.SDL_Rect): bool
+    fn SDL_GetRenderClipRect(renderer: *video.SDL_Renderer, rect: *rect.SDL_Rect): bool
+    fn SDL_RenderClipEnabled(renderer: *video.SDL_Renderer): bool
+    fn SDL_SetRenderScale(renderer: *video.SDL_Renderer, scaleX: f32, scaleY: f32): bool
+    fn SDL_GetRenderScale(renderer: *video.SDL_Renderer, scaleX: *f32, scaleY: *f32): bool
     fn SDL_SetRenderDrawColor(renderer: *video.SDL_Renderer, r: u8, g: u8, b: u8, a: u8): bool
+    fn SDL_SetRenderDrawColorFloat(renderer: *video.SDL_Renderer, r: f32, g: f32, b: f32, a: f32): bool
+    fn SDL_GetRenderDrawColor(renderer: *video.SDL_Renderer, r: *u8, g: *u8, b: *u8, a: *u8): bool
+    fn SDL_GetRenderDrawColorFloat(renderer: *video.SDL_Renderer, r: *f32, g: *f32, b: *f32, a: *f32): bool
+    fn SDL_SetRenderColorScale(renderer: *video.SDL_Renderer, scale: f32): bool
+    fn SDL_GetRenderColorScale(renderer: *video.SDL_Renderer, scale: *f32): bool
+    fn SDL_SetRenderDrawBlendMode(renderer: *video.SDL_Renderer, blendMode: u32): bool
+    fn SDL_GetRenderDrawBlendMode(renderer: *video.SDL_Renderer, blendMode: *u32): bool
     fn SDL_RenderClear(renderer: *video.SDL_Renderer): bool
-    fn SDL_RenderPresent(renderer: *video.SDL_Renderer): bool
+    fn SDL_RenderPoint(renderer: *video.SDL_Renderer, x: f32, y: f32): bool
+    fn SDL_RenderPoints(renderer: *video.SDL_Renderer, points: *const rect.SDL_FPoint, count: c.int): bool
+    fn SDL_RenderLine(renderer: *video.SDL_Renderer, x1: f32, y1: f32, x2: f32, y2: f32): bool
+    fn SDL_RenderLines(renderer: *video.SDL_Renderer, points: *const rect.SDL_FPoint, count: c.int): bool
+    fn SDL_RenderRect(renderer: *video.SDL_Renderer, rect: *const rect.SDL_FRect): bool
+    fn SDL_RenderRects(renderer: *video.SDL_Renderer, rects: *const rect.SDL_FRect, count: c.int): bool
     fn SDL_RenderFillRect(renderer: *video.SDL_Renderer, rect: *const rect.SDL_FRect): bool
-    fn SDL_CreateTexture(
-        renderer: *video.SDL_Renderer,
-        format: u32,
-        access: c.int,
-        w: c.int,
-        h: c.int
-    ): *SDL_Texture?
+    fn SDL_RenderFillRects(renderer: *video.SDL_Renderer, rects: *const rect.SDL_FRect, count: c.int): bool
+    fn SDL_RenderTexture(renderer: *video.SDL_Renderer, texture: *SDL_Texture, srcrect: *const rect.SDL_FRect?, dstrect: *const rect.SDL_FRect?): bool
+    fn SDL_RenderTextureRotated(renderer: *video.SDL_Renderer, texture: *SDL_Texture, srcrect: *const rect.SDL_FRect, dstrect: *const rect.SDL_FRect, angle: f64, center: *const rect.SDL_FPoint, flip: u32): bool
+    fn SDL_RenderTextureAffine(renderer: *video.SDL_Renderer, texture: *SDL_Texture, srcrect: *const rect.SDL_FRect, origin: *const rect.SDL_FPoint, right: *const rect.SDL_FPoint, down: *const rect.SDL_FPoint): bool
+    fn SDL_RenderTextureTiled(renderer: *video.SDL_Renderer, texture: *SDL_Texture, srcrect: *const rect.SDL_FRect, scale: f32, dstrect: *const rect.SDL_FRect): bool
+    fn SDL_RenderTexture9Grid(renderer: *video.SDL_Renderer, texture: *SDL_Texture, srcrect: *const rect.SDL_FRect, left_width: f32, right_width: f32, top_height: f32, bottom_height: f32, scale: f32, dstrect: *const rect.SDL_FRect): bool
+    fn SDL_RenderTexture9GridTiled(renderer: *video.SDL_Renderer, texture: *SDL_Texture, srcrect: *const rect.SDL_FRect, left_width: f32, right_width: f32, top_height: f32, bottom_height: f32, scale: f32, dstrect: *const rect.SDL_FRect, tileScale: f32): bool
+    fn SDL_RenderGeometry(renderer: *video.SDL_Renderer, texture: *SDL_Texture, vertices: *const void, num_vertices: c.int, indices: *const c.int, num_indices: c.int): bool
+    fn SDL_RenderGeometryRaw(renderer: *video.SDL_Renderer, texture: *SDL_Texture, xy: *const f32, xy_stride: c.int, color: *const pixels.SDL_FColor, color_stride: c.int, uv: *const f32, uv_stride: c.int, num_vertices: c.int, indices: *const void, num_indices: c.int, size_indices: c.int): bool
+    fn SDL_SetRenderTextureAddressMode(renderer: *video.SDL_Renderer, u_mode: u32, v_mode: u32): bool
+    fn SDL_GetRenderTextureAddressMode(renderer: *video.SDL_Renderer, u_mode: *u32, v_mode: *u32): bool
+    fn SDL_RenderReadPixels(renderer: *video.SDL_Renderer, rect: *const rect.SDL_Rect): *surface.SDL_Surface
+    fn SDL_RenderPresent(renderer: *video.SDL_Renderer): bool
     fn SDL_DestroyTexture(texture: *SDL_Texture)
-    fn SDL_UpdateTexture(
-        texture: *SDL_Texture,
-        rect: *const rect.SDL_Rect?,
-        pixels: *const void,
-        pitch: c.int
-    ): bool
-    fn SDL_RenderTexture(
-        renderer: *video.SDL_Renderer,
-        texture: *SDL_Texture,
-        srcrect: *const rect.SDL_FRect?,
-        dstrect: *const rect.SDL_FRect?
-    ): bool
+    fn SDL_DestroyRenderer(renderer: *video.SDL_Renderer)
+    fn SDL_FlushRenderer(renderer: *video.SDL_Renderer): bool
+    fn SDL_GetRenderMetalLayer(renderer: *video.SDL_Renderer): *void
+    fn SDL_GetRenderMetalCommandEncoder(renderer: *video.SDL_Renderer): *void
+    fn SDL_AddVulkanRenderSemaphores(renderer: *video.SDL_Renderer, wait_stage_mask: u32, wait_semaphore: i64, signal_semaphore: i64): bool
+    fn SDL_SetRenderVSync(renderer: *video.SDL_Renderer, vsync: c.int): bool
+    fn SDL_GetRenderVSync(renderer: *video.SDL_Renderer, vsync: *c.int): bool
+    fn SDL_RenderDebugText(renderer: *video.SDL_Renderer, x: f32, y: f32, str: *const c.char): bool
+    fn SDL_RenderDebugTextFormat(renderer: *video.SDL_Renderer, x: f32, y: f32, fmt: *const c.char, ...): bool
+    fn SDL_SetDefaultTextureScaleMode(renderer: *video.SDL_Renderer, scale_mode: u32): bool
+    fn SDL_GetDefaultTextureScaleMode(renderer: *video.SDL_Renderer, scale_mode: *u32): bool
+    fn SDL_CreateGPURenderState(renderer: *video.SDL_Renderer, createinfo: *const void): *void
+    fn SDL_SetGPURenderStateFragmentUniforms(state: *void, slot_index: u32, data: *const void, length: u32): bool
+    fn SDL_SetGPURenderState(renderer: *video.SDL_Renderer, state: *void): bool
+    fn SDL_DestroyGPURenderState(state: *void)
 }
