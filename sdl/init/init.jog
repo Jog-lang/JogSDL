@@ -1,35 +1,94 @@
-// Idiomatic v2 wrappers for SDL init (flat merge; calls SDL_* directly).
-// Variadics / by-value structs omitted — see JogDocs Friction.
+// Idiomatic init helpers (packs + SDLError?). Facade Init/Quit live in sdl/sdl.jog.
 
-fn InitSubSystem(flags: u32): i32 {
-    return SDL_InitSubSystem(flags)
+/**
+ * Initialize additional subsystems after Init.
+ * @param flags zero or more InitFlag values
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_InitSubSystem
+ */
+fn InitSubSystem(...InitFlag: flags): SDLError? {
+    var bits: u32 = 0
+    for f in flags {
+        bits = bits | (f as u32)
+    }
+    if (SDL_InitSubSystem(bits) == 0) {
+        return last_error("InitSubSystem failed")
+    }
+    return null
 }
 
-fn QuitSubSystem(flags: u32) {
-    SDL_QuitSubSystem(flags)
+/**
+ * Shut down specific subsystems.
+ * @see https://wiki.libsdl.org/SDL3/SDL_QuitSubSystem
+ */
+fn QuitSubSystem(...InitFlag: flags) {
+    var bits: u32 = 0
+    for f in flags {
+        bits = bits | (f as u32)
+    }
+    SDL_QuitSubSystem(bits)
 }
 
-fn WasInit(flags: u32): u32 {
-    return SDL_WasInit(flags)
+/**
+ * Bitmask of subsystems currently initialized among the given flags.
+ * @see https://wiki.libsdl.org/SDL3/SDL_WasInit
+ */
+fn WasInit(...InitFlag: flags): u32 {
+    var bits: u32 = 0
+    for f in flags {
+        bits = bits | (f as u32)
+    }
+    return SDL_WasInit(bits)
 }
 
+/**
+ * True (1) when called on the main thread.
+ * @see https://wiki.libsdl.org/SDL3/SDL_IsMainThread
+ */
 fn IsMainThread(): i32 {
     return SDL_IsMainThread()
 }
 
-fn SetAppMetadata(appname: *byte, appversion: *byte, appidentifier: *byte): i32 {
-    return SDL_SetAppMetadata(appname, appversion, appidentifier)
+/**
+ * Set basic app metadata strings.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_SetAppMetadata
+ */
+fn SetAppMetadata(appname: *byte, appversion: *byte, appidentifier: *byte): SDLError? {
+    if (SDL_SetAppMetadata(appname, appversion, appidentifier) == 0) {
+        return last_error("SetAppMetadata failed")
+    }
+    return null
 }
 
-fn SetAppMetadataProperty(name: *byte, value: *byte): i32 {
-    return SDL_SetAppMetadataProperty(name, value)
+/**
+ * Set one app metadata property.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_SetAppMetadataProperty
+ */
+fn SetAppMetadataProperty(name: *byte, value: *byte): SDLError? {
+    if (SDL_SetAppMetadataProperty(name, value) == 0) {
+        return last_error("SetAppMetadataProperty failed")
+    }
+    return null
 }
 
+/**
+ * Read one app metadata property (opaque C string pointer).
+ * @see https://wiki.libsdl.org/SDL3/SDL_GetAppMetadataProperty
+ */
 fn GetAppMetadataProperty(name: *byte): *byte {
     return SDL_GetAppMetadataProperty(name)
 }
 
-fn RunOnMainThread(callback: *byte, userdata: *byte, wait_complete: i32): i32 {
-    return SDL_RunOnMainThread(callback, userdata, wait_complete)
+/**
+ * Run a callback on the main thread (callback is an opaque function pointer).
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_RunOnMainThread
+ */
+fn RunOnMainThread(callback: *byte, userdata: *byte, wait_complete: i32): SDLError? {
+    if (SDL_RunOnMainThread(callback, userdata, wait_complete) == 0) {
+        return last_error("RunOnMainThread failed")
+    }
+    return null
 }
-

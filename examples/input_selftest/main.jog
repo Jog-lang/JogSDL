@@ -1,7 +1,8 @@
 // Controlled input plumbing test (no human typing required).
 // 1) *byte keyboard index stride (the #16 KeyboardIsDown bug)
-// 2) EventType / EventScancode masks vs qword loads
+// 2) EventBuf type/scancode masks vs qword loads
 // 3) f32bits_to_f64 for a known mouse-delta bit pattern
+// 4) PushEvent round-trip via idiomatic sdl.* (no SDL_* in demos)
 
 fn zero_event(buf: *byte) {
     var i = 0
@@ -19,6 +20,10 @@ fn poke_u32(buf: *byte, off: i64, v: i64) {
 }
 
 fn main() {
+    val sc_w = Scancode.W as u32
+    val sc_esc = Scancode.Escape as u32
+    val ev_key = EventTypeId.KeyDown as u32
+
     // --- keyboard index ---
     val kbuf: *byte = alloc(512)
     var i = 0
@@ -27,7 +32,7 @@ fn main() {
         i = i + 1
     }
     kbuf[26] = 1
-    if (kbuf[SCANCODE_W] != 0) {
+    if (kbuf[sc_w] != 0) {
         print("kbd index stride ok\n")
     } else {
         panic("kbd index stride BAD\n")
@@ -35,31 +40,32 @@ fn main() {
     // Mirror KeyboardIsDown with annotated *byte
     var n: i32 = 512
     val state: *byte = kbuf
-    if (state[SCANCODE_W] != 0) {
+    if (state[sc_w] != 0) {
         print("KeyboardIsDown-style index ok\n")
     } else {
         panic("KeyboardIsDown-style index BAD\n")
     }
 
-    // --- event masks ---
-    val ev = alloc(128)
-    zero_event(ev)
-    poke_u32(ev, 0, EVENT_KEY_DOWN)
-    poke_u32(ev, 24, SCANCODE_W)
-    poke_u32(ev, 28, 119)
-    if (EventType(ev) == EVENT_KEY_DOWN) {
+    // --- event masks via EventBuf ---
+    var ev = make_event_buf()
+    val blob = ev.raw_ptr()
+    zero_event(blob)
+    poke_u32(blob, 0, ev_key)
+    poke_u32(blob, 24, sc_w)
+    poke_u32(blob, 28, 119)
+    if (ev.kind() == EventTypeId.KeyDown) {
         print("EventType mask ok\n")
     } else {
         panic("EventType mask BAD\n")
     }
-    if (EventScancode(ev) == SCANCODE_W) {
+    if (ev.scancode() == Scancode.W) {
         print("EventScancode mask ok\n")
     } else {
         panic("EventScancode mask BAD\n")
     }
     // Unmasked qword compare would fail when keycode sits in high half:
-    val raw = *(ev + 24)
-    if (raw != SCANCODE_W) {
+    val raw = *(blob + 24)
+    if (raw != sc_w) {
         print("qword scancode != W (expected; proves mask needed)\n")
     } else {
         print("qword scancode coincidentally == W\n")
@@ -78,24 +84,24 @@ fn main() {
         panic("f32bits_to_f64(-0.5f) BAD\n")
     }
 
-    // --- live SDL PushEvent round-trip (optional but strong) ---
+    // --- live SDL PushEvent round-trip ---
     if Init(InitFlag.Video) != null {
         panic("SDL Init failed\n")
     }
-    var win = CreateWindow(c"input_selftest", 320, 200)
-    if (win.ptr == null) {
+    val (win, win_err) = CreateWindow(c"input_selftest", 320, 200)
+    if (win_err != null || win.ok() == 0) {
         panic("CreateWindow failed\n")
     }
-    zero_event(ev)
-    poke_u32(ev, 0, EVENT_KEY_DOWN)
-    poke_u32(ev, 24, SCANCODE_ESCAPE)
-    if (SDL_PushEvent(ev) == 0) {
+    zero_event(blob)
+    poke_u32(blob, 0, ev_key)
+    poke_u32(blob, 24, sc_esc)
+    if (PushEvent(ev) != null) {
         panic("PushEvent failed\n")
     }
     var saw = 0
-    while (PollEventHas(ev) != 0) {
-        if (EventType(ev) == EVENT_KEY_DOWN) {
-            if (EventScancode(ev) == SCANCODE_ESCAPE) {
+    while (ev.poll() != 0) {
+        if (ev.kind() == EventTypeId.KeyDown) {
+            if (ev.scancode() == Scancode.Escape) {
                 saw = 1
             }
         }

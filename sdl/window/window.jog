@@ -1,40 +1,76 @@
-// Window wrappers (v2 flat merge).
+// Window wrappers (v2 flat merge). Opaque SDL_Window* stays in `private ptr`.
 
+/// Opaque window handle.
 struct Window {
-    ptr: *byte
+    private ptr: *byte
 }
 
 /**
  * Create a window.
  * @param title UTF-8 title (c"…" or *byte)
  * @param flags zero or more WindowFlag values (OR'd for SDL_CreateWindow)
+ * @return (Window, null) on success; (empty Window, SDLError) on failure
  * @see https://wiki.libsdl.org/SDL3/SDL_CreateWindow
  */
-fn CreateWindow(title: *byte, w: i32, h: i32, ...WindowFlag: flags): Window {
+fn CreateWindow(title: *byte, w: i32, h: i32, ...WindowFlag: flags): (Window, SDLError?) {
     var bits: u64 = 0
     for f in flags {
         bits = bits | (f as u64)
     }
-    var win = Window(ptr: null)
-    win.ptr = SDL_CreateWindow(title, w, h, bits)
-    return win
+    val p = SDL_CreateWindow(title, w, h, bits)
+    if (p == null) {
+        return (Window(ptr: null), last_error("CreateWindow failed"))
+    }
+    return (Window(ptr: p), null)
 }
 
+/// True when the underlying SDL window pointer is non-null.
+fn Window.ok(): i32 {
+    if (self.ptr == null) {
+        return 0
+    }
+    return 1
+}
+
+/// Escape hatch for Friction paths that must stash an opaque pointer (wasm tick).
+fn Window.raw_ptr(): *byte {
+    return self.ptr
+}
+
+/**
+ * Destroy this window.
+ * @see https://wiki.libsdl.org/SDL3/SDL_DestroyWindow
+ */
 fn Window.destroy() {
     if (self.ptr != null) {
         SDL_DestroyWindow(self.ptr)
     }
 }
 
-fn Window.set_relative_mouse(enabled: i32): i32 {
+/**
+ * Enable or disable relative mouse mode for this window.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_SetWindowRelativeMouseMode
+ */
+fn Window.set_relative_mouse(enabled: i32): SDLError? {
     if (self.ptr == null) {
-        return 0
+        return last_error("set_relative_mouse: null window")
     }
-    return SDL_SetWindowRelativeMouseMode(self.ptr, enabled)
+    if (SDL_SetWindowRelativeMouseMode(self.ptr, enabled) == 0) {
+        return last_error("SetWindowRelativeMouseMode failed")
+    }
+    return null
 }
 
-fn Window.create_renderer(): Renderer {
-    var ren = Renderer(ptr: null)
-    ren.ptr = SDL_CreateRenderer(self.ptr, null)
-    return ren
+/**
+ * Create a default renderer for this window.
+ * @return (Renderer, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_CreateRenderer
+ */
+fn Window.create_renderer(): (Renderer, SDLError?) {
+    val p = SDL_CreateRenderer(self.ptr, null)
+    if (p == null) {
+        return (Renderer(ptr: null), last_error("CreateRenderer failed"))
+    }
+    return (Renderer(ptr: p), null)
 }

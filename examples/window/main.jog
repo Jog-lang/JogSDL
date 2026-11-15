@@ -11,30 +11,29 @@ fn main() {
         panic("SDL Init failed\n")
     }
 
-    var win = CreateWindow(c"JogSDL v2", 640, 480, WindowFlag.Resizable)
-    if (win.ptr == null) {
+    val (win, win_err) = CreateWindow(c"JogSDL v2", 640, 480, WindowFlag.Resizable)
+    if (win_err != null || win.ok() == 0) {
         panic("SDL CreateWindow failed\n")
     }
 
-    var ren = win.create_renderer()
-    if (ren.ptr == null) {
+    val (ren, ren_err) = win.create_renderer()
+    if (ren_err != null || ren.ok() == 0) {
         panic("SDL CreateRenderer failed\n")
     }
 
-    val evbuf = alloc(128)
+    var ev = make_event_buf()
     var running = 1
     var rect = frect(220.0 as f32, 160.0 as f32, 200.0 as f32, 160.0 as f32)
     val start = GetTicks()
 
     while (running != 0) {
-        while (PollEventHas(evbuf) != 0) {
-            val kind = EventType(evbuf)
-            if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
+        while (ev.poll() != 0) {
+            val kind = ev.kind()
+            if (kind == EventTypeId.Quit || kind == EventTypeId.WindowCloseRequested) {
                 running = 0
             }
-            if (kind == EVENT_KEY_DOWN) {
-                val sc = EventScancode(evbuf)
-                if (sc == SCANCODE_ESCAPE) {
+            if (kind == EventTypeId.KeyDown) {
+                if (ev.scancode() == Scancode.Escape) {
                     running = 0
                 }
             }

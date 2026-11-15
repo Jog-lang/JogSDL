@@ -1,11 +1,16 @@
 // Keyboard / mouse helpers (v2 flat merge).
 
+/// Relative mouse delta (logical pixels).
 struct MouseDelta {
     x: f32
     y: f32
 }
 
-fn KeyboardIsDown(scancode: u32): i32 {
+/**
+ * True (1) when the scancode is currently down.
+ * @see https://wiki.libsdl.org/SDL3/SDL_GetKeyboardState
+ */
+fn KeyboardIsDown(scancode: Scancode): i32 {
     var n: i32 = 0
     // Must annotate `*byte`: untyped extern returns were inferred as scalar `byte`,
     // so `state[sc]` used stride-8 downward index and never saw real keys.
@@ -13,16 +18,20 @@ fn KeyboardIsDown(scancode: u32): i32 {
     if (state == null) {
         return 0
     }
-    if ((scancode as i32) < 0 || (scancode as i32) >= n) {
+    val sc = scancode as u32
+    if ((sc as i32) < 0 || (sc as i32) >= n) {
         return 0
     }
-    if (state[scancode] != 0) {
+    if (state[sc] != 0) {
         return 1
     }
     return 0
 }
 
-// SDL writes IEEE f32; Jog slots are 8-byte. Promote low 32 bits with soft helper.
+/**
+ * Promote an IEEE f32 stored in the low 4 bytes of an 8-byte Jog slot to f64.
+ * Needed because SDL writes f32 into buffers that Jog loads as qword.
+ */
 fn f32_slot_to_f64(p: *byte): f64 {
     val b0 = p[0]
     val b1 = p[1]
@@ -32,6 +41,9 @@ fn f32_slot_to_f64(p: *byte): f64 {
     return f32bits_to_f64(bits)
 }
 
+/**
+ * Soft-float promote of IEEE f32 bit pattern to f64 (Jog `as` is bitcast).
+ */
 fn f32bits_to_f64(bits_in: i64): f64 {
     val bits = bits_in & 4294967295
     val sign = (bits >> 31) & 1
@@ -72,12 +84,21 @@ fn f32bits_to_f64(bits_in: i64): f64 {
     return v
 }
 
+/**
+ * Relative mouse delta (placeholder zeros until struct field stores from f32 slots land).
+ * Prefer ReadRelativeMouse out-params for live input.
+ * @see https://wiki.libsdl.org/SDL3/SDL_GetRelativeMouseState
+ */
 fn GetRelativeMouseDelta(): MouseDelta {
     val buf = alloc(8)
     SDL_GetRelativeMouseState(buf, buf + 4)
     return MouseDelta(x: 0.0 as f32, y: 0.0 as f32)
 }
 
+/**
+ * Write relative mouse x/y as IEEE f32 into out buffers; return button bitmask.
+ * @see https://wiki.libsdl.org/SDL3/SDL_GetRelativeMouseState
+ */
 fn ReadRelativeMouse(out_x: *byte, out_y: *byte): u32 {
     return SDL_GetRelativeMouseState(out_x, out_y)
 }

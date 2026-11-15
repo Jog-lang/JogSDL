@@ -1,21 +1,72 @@
-// Event helpers (v2 flat merge).
+// Event helpers (v2 flat merge). Buffer holds a raw SDL_Event blob.
 
-struct Event {
-    kind: u32
-    scancode: u32
+/// Owned event buffer (128 bytes; covers SDL_Event).
+struct EventBuf {
+    private ptr: *byte
 }
 
+/**
+ * Allocate a fresh event buffer.
+ */
+fn make_event_buf(): EventBuf {
+    return EventBuf(ptr: alloc(128))
+}
+
+/// Underlying blob pointer (for tests that poke fields).
+fn EventBuf.raw_ptr(): *byte {
+    return self.ptr
+}
+
+/**
+ * Poll the next event into this buffer.
+ * @return 1 if an event was stored, 0 if the queue is empty
+ * @see https://wiki.libsdl.org/SDL3/SDL_PollEvent
+ */
+fn EventBuf.poll(): i32 {
+    return SDL_PollEvent(self.ptr)
+}
+
+/**
+ * Event type id at offset 0 (masked; Jog *byte loads are 8-wide).
+ * Named `kind` because `type` is a Jog keyword.
+ * @see https://wiki.libsdl.org/SDL3/SDL_Event
+ */
+fn EventBuf.kind(): EventTypeId {
+    val q = *self.ptr
+    return ((q & 4294967295) as u32) as EventTypeId
+}
+
+/**
+ * Keyboard scancode at offset 24 (masked).
+ * @see https://wiki.libsdl.org/SDL3/SDL_KeyboardEvent
+ */
+fn EventBuf.scancode(): Scancode {
+    val q = *(self.ptr + 24)
+    return ((q & 4294967295) as u32) as Scancode
+}
+
+/**
+ * Push a synthetic event onto the queue.
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_PushEvent
+ */
+fn PushEvent(ev: EventBuf): SDLError? {
+    if (SDL_PushEvent(ev.raw_ptr()) == 0) {
+        return last_error("PushEvent failed")
+    }
+    return null
+}
+
+// Compatibility helpers (prefer EventBuf methods).
 fn PollEventHas(buf: *byte): i32 {
     return SDL_PollEvent(buf)
 }
 
-// SDL_Event.type is u32 at offset 0; Jog `*buf` is an 8-byte load (type+reserved).
 fn EventType(buf: *byte): u32 {
     val q = *buf
     return (q & 4294967295) as u32
 }
 
-// SDL_KeyboardEvent.scancode is u32 at offset 24; next field is keycode — mask to u32.
 fn EventScancode(buf: *byte): u32 {
     val q = *(buf + 24)
     return (q & 4294967295) as u32

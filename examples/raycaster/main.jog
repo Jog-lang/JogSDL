@@ -49,19 +49,19 @@ fn main() {
         panic("SDL Init failed\n")
     }
 
-    var win = CreateWindow(c"JogSDL raycaster proto-3D", WIN_W, WIN_H, WindowFlag.Resizable)
-    if (win.ptr == null) {
+    val (win, win_err) = CreateWindow(c"JogSDL raycaster proto-3D", WIN_W, WIN_H, WindowFlag.Resizable)
+    if (win_err != null || win.ok() == 0) {
         panic("CreateWindow failed\n")
     }
     // Relative mouse for look; ignore failure (headless / no grab).
     win.set_relative_mouse(1)
 
-    var ren = win.create_renderer()
-    if (ren.ptr == null) {
+    val (ren, ren_err) = win.create_renderer()
+    if (ren_err != null || ren.ok() == 0) {
         panic("CreateRenderer failed\n")
     }
-    var tex = ren.create_streaming_texture(FB_W32, FB_H32)
-    if (tex.ptr == null) {
+    val (tex, tex_err) = ren.create_streaming_texture(FB_W32, FB_H32)
+    if (tex_err != null || tex.ok() == 0) {
         panic("CreateTexture failed\n")
     }
 
@@ -80,7 +80,7 @@ fn main() {
     set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
     var key_use = 0
     var key_use_prev = 0
-    val evbuf = alloc(128)
+    var ev = make_event_buf()
     // SDL writes f32 into these 4-byte cells; promote with f32_slot_to_f64 (not `as f64`).
     val mouse_f32 = alloc(8)
     var running = 1
@@ -90,22 +90,22 @@ fn main() {
     timing_init()
 
     while (running != 0) {
-        while (PollEventHas(evbuf) != 0) {
-            val kind = EventType(evbuf)
-            if (kind == EVENT_QUIT || kind == EVENT_WINDOW_CLOSE_REQUESTED) {
+        while (ev.poll() != 0) {
+            val kind = ev.kind()
+            if (kind == EventTypeId.Quit || kind == EventTypeId.WindowCloseRequested) {
                 running = 0
             }
-            if (kind == EVENT_KEY_DOWN || kind == EVENT_KEY_UP) {
-                val sc = EventScancode(evbuf)
+            if (kind == EventTypeId.KeyDown || kind == EventTypeId.KeyUp) {
+                val sc = ev.scancode()
                 var down = 0
-                if (kind == EVENT_KEY_DOWN) {
+                if (kind == EventTypeId.KeyDown) {
                     down = 1
                 }
-                if (sc == SCANCODE_ESCAPE) {
+                if (sc == Scancode.Escape) {
                     running = 0
                 }
                 // E/Space edge-trigger still from events; movement uses keyboard state.
-                if (sc == SCANCODE_E || sc == SCANCODE_SPACE) { key_use = down }
+                if (sc == Scancode.E || sc == Scancode.Space) { key_use = down }
             }
         }
         if (running == 0) {
@@ -120,12 +120,12 @@ fn main() {
         val dt = timing_begin_frame()
 
         // Keyboard state (not only KEY_DOWN edges) so held keys work after focus return.
-        val key_w = KeyboardIsDown(SCANCODE_W)
-        val key_s = KeyboardIsDown(SCANCODE_S)
-        val key_a = KeyboardIsDown(SCANCODE_A)
-        val key_d = KeyboardIsDown(SCANCODE_D)
-        val key_left = KeyboardIsDown(SCANCODE_LEFT)
-        val key_right = KeyboardIsDown(SCANCODE_RIGHT)
+        val key_w = KeyboardIsDown(Scancode.W)
+        val key_s = KeyboardIsDown(Scancode.S)
+        val key_a = KeyboardIsDown(Scancode.A)
+        val key_d = KeyboardIsDown(Scancode.D)
+        val key_left = KeyboardIsDown(Scancode.Left)
+        val key_right = KeyboardIsDown(Scancode.Right)
         if (key_w + key_s + key_a + key_d + key_left + key_right != 0) {
             input_keys_seen = 1
         }
