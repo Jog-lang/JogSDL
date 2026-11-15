@@ -1,7 +1,7 @@
 // Proto-3D software raycaster on Jog v2 (float camera basis).
 // WASD move/strafe, arrows or mouse-x yaw, mouse-y pitch (horizon), E/Space door.
 // Soft-raster textured cube depth-tested against DDA walls (track C).
-// Default: interactive until Escape / window close (native while-loop; F16 open).
+// Native: parallel column bands via go/Dispatcher (track E); JOGSDL_RAYCASTER_SERIAL=1 to force serial.
 // Soft frame cap: JOGSDL_RAYCASTER_SMOKE=1 (or true) for agent/CI.
 // Camera lives in package scalars (world.jog) — no per-frame struct bump allocs.
 // Frame pacing: timing.jog (GetTicks dt + Delay-to-cap @ ~60 FPS).
@@ -37,6 +37,13 @@ fn wants_smoke(): i64 {
 
 fn main() {
     val smoke = wants_smoke()
+    // Pool before SDL — clone workers + libc/SDL malloc coexist better.
+    if (parallel_wants_serial() == 0) {
+        dispatcher_pool(4)
+        print("parallel bands via go/Dispatcher (4 workers)\n")
+    } else {
+        print("parallel serial mode (JOGSDL_RAYCASTER_SERIAL)\n")
+    }
 
     if (Init(INIT_VIDEO) == 0) {
         panic("SDL Init failed\n")
@@ -62,11 +69,13 @@ fn main() {
     if (pixels == null) {
         panic("alloc framebuffer failed\n")
     }
+    if (parallel_init(FB_BYTES as i64, FB_W, FB_H) == 0) {
+        panic("parallel_init failed\n")
+    }
     if (depth_init(FB_W) == 0) {
         panic("depth_init failed\n")
     }
     mesh_init_checker()
-    val map = demo_map()
     // Spawn facing +x toward the interactive door at (5,2).
     set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
     var key_use = 0
@@ -146,19 +155,19 @@ fn main() {
 
         val move = dt * 3.0
         if (key_w != 0) {
-            try_move(map, cam_dir_x * move, cam_dir_y * move)
+            parallel_try_move(cam_dir_x * move, cam_dir_y * move)
         }
         if (key_s != 0) {
-            try_move(map, cam_dir_x * (0.0 - move), cam_dir_y * (0.0 - move))
+            parallel_try_move(cam_dir_x * (0.0 - move), cam_dir_y * (0.0 - move))
         }
         if (key_a != 0) {
-            try_move(map, cam_plane_x * (0.0 - move), cam_plane_y * (0.0 - move))
+            parallel_try_move(cam_plane_x * (0.0 - move), cam_plane_y * (0.0 - move))
         }
         if (key_d != 0) {
-            try_move(map, cam_plane_x * move, cam_plane_y * move)
+            parallel_try_move(cam_plane_x * move, cam_plane_y * move)
         }
         if (key_use != 0 && key_use_prev == 0) {
-            try_use_door(map)
+            parallel_try_use_door()
         }
         key_use_prev = key_use
 
@@ -166,8 +175,9 @@ fn main() {
             // Pitch + mesh smoke: hide cube during horizon check.
             mesh_set_enabled(0)
             set_cam_pitch(30.0)
-            render_frame(pixels, map, FB_W, FB_H)
-            map_cast(map, cam_pos_x, cam_pos_y, cam_dir_x, cam_dir_y)
+            render_frame_parallel()
+            parallel_blit_to(pixels)
+            parallel_map_cast_fwd()
             if (hit_dist == 2.5 && hit_wall == 5) {
                 print("map_cast door ahead ok\n")
             } else {
@@ -186,7 +196,8 @@ fn main() {
             mesh_set_enabled(1)
             mesh_set_spin(0.35)
             mesh_set_pos(3.6, 2.5)
-            render_frame(pixels, map, FB_W, FB_H)
+            render_frame_parallel()
+            parallel_blit_to(pixels)
             mesh_draw(pixels, FB_W, FB_H)
             val n0 = mesh_count_color(pixels, FB_W, FB_H, MESH_C0)
             val n1 = mesh_count_color(pixels, FB_W, FB_H, MESH_C1)
@@ -200,7 +211,8 @@ fn main() {
             mesh_set_pos(10.0, 2.5)
             mesh_set_spin(0.0)
             mesh_half = 0.2
-            render_frame(pixels, map, FB_W, FB_H)
+            render_frame_parallel()
+            parallel_blit_to(pixels)
             mesh_draw(pixels, FB_W, FB_H)
             var occluded = 1
             val mid = FB_W / 2
@@ -229,7 +241,8 @@ fn main() {
             if (smoke == 0) {
                 mesh_update(dt)
             }
-            render_frame(pixels, map, FB_W, FB_H)
+            render_frame_parallel()
+            parallel_blit_to(pixels)
             mesh_draw(pixels, FB_W, FB_H)
         }
         tex.update(pixels)

@@ -11,9 +11,10 @@ v2/
   sdl3.jog                      # @link("SDL3") raw externs (+ relative mouse)
   sdl.jog                       # Window / Renderer / Texture / FRect / mouse / keys
   examples/window/              # native smoke (~1.5s auto-exit, while-loop)
-  examples/raycaster/           # proto-3D: pitch, textures, soft-raster cube + depth
+  examples/raycaster/           # proto-3D: pitch, textures, cube, parallel bands
   examples/raycaster/texture.jog# CPU PPM/ARGB atlas load + sample(u,v) (shared walls/mesh)
   examples/raycaster/mesh.jog   # soft-raster textured cube; depth-test vs walls
+  examples/raycaster/parallel.jog # go/Dispatcher column bands (native; wasm stays serial)
   examples/texture_selftest/    # no-window smoke for texture.jog
   examples/window-emscripten/   # browser window via jog_host_run_loop (JOG-90)
   examples/raycaster-emscripten/# browser proto-3D raycaster (object App state)
@@ -103,4 +104,5 @@ python3 -m http.server -d out 8000
 - FRect layout vs `SDL_FRect` packing is still coarse (8-byte field slots); demos still smoke-present (F18).
 - Coroutines/`go` abort under emscripten (no stack switch).
 - Still a 2.5D column caster + soft-raster cube (not a full 3D engine). Pitch is horizon shift only; mesh uses yaw/pitch projection and per-column wall depth.
+- Native raycaster partitions wall columns across `go` workers on a V2 `Dispatcher` pool (`parallel.jog`); `dispatcher_pool` before SDL Init; join via `coro_drain` before mesh/present. Set `JOGSDL_RAYCASTER_SERIAL=1` to force single-thread. Needs JogCompiler with package `*byte` index meta + coro TLS on **GS** (not FS) so glibc/SDL malloc survives. Wasm/emscripten keeps the serial `render_frame` path (`go` aborts under emcc).
 - **Raycaster / jog develop:** numeric `as` is convert (JogCompiler #30). Do not revive the old IEEE 2^52 `i_to_f` bitcast helper — after #30 it sitofps `F52+n` and paints a solid door-colored frame. Struct returns still bump-alloc with no free (keep camera/DDA as package scalars). See JogDocs Friction.

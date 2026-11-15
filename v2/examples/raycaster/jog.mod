@@ -7,6 +7,7 @@ source math2d.jog
 source world.jog
 source texture.jog
 source mesh.jog
+source parallel.jog
 source timing.jog
 source ../../sdl.jog
 source ../../sdl3.jog
