@@ -3,6 +3,7 @@
 // Default: interactive until Escape / window close (native while-loop; F16 open).
 // Soft frame cap: JOGSDL_RAYCASTER_SMOKE=1 (or true) for agent/CI.
 // Camera lives in package scalars (world.jog) — no per-frame struct bump allocs.
+// Frame pacing: timing.jog (GetTicks dt + Delay-to-cap @ ~60 FPS).
 
 extern {
     fn getenv(name: *byte): *byte
@@ -70,9 +71,9 @@ fn main() {
     val mouse_f32 = alloc(8)
     var running = 1
     var frames = 0
-    val dt: f64 = 0.016
     var input_keys_seen = 0
     var input_mouse_seen = 0
+    timing_init()
 
     while (running != 0) {
         while (PollEventHas(evbuf) != 0) {
@@ -100,6 +101,9 @@ fn main() {
         if (smoke != 0 && frames >= SMOKE_FRAMES) {
             break
         }
+
+        // Thin timing hook (pitch/other tracks: keep edits away from timing.jog).
+        val dt = timing_begin_frame()
 
         // Keyboard state (not only KEY_DOWN edges) so held keys work after focus return.
         val key_w = KeyboardIsDown(SCANCODE_W)
@@ -184,10 +188,11 @@ fn main() {
         ren.clear()
         ren.draw_texture(tex)
         ren.present()
-        Delay(16)
+        timing_end_frame()
         frames = frames + 1
     }
 
+    timing_flush()
     win.set_relative_mouse(0)
     tex.destroy()
     ren.destroy()
