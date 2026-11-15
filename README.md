@@ -129,20 +129,33 @@ Controls: **W/A/S/D** move, **arrows / mouse** look, **E/Space** door, **Escape*
 
 Requires [emsdk](https://emscripten.org/) (`emcc` / `emcmake` on `PATH`) and jog-v2 with `--target wasm32-emscripten`.
 
-```bash
-source ~/emsdk/emsdk_env.sh
-cd /home/plague_doc/Documents/Projects/Jog/JogSDL
-./scripts/fetch-sdl3.sh
-./scripts/build-sdl3-emscripten.sh   # → prefix-emscripten/lib/libSDL3.a
+One-shot starters (build if needed, then serve or run):
 
+```bash
+source ~/emsdk/emsdk_env.sh   # if emcc not already on PATH
 export JOG=~/.local/bin/jog-v2
 export JOG_BUILD=~/.local/bin/jog-build
 
-cd examples/raycaster-emscripten
-"$JOG_BUILD" build --target wasm32-emscripten -o out/raycaster.html
+# Once from repo root (SDL browser demos only):
+./scripts/fetch-sdl3.sh
+./scripts/build-sdl3-emscripten.sh   # → prefix-emscripten/lib/libSDL3.a
+
+./examples/window-emscripten/start.sh          # http://127.0.0.1:8000/window.html
+./examples/raycaster-emscripten/start.sh       # http://127.0.0.1:8000/raycaster.html
+./examples/raycaster-wasm-smoke/start.sh       # headless node (no SDL)
 ```
 
-`jog.mod` carries `link.emscripten SDL3` and `libdir.emscripten ./prefix-emscripten/lib`.
+Flags: `--rebuild`, `--serve-only` / `--build-only`, `--port N` (browser demos). Helpers live in `scripts/emscripten-example-env.sh`.
+
+Manual build (same as the starters):
+
+```bash
+cd examples/raycaster-emscripten
+"$JOG_BUILD" build --target wasm32-emscripten -o out/raycaster.html
+python3 -m http.server -d out 8000
+```
+
+`jog.mod` carries `link.emscripten SDL3` and `libdir.emscripten ../../prefix-emscripten/lib`.
 
 ## Out of scope
 
