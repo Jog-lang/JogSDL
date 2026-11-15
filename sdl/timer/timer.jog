@@ -1,7 +1,8 @@
 // Timer wrappers (v2 flat merge).
 
 /**
- * Sleep for approximately `ms` milliseconds.
+ * Wait at least `ms` milliseconds before returning (may be longer due to OS scheduling).
+ * @param ms delay in milliseconds
  * @see https://wiki.libsdl.org/SDL3/SDL_Delay
  */
 fn Delay(ms: u32) {
@@ -9,7 +10,8 @@ fn Delay(ms: u32) {
 }
 
 /**
- * Milliseconds since SDL init (wrapping 64-bit).
+ * Milliseconds since SDL library init (Uint64; wraps after ~584 million years).
+ * @return ms since Init
  * @see https://wiki.libsdl.org/SDL3/SDL_GetTicks
  */
 fn GetTicks(): u64 {

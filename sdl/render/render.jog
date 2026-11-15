@@ -12,7 +12,7 @@ struct Texture {
     h: i32
 }
 
-/// Float rectangle for fill/draw calls.
+/// Float rectangle for fill/draw calls (matches SDL_FRect layout: x,y,w,h).
 struct FRect {
     x: f32
     y: f32
@@ -20,9 +20,22 @@ struct FRect {
     h: f32
 }
 
+/// RGBA8 draw color (matches SDL_Color field order).
+struct Color {
+    r: u8
+    g: u8
+    b: u8
+    a: u8
+}
+
 /// Build an FRect.
 fn frect(x: f32, y: f32, w: f32, h: f32): FRect {
     return FRect(x: x, y: y, w: w, h: h)
+}
+
+/// Build a Color.
+fn color(r: u8, g: u8, b: u8, a: u8): Color {
+    return Color(r: r, g: g, b: b, a: a)
 }
 
 /// True when the underlying SDL renderer pointer is non-null.
@@ -40,6 +53,7 @@ fn Renderer.raw_ptr(): *byte {
 
 /**
  * Destroy this renderer.
+ * Safe to call when the handle is empty (null ptr).
  * @see https://wiki.libsdl.org/SDL3/SDL_DestroyRenderer
  */
 fn Renderer.destroy() {
@@ -49,19 +63,20 @@ fn Renderer.destroy() {
 }
 
 /**
- * Set the draw color.
+ * Set the color used for drawing operations (clear, fill, lines, …).
+ * @param c RGBA channels 0–255
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_SetRenderDrawColor
  */
-fn Renderer.set_draw_color(r: u8, g: u8, b: u8, a: u8): SDLError? {
-    if (SDL_SetRenderDrawColor(self.ptr, r, g, b, a) == 0) {
+fn Renderer.set_draw_color(c: Color): SDLError? {
+    if (SDL_SetRenderDrawColor(self.ptr, c.r, c.g, c.b, c.a) == 0) {
         return last_error("SetRenderDrawColor failed")
     }
     return null
 }
 
 /**
- * Clear the current render target.
+ * Clear the current render target with the current draw color.
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_RenderClear
  */
@@ -73,7 +88,7 @@ fn Renderer.clear(): SDLError? {
 }
 
 /**
- * Present the renderer.
+ * Update the screen with any rendering performed since the previous present.
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_RenderPresent
  */
@@ -85,19 +100,23 @@ fn Renderer.present(): SDLError? {
 }
 
 /**
- * Fill a rectangle.
+ * Fill a rectangle on the current render target with the draw color.
+ * `rect` is taken by value; address is passed to SDL for the call duration.
+ * @param rect area in render-target coordinates (subpixel)
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_RenderFillRect
  */
-fn Renderer.fill_rect(rect: *FRect): SDLError? {
-    if (SDL_RenderFillRect(self.ptr, rect) == 0) {
+fn Renderer.fill_rect(rect: FRect): SDLError? {
+    if (SDL_RenderFillRect(self.ptr, &rect) == 0) {
         return last_error("RenderFillRect failed")
     }
     return null
 }
 
 /**
- * Create a streaming ARGB8888 texture.
+ * Create a streaming ARGB8888 texture for CPU uploads (`Texture.update`).
+ * @param w width in pixels
+ * @param h height in pixels
  * @return (Texture, null) on success
  * @see https://wiki.libsdl.org/SDL3/SDL_CreateTexture
  */
@@ -110,7 +129,8 @@ fn Renderer.create_streaming_texture(w: i32, h: i32): (Texture, SDLError?) {
 }
 
 /**
- * Draw a texture to the full render target.
+ * Copy the whole texture to the full current render target.
+ * @param tex streaming or static texture
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_RenderTexture
  */
@@ -136,6 +156,7 @@ fn Texture.raw_ptr(): *byte {
 
 /**
  * Destroy this texture.
+ * Safe to call when the handle is empty (null ptr).
  * @see https://wiki.libsdl.org/SDL3/SDL_DestroyTexture
  */
 fn Texture.destroy() {
@@ -145,13 +166,15 @@ fn Texture.destroy() {
 }
 
 /**
- * Upload pixel bytes (pitch = w*4).
+ * Upload pixel bytes for the entire texture (pitch = width × 4 for ARGB8888).
+ * Caller retains ownership of `pixels`; buffer must stay live for the call.
+ * @param pixels contiguous pixel bytes (at least w×h×4 for streaming ARGB8888)
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_UpdateTexture
  */
-fn Texture.update(pixels: *byte): SDLError? {
+fn Texture.update(pixels: []u8): SDLError? {
     val pitch = self.w * 4
-    if (SDL_UpdateTexture(self.ptr, null, pixels, pitch) == 0) {
+    if (SDL_UpdateTexture(self.ptr, null, pixels.ptr, pitch) == 0) {
         return last_error("UpdateTexture failed")
     }
     return null
@@ -163,6 +186,11 @@ fn Texture.update(pixels: *byte): SDLError? {
 
 /**
  * Update texture from an opaque pointer (Friction / wasm).
+ * Prefer `Texture.update` on native stacks.
+ * @param tex opaque SDL_Texture*
+ * @param pixels pixel bytes
+ * @param pitch bytes per row
+ * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_UpdateTexture
  */
 fn UpdateTextureRaw(tex: *byte, pixels: *byte, pitch: i32): SDLError? {
@@ -174,6 +202,7 @@ fn UpdateTextureRaw(tex: *byte, pixels: *byte, pitch: i32): SDLError? {
 
 /**
  * Draw texture from opaque pointers (Friction / wasm).
+ * Prefer `Renderer.draw_texture` on native stacks.
  * @see https://wiki.libsdl.org/SDL3/SDL_RenderTexture
  */
 fn DrawTextureRaw(ren: *byte, tex: *byte): SDLError? {
@@ -185,6 +214,7 @@ fn DrawTextureRaw(ren: *byte, tex: *byte): SDLError? {
 
 /**
  * Set draw color from an opaque renderer pointer (Friction / wasm).
+ * Prefer `Renderer.set_draw_color(Color)` on native stacks.
  * @see https://wiki.libsdl.org/SDL3/SDL_SetRenderDrawColor
  */
 fn SetDrawColorRaw(ren: *byte, r: u8, g: u8, b: u8, a: u8): SDLError? {
@@ -196,6 +226,7 @@ fn SetDrawColorRaw(ren: *byte, r: u8, g: u8, b: u8, a: u8): SDLError? {
 
 /**
  * Clear from an opaque renderer pointer (Friction / wasm).
+ * Prefer `Renderer.clear` on native stacks.
  * @see https://wiki.libsdl.org/SDL3/SDL_RenderClear
  */
 fn ClearRaw(ren: *byte): SDLError? {
@@ -207,6 +238,7 @@ fn ClearRaw(ren: *byte): SDLError? {
 
 /**
  * Present from an opaque renderer pointer (Friction / wasm).
+ * Prefer `Renderer.present` on native stacks.
  * @see https://wiki.libsdl.org/SDL3/SDL_RenderPresent
  */
 fn PresentRaw(ren: *byte): SDLError? {

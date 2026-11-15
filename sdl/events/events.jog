@@ -6,7 +6,8 @@ struct EventBuf {
 }
 
 /**
- * Allocate a fresh event buffer.
+ * Allocate a fresh event buffer for PollEvent / PushEvent.
+ * Caller owns the buffer for the process lifetime (no free API yet).
  */
 fn make_event_buf(): EventBuf {
     return EventBuf(ptr: alloc(128))
@@ -18,7 +19,7 @@ fn EventBuf.raw_ptr(): *byte {
 }
 
 /**
- * Poll the next event into this buffer.
+ * Poll the next pending event into this buffer.
  * @return 1 if an event was stored, 0 if the queue is empty
  * @see https://wiki.libsdl.org/SDL3/SDL_PollEvent
  */
@@ -29,6 +30,7 @@ fn EventBuf.poll(): i32 {
 /**
  * Event type id at offset 0 (masked; Jog *byte loads are 8-wide).
  * Named `kind` because `type` is a Jog keyword.
+ * @return EventTypeId for the stored event
  * @see https://wiki.libsdl.org/SDL3/SDL_Event
  */
 fn EventBuf.kind(): EventTypeId {
@@ -37,7 +39,8 @@ fn EventBuf.kind(): EventTypeId {
 }
 
 /**
- * Keyboard scancode at offset 24 (masked).
+ * Keyboard scancode at offset 24 (masked) for key events.
+ * @return Scancode from the keyboard event payload
  * @see https://wiki.libsdl.org/SDL3/SDL_KeyboardEvent
  */
 fn EventBuf.scancode(): Scancode {
@@ -46,7 +49,8 @@ fn EventBuf.scancode(): Scancode {
 }
 
 /**
- * Push a synthetic event onto the queue.
+ * Push a synthetic event onto the queue (copies from this buffer).
+ * @param ev buffer whose blob is passed to SDL_PushEvent
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_PushEvent
  */
@@ -57,16 +61,33 @@ fn PushEvent(ev: EventBuf): SDLError? {
     return null
 }
 
-// Compatibility helpers (prefer EventBuf methods).
+// --- Friction / wasm twins (prefer EventBuf methods on native stacks) ---
+
+/**
+ * Poll into a raw blob pointer (Friction / wasm tick).
+ * Prefer `EventBuf.poll`.
+ * @return 1 if an event was stored, 0 if empty
+ * @see https://wiki.libsdl.org/SDL3/SDL_PollEvent
+ */
 fn PollEventHas(buf: *byte): i32 {
     return SDL_PollEvent(buf)
 }
 
+/**
+ * Read event type u32 from a raw blob (Friction / wasm).
+ * Prefer `EventBuf.kind`.
+ * @see https://wiki.libsdl.org/SDL3/SDL_Event
+ */
 fn EventType(buf: *byte): u32 {
     val q = *buf
     return (q & 4294967295) as u32
 }
 
+/**
+ * Read keyboard scancode u32 from a raw blob (Friction / wasm).
+ * Prefer `EventBuf.scancode`.
+ * @see https://wiki.libsdl.org/SDL3/SDL_KeyboardEvent
+ */
 fn EventScancode(buf: *byte): u32 {
     val q = *(buf + 24)
     return (q & 4294967295) as u32

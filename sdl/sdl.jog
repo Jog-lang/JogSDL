@@ -95,7 +95,7 @@ val SCANCODE_RIGHT: u32 = 79
 val SCANCODE_LEFT: u32 = 80
 
 /**
- * Initialize SDL subsystems.
+ * Initialize SDL subsystems (ref-counted; forwards to InitSubSystem).
  * @param flags zero or more InitFlag values (OR'd for SDL_Init)
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_Init
@@ -112,7 +112,7 @@ fn Init(...InitFlag: flags): SDLError? {
 }
 
 /**
- * Shut down all SDL subsystems.
+ * Shut down all initialized SDL subsystems and clean up global state.
  * @see https://wiki.libsdl.org/SDL3/SDL_Quit
  */
 fn Quit() {

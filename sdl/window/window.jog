@@ -6,13 +6,17 @@ struct Window {
 }
 
 /**
- * Create a window.
- * @param title UTF-8 title (c"…" or *byte)
+ * Create a window with the given title, size, and flags.
+ * Title is UTF-8; prefer `c"…"` (NUL-terminated) or a `str` whose bytes are
+ * safe to pass to C. Internally forwarded to SDL_CreateWindow.
+ * @param title UTF-8 window title
+ * @param w width in screen coordinates
+ * @param h height in screen coordinates
  * @param flags zero or more WindowFlag values (OR'd for SDL_CreateWindow)
  * @return (Window, null) on success; (empty Window, SDLError) on failure
  * @see https://wiki.libsdl.org/SDL3/SDL_CreateWindow
  */
-fn CreateWindow(title: *byte, w: i32, h: i32, ...WindowFlag: flags): (Window, SDLError?) {
+fn CreateWindow(title: str, w: i32, h: i32, ...WindowFlag: flags): (Window, SDLError?) {
     var bits: u64 = 0
     for f in flags {
         bits = bits | (f as u64)
@@ -38,7 +42,8 @@ fn Window.raw_ptr(): *byte {
 }
 
 /**
- * Destroy this window.
+ * Destroy this window and free associated resources.
+ * Safe to call when the handle is empty (null ptr).
  * @see https://wiki.libsdl.org/SDL3/SDL_DestroyWindow
  */
 fn Window.destroy() {
@@ -49,6 +54,8 @@ fn Window.destroy() {
 
 /**
  * Enable or disable relative mouse mode for this window.
+ * When enabled, the cursor is hidden and continuous relative motion is reported.
+ * @param enabled non-zero to enable, zero to disable
  * @return null on success
  * @see https://wiki.libsdl.org/SDL3/SDL_SetWindowRelativeMouseMode
  */
@@ -63,7 +70,7 @@ fn Window.set_relative_mouse(enabled: i32): SDLError? {
 }
 
 /**
- * Create a default renderer for this window.
+ * Create a default renderer for this window (NULL name → SDL default backend).
  * @return (Renderer, null) on success
  * @see https://wiki.libsdl.org/SDL3/SDL_CreateRenderer
  */
