@@ -82,7 +82,7 @@ fn main() {
     if Init(InitFlag.Video) != null {
         panic("SDL Init failed\n")
     }
-    var win = CreateWindow(c"input_selftest", 320, 200, 0)
+    var win = CreateWindow(c"input_selftest", 320, 200)
     if (win.ptr == null) {
         panic("CreateWindow failed\n")
     }

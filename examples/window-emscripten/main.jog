@@ -47,7 +47,7 @@ fn main() {
         panic("SDL Init failed\n")
     }
 
-    var win = CreateWindow(c"JogSDL v2 wasm", 640, 480, WINDOW_RESIZABLE)
+    var win = CreateWindow(c"JogSDL v2 wasm", 640, 480, WindowFlag.Resizable)
     if (win.ptr == null) {
         panic("SDL CreateWindow failed\n")
     }

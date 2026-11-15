@@ -49,7 +49,7 @@ fn main() {
         panic("SDL Init failed\n")
     }
 
-    var win = CreateWindow(c"JogSDL raycaster proto-3D", WIN_W, WIN_H, WINDOW_RESIZABLE)
+    var win = CreateWindow(c"JogSDL raycaster proto-3D", WIN_W, WIN_H, WindowFlag.Resizable)
     if (win.ptr == null) {
         panic("CreateWindow failed\n")
     }
