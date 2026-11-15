@@ -1,0 +1,6 @@
+// Raw SDL3 events (SDL_events.h) — v2 flat merge.
+@link("SDL3")
+extern {
+    fn SDL_PollEvent(event: *byte): i32
+    fn SDL_PushEvent(event: *byte): i32
+}

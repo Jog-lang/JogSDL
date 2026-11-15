@@ -1,0 +1,24 @@
+// Raw SDL3 events (SDL_events.h). Unexported — apps use jog_sdl.sdl.
+
+// Layout matches SDL_Event (128 bytes). Leading fields align with SDL_KeyboardEvent
+// so key polls can read scancode without a separate union view.
+struct SDL_Event {
+    event_type: u32
+    reserved: u32
+    timestamp: u64
+    window_id: u32
+    which: u32
+    scancode: u32
+    _pad: [100]u8
+}
+
+@link("SDL3")
+extern {
+    fn SDL_PollEvent(event: *SDL_Event): bool
+    fn SDL_PushEvent(event: *SDL_Event): bool
+}
+
+fn zero_event(): SDL_Event {
+    var e: SDL_Event
+    return e
+}

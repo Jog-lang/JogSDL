@@ -1,0 +1,86 @@
+// Idiomatic window / CreateWindowAndRenderer wrappers.
+import sdl
+import sdl.render
+import sdl3.video
+import sdl3.render as raw
+import std.c
+import std.mem
+import std.text
+
+struct Window {
+    ptr: *video.SDL_Window?
+}
+
+private fn empty_window(): Window {
+    var win: Window
+    return win
+}
+
+/**
+ * Creates a window. title is a Jog str; C conversion stays inside this package.
+ * @return: (window, null) on success, or (zero window, error) on failure.
+ */
+fn CreateWindow(title: str, w: i32, h: i32, flags: u64): (Window, sdl.SDLError?) {
+    with (mem.heap()) {
+        val ctitle = title.cstr()
+        defer text.free_cstr(ctitle, title.len)
+        val ptr = video.SDL_CreateWindow(ctitle, w as c.int, h as c.int, flags)
+        if ptr == null {
+            return empty_window(), sdl.last_error("CreateWindow failed")
+        }
+        var win: Window
+        win.ptr = ptr
+        return win, null
+    }
+}
+
+/**
+ * Creates a window and a default renderer in one call.
+ */
+fn CreateWindowAndRenderer(title: str, w: i32, h: i32, flags: u64): (Window, render.Renderer, sdl.SDLError?) {
+    with (mem.heap()) {
+        val ctitle = title.cstr()
+        defer text.free_cstr(ctitle, title.len)
+        var win_raw: *video.SDL_Window? = null
+        var ren_raw: *video.SDL_Renderer? = null
+        if !video.SDL_CreateWindowAndRenderer(
+            ctitle,
+            w as c.int,
+            h as c.int,
+            flags,
+            &win_raw as **video.SDL_Window,
+            &ren_raw as **video.SDL_Renderer
+        ) {
+            return empty_window(), render.empty_renderer(), sdl.last_error("CreateWindowAndRenderer failed")
+        }
+        var win: Window
+        win.ptr = win_raw
+        var ren: render.Renderer
+        ren.ptr = ren_raw
+        return win, ren, null
+    }
+}
+
+fn Window.destroy() {
+    if self.ptr != null {
+        video.SDL_DestroyWindow(self.ptr!!)
+    }
+}
+
+/**
+ * Creates a default renderer for this window (SDL driver name null).
+ */
+fn Window.create_renderer(): (render.Renderer, sdl.SDLError?) {
+    if self.ptr == null {
+        var e: sdl.SDLError
+        e.msg = "CreateRenderer: null window"
+        return render.empty_renderer(), e
+    }
+    val ptr = raw.SDL_CreateRenderer(self.ptr!!, null)
+    if ptr == null {
+        return render.empty_renderer(), sdl.last_error("CreateRenderer failed")
+    }
+    var ren: render.Renderer
+    ren.ptr = ptr
+    return ren, null
+}

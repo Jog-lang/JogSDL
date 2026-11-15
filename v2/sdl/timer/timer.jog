@@ -1,0 +1,9 @@
+// Timer wrappers (v2 flat merge).
+
+fn Delay(ms: u32) {
+    SDL_Delay(ms)
+}
+
+fn GetTicks(): u64 {
+    return SDL_GetTicks()
+}

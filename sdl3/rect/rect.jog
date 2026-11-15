@@ -1,0 +1,25 @@
+// Raw SDL3 rect layouts (SDL_rect.h). Unexported — apps use jog_sdl.sdl.
+import std.c
+
+struct SDL_FRect {
+    x: f32
+    y: f32
+    w: f32
+    h: f32
+}
+
+struct SDL_Rect {
+    x: c.int
+    y: c.int
+    w: c.int
+    h: c.int
+}
+
+fn frect(x: f32, y: f32, w: f32, h: f32): SDL_FRect {
+    var r: SDL_FRect
+    r.x = x
+    r.y = y
+    r.w = w
+    r.h = h
+    return r
+}

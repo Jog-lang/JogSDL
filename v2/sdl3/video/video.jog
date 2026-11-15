@@ -1,0 +1,15 @@
+// Raw SDL3 video / window (SDL_video.h) — v2 flat merge.
+@link("SDL3")
+extern {
+    fn SDL_CreateWindow(title: *byte, w: i32, h: i32, flags: u64): *byte
+    fn SDL_DestroyWindow(window: *byte)
+    fn SDL_CreateWindowAndRenderer(
+        title: *byte,
+        w: i32,
+        h: i32,
+        flags: u64,
+        window: **byte,
+        renderer: **byte
+    ): i32
+    fn SDL_SetWindowRelativeMouseMode(window: *byte, enabled: i32): i32
+}

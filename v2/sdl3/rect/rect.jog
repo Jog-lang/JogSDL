@@ -1,0 +1,2 @@
+// Placeholder for SDL_rect category parity with root (v2 packs FRect in sdl.render).
+val SDL3_RECT_CATEGORY: i32 = 1

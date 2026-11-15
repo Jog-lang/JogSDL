@@ -1,0 +1,5 @@
+// Raw SDL3 error (SDL_error.h) — v2 flat merge.
+@link("SDL3")
+extern {
+    fn SDL_GetError(): *byte
+}

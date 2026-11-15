@@ -1,0 +1,7 @@
+// Raw SDL3 timer (SDL_timer.h). Unexported — apps use jog_sdl.sdl.
+
+@link("SDL3")
+extern {
+    fn SDL_Delay(ms: u32)
+    fn SDL_GetTicks(): u64
+}

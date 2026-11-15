@@ -1,0 +1,22 @@
+// Event helpers (v2 flat merge).
+
+struct Event {
+    kind: u32
+    scancode: u32
+}
+
+fn PollEventHas(buf: *byte): i32 {
+    return SDL_PollEvent(buf)
+}
+
+// SDL_Event.type is u32 at offset 0; Jog `*buf` is an 8-byte load (type+reserved).
+fn EventType(buf: *byte): u32 {
+    val q = *buf
+    return (q & 4294967295) as u32
+}
+
+// SDL_KeyboardEvent.scancode is u32 at offset 24; next field is keycode — mask to u32.
+fn EventScancode(buf: *byte): u32 {
+    val q = *(buf + 24)
+    return (q & 4294967295) as u32
+}

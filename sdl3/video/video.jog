@@ -1,0 +1,22 @@
+// Raw SDL3 video / window (SDL_video.h). Unexported — apps use jog_sdl.sdl.
+// SDL_Renderer is owned by sdl3.render; this package only forward-declares the
+// opaque so CreateWindowAndRenderer can take **SDL_Renderer without a cycle.
+import std.c
+
+@opaque struct SDL_Window
+@opaque struct SDL_Renderer
+
+@link("SDL3")
+extern {
+    fn SDL_CreateWindow(title: *const c.char, w: c.int, h: c.int, flags: u64): *SDL_Window?
+    fn SDL_DestroyWindow(window: *SDL_Window)
+    fn SDL_CreateWindowAndRenderer(
+        title: *const c.char,
+        w: c.int,
+        h: c.int,
+        flags: u64,
+        window: **SDL_Window,
+        renderer: **SDL_Renderer
+    ): bool
+    fn SDL_SetWindowRelativeMouseMode(window: *SDL_Window, enabled: bool): bool
+}

@@ -1,0 +1,5 @@
+// Raw SDL3 mouse (SDL_mouse.h) — v2-only relative mouse (root Wave C adds it).
+@link("SDL3")
+extern {
+    fn SDL_GetRelativeMouseState(x: *byte, y: *byte): u32
+}

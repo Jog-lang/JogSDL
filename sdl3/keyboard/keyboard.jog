@@ -1,0 +1,7 @@
+// Raw SDL3 keyboard (SDL_keyboard.h). Unexported — apps use jog_sdl.sdl.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetKeyboardState(numkeys: *c.int): *const u8
+}

@@ -1,0 +1,7 @@
+// Raw SDL3 initialization (SDL_init.h). Unexported — apps use jog_sdl.sdl.
+
+@link("SDL3")
+extern {
+    fn SDL_Init(flags: u32): bool
+    fn SDL_Quit()
+}

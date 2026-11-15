@@ -1,0 +1,151 @@
+// Idiomatic renderer / texture wrappers.
+import sdl
+import sdl3.render as raw
+import sdl3.rect
+import sdl3.video
+import std.c
+
+struct Renderer {
+    ptr: *video.SDL_Renderer?
+}
+
+struct Texture {
+    ptr: *raw.SDL_Texture?
+    w: i32
+    h: i32
+}
+
+struct FRect {
+    x: f32
+    y: f32
+    w: f32
+    h: f32
+}
+
+fn frect(x: f32, y: f32, w: f32, h: f32): FRect {
+    var r: FRect
+    r.x = x
+    r.y = y
+    r.w = w
+    r.h = h
+    return r
+}
+
+fn empty_renderer(): Renderer {
+    var ren: Renderer
+    return ren
+}
+
+fn empty_texture(): Texture {
+    var tex: Texture
+    return tex
+}
+
+fn Renderer.destroy() {
+    if self.ptr != null {
+        raw.SDL_DestroyRenderer(self.ptr!!)
+    }
+}
+
+fn Renderer.set_draw_color(r: u8, g: u8, b: u8, a: u8): sdl.SDLError? {
+    if self.ptr == null {
+        return sdl.last_error("SetRenderDrawColor: null renderer")
+    }
+    if !raw.SDL_SetRenderDrawColor(self.ptr!!, r, g, b, a) {
+        return sdl.last_error("SetRenderDrawColor failed")
+    }
+    return null
+}
+
+fn Renderer.clear(): sdl.SDLError? {
+    if self.ptr == null {
+        return sdl.last_error("RenderClear: null renderer")
+    }
+    if !raw.SDL_RenderClear(self.ptr!!) {
+        return sdl.last_error("RenderClear failed")
+    }
+    return null
+}
+
+fn Renderer.fill_rect(rect: FRect): sdl.SDLError? {
+    if self.ptr == null {
+        return sdl.last_error("RenderFillRect: null renderer")
+    }
+    if !raw.SDL_RenderFillRect(self.ptr!!, &rect as *const rect.SDL_FRect) {
+        return sdl.last_error("RenderFillRect failed")
+    }
+    return null
+}
+
+fn Renderer.present(): sdl.SDLError? {
+    if self.ptr == null {
+        return sdl.last_error("RenderPresent: null renderer")
+    }
+    if !raw.SDL_RenderPresent(self.ptr!!) {
+        return sdl.last_error("RenderPresent failed")
+    }
+    return null
+}
+
+/**
+ * Creates an ARGB8888 streaming texture for software framebuffer blits.
+ */
+fn Renderer.create_streaming_texture(w: i32, h: i32): (Texture, sdl.SDLError?) {
+    if self.ptr == null {
+        var e: sdl.SDLError
+        e.msg = "CreateTexture: null renderer"
+        return empty_texture(), e
+    }
+    val ptr = raw.SDL_CreateTexture(
+        self.ptr!!,
+        sdl.PIXELFORMAT_ARGB8888,
+        sdl.TEXTUREACCESS_STREAMING as c.int,
+        w as c.int,
+        h as c.int
+    )
+    if ptr == null {
+        return empty_texture(), sdl.last_error("CreateTexture failed")
+    }
+    var tex: Texture
+    tex.ptr = ptr
+    tex.w = w
+    tex.h = h
+    return tex, null
+}
+
+/**
+ * Draws the full texture to the full render target (null src/dst rects).
+ */
+fn Renderer.draw_texture(tex: Texture): sdl.SDLError? {
+    if self.ptr == null {
+        return sdl.last_error("RenderTexture: null renderer")
+    }
+    if tex.ptr == null {
+        return sdl.last_error("RenderTexture: null texture")
+    }
+    if !raw.SDL_RenderTexture(self.ptr!!, tex.ptr!!, null, null) {
+        return sdl.last_error("RenderTexture failed")
+    }
+    return null
+}
+
+fn Texture.destroy() {
+    if self.ptr != null {
+        raw.SDL_DestroyTexture(self.ptr!!)
+    }
+}
+
+/**
+ * Uploads a tightly packed ARGB8888 pixel buffer (pitch = w * 4).
+ * pixels is the first byte of a contiguous framebuffer.
+ */
+fn Texture.update(pixels: *const void): sdl.SDLError? {
+    if self.ptr == null {
+        return sdl.last_error("UpdateTexture: null texture")
+    }
+    val pitch = self.w * 4
+    if !raw.SDL_UpdateTexture(self.ptr!!, null, pixels, pitch as c.int) {
+        return sdl.last_error("UpdateTexture failed")
+    }
+    return null
+}

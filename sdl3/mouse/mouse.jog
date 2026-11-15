@@ -1,0 +1,7 @@
+// Raw SDL3 mouse (SDL_mouse.h). Unexported — apps use jog_sdl.sdl.input.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetRelativeMouseState(x: *f32, y: *f32): u32
+}

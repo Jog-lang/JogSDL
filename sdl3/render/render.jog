@@ -1,0 +1,36 @@
+// Raw SDL3 render / texture (SDL_render.h). Unexported — apps use jog_sdl.sdl.
+import std.c
+import sdl3.rect
+import sdl3.video
+
+@opaque struct SDL_Texture
+
+@link("SDL3")
+extern {
+    fn SDL_CreateRenderer(window: *video.SDL_Window, name: *const c.char?): *video.SDL_Renderer?
+    fn SDL_DestroyRenderer(renderer: *video.SDL_Renderer)
+    fn SDL_SetRenderDrawColor(renderer: *video.SDL_Renderer, r: u8, g: u8, b: u8, a: u8): bool
+    fn SDL_RenderClear(renderer: *video.SDL_Renderer): bool
+    fn SDL_RenderPresent(renderer: *video.SDL_Renderer): bool
+    fn SDL_RenderFillRect(renderer: *video.SDL_Renderer, rect: *const rect.SDL_FRect): bool
+    fn SDL_CreateTexture(
+        renderer: *video.SDL_Renderer,
+        format: u32,
+        access: c.int,
+        w: c.int,
+        h: c.int
+    ): *SDL_Texture?
+    fn SDL_DestroyTexture(texture: *SDL_Texture)
+    fn SDL_UpdateTexture(
+        texture: *SDL_Texture,
+        rect: *const rect.SDL_Rect?,
+        pixels: *const void,
+        pitch: c.int
+    ): bool
+    fn SDL_RenderTexture(
+        renderer: *video.SDL_Renderer,
+        texture: *SDL_Texture,
+        srcrect: *const rect.SDL_FRect?,
+        dstrect: *const rect.SDL_FRect?
+    ): bool
+}

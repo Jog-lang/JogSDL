@@ -1,0 +1,7 @@
+// Raw SDL3 error (SDL_error.h). Unexported — apps use jog_sdl.sdl.
+import std.c
+
+@link("SDL3")
+extern {
+    fn SDL_GetError(): *const c.char
+}

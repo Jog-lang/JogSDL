@@ -1,0 +1,16 @@
+// Idiomatic keyboard (and later mouse) helpers.
+import sdl3.keyboard as raw
+import std.c
+
+/**
+ * True when the physical key for scancode is currently held.
+ * Calls SDL_GetKeyboardState (snapshot updated by PollEvent / pump).
+ */
+fn KeyboardIsDown(scancode: u32): bool {
+    var n: c.int = 0
+    val state = raw.SDL_GetKeyboardState(&n)
+    if scancode as c.int >= n {
+        return false
+    }
+    return *(state + (scancode as usize)) != 0
+}

@@ -1,0 +1,6 @@
+// Raw SDL3 initialization (SDL_init.h) — v2 flat merge.
+@link("SDL3")
+extern {
+    fn SDL_Init(flags: u32): i32
+    fn SDL_Quit()
+}
