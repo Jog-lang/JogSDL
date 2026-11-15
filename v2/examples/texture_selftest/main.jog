@@ -1,0 +1,103 @@
+// CPU texture selftest: baked checker + PPM/ARGB load + sample(u,v).
+// No window / GPU. Run from this directory so asset relative paths resolve.
+//   JOG=~/.local/bin/jog-v2 jog-build build -o out/texture_selftest && ./out/texture_selftest
+
+// RGB(255,40,40) / RGB(40,40,220) as AARRGGBB.
+val C0: i64 = 4294912040
+val C1: i64 = 4280821980
+val TEX_N: i64 = 16
+val TEX_BYTES: i64 = 1024
+
+fn expect_eq(got: i64, want: i64) {
+    if (got != want) {
+        panic("texture_selftest mismatch\n")
+    }
+}
+
+fn main() {
+    val pixels = alloc(TEX_BYTES)
+    if (pixels == null) {
+        panic("alloc pixels failed\n")
+    }
+
+    // --- procedural bake ---
+    tex_fill_checker(pixels, TEX_N, TEX_N, C0, C1, 4)
+    expect_eq(tex_w, TEX_N)
+    expect_eq(tex_h, TEX_N)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 0.0, 0.0), C0)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 0.25, 0.0), C1)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 0.0, 0.25), C1)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 1.0, 1.0), C0)
+    print("procedural sample ok\n")
+    val shaded = tex_shade(C0, 1)
+    if (shaded == C0) {
+        panic("tex_shade side did not darken\n")
+    }
+    print("tex_shade ok\n")
+
+    // --- PPM load ---
+    var i: i64 = 0
+    while (i < TEX_BYTES) {
+        pixels[i] = 0
+        i = i + 1
+    }
+    val ppm_rc = tex_load_ppm(c"../raycaster/assets/checker.ppm", pixels, TEX_BYTES)
+    expect_eq(ppm_rc, 0)
+    expect_eq(tex_w, TEX_N)
+    expect_eq(tex_h, TEX_N)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 0.0, 0.0), C0)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 0.25, 0.0), C1)
+    print("ppm load+sample ok\n")
+
+    // --- baked ARGB atlas load ---
+    i = 0
+    while (i < TEX_BYTES) {
+        pixels[i] = 0
+        i = i + 1
+    }
+    val argb_rc = tex_load_argb(c"../raycaster/assets/checker.argb", pixels, TEX_BYTES)
+    expect_eq(argb_rc, 0)
+    expect_eq(tex_w, TEX_N)
+    expect_eq(tex_h, TEX_N)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 0.0, 0.0), C0)
+    expect_eq(tex_sample(pixels, TEX_N, TEX_N, 0.25, 0.0), C1)
+    print("argb load+sample ok\n")
+
+    // Tiny software FB strip from samples (evidence PPM).
+    val fb_w: i64 = 32
+    val fb_h: i64 = 8
+    val fb = alloc(fb_w * fb_h * 4)
+    if (fb == null) {
+        panic("alloc fb failed\n")
+    }
+    var y: i64 = 0
+    while (y < fb_h) {
+        var x: i64 = 0
+        while (x < fb_w) {
+            val u = (x as f64) / (fb_w as f64)
+            val v = (y as f64) / (fb_h as f64)
+            tex_put_fb(fb, fb_w, x, y, tex_sample(pixels, TEX_N, TEX_N, u, v))
+            x = x + 1
+        }
+        y = y + 1
+    }
+    val f = fopen(c"/tmp/jogsdl_texture_selftest.ppm", c"wb")
+    if (f == null) {
+        panic("fopen evidence ppm failed\n")
+    }
+    fwrite(c"P6\n32 8\n255\n", 1, 12, f)
+    val rgb = alloc(3)
+    var p: i64 = 0
+    val n = fb_w * fb_h
+    while (p < n) {
+        val off = p * 4
+        rgb[0] = fb[off + 2]
+        rgb[1] = fb[off + 1]
+        rgb[2] = fb[off]
+        fwrite(rgb, 1, 3, f)
+        p = p + 1
+    }
+    fclose(f)
+    print("wrote /tmp/jogsdl_texture_selftest.ppm\n")
+    print("texture_selftest ok\n")
+}
