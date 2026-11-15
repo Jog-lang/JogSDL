@@ -1,5 +1,6 @@
 // Parallel column bands via go + Dispatcher (track E / JOG-118).
-// Native Linux only — wasm/emscripten keeps render_frame (go aborts under emcc).
+// Native: M:N steal on linux_x64_coro. Wasm/emscripten: same go API via run-to-completion
+// (JogCompiler RTC) — bands run serially; yield still unsupported. SERIAL env forces one range.
 // Disjoint column ranges; local DDA (no shared hit_*). Mesh stays on main after join.
 // Join = coro_drain() (no Task/join in V2 yet).
 //

@@ -1,6 +1,12 @@
-// Emscripten proto-3D raycaster (JOG-90 + JOG-105).
-// Returning jog_host_run_loop; App object holds SDL handles (JOG-96 / F17 path).
-// Camera/DDA use package scalars in world.jog (heap-safe hot path).
+// Emscripten full CPU-3D raycaster (JOG-121).
+// Returning jog_host_run_loop; object App holds SDL handles.
+// Pitch, textured soft-raster cube + depth, GetTicks timing, go bands (RTC under emcc).
+// Soft smoke: JOGSDL_RAYCASTER_SMOKE=1 (or true) — first-frame pitch/mesh/occlusion checks.
+
+extern {
+    fn getenv(name: *byte): *byte
+    fn strcmp(a: *byte, b: *byte): i32
+}
 
 val WIN_W: i32 = 640
 val WIN_H: i32 = 400
@@ -9,27 +15,106 @@ val FB_H: i64 = 100
 val FB_W32: i32 = 160
 val FB_H32: i32 = 100
 val FB_BYTES: u64 = 64000
+val SMOKE_FRAMES: i64 = 180
 val PLANE_LEN: f64 = 0.66
 
-// JOG-96 object singleton — SDL handles + input (camera is package cam_*).
 object App {
     win_ptr: *byte
     ren_ptr: *byte
     tex_ptr: *byte
     pixels: *byte
-    map: *byte
     evbuf: *byte
     mouse_f32: *byte
     running: i64
     frames: i64
-    key_w: i64
-    key_s: i64
-    key_a: i64
-    key_d: i64
-    key_left: i64
-    key_right: i64
+    smoke: i64
+    smoke_done: i64
     key_use: i64
     key_use_prev: i64
+    input_keys_seen: i64
+    input_mouse_seen: i64
+}
+
+fn wants_smoke(): i64 {
+    val p = getenv(c"JOGSDL_RAYCASTER_SMOKE")
+    if (p == null) {
+        return 0
+    }
+    if (strcmp(p, c"1") == 0) {
+        return 1
+    }
+    if (strcmp(p, c"true") == 0) {
+        return 1
+    }
+    return 0
+}
+
+fn smoke_frame0() {
+    // Pitch + mesh smoke: hide cube during horizon check.
+    mesh_set_enabled(0)
+    set_cam_pitch(30.0)
+    render_frame_parallel()
+    parallel_blit_to(App.pixels)
+    parallel_map_cast_fwd()
+    if (hit_dist == 2.5 && hit_wall == 5) {
+        print("map_cast door ahead ok\n")
+    } else {
+        print("map_cast door ahead BAD\n")
+    }
+    val mid = (FB_W / 2) * 4
+    val row0 = App.pixels[mid + 2]
+    val row50 = App.pixels[(50 * FB_W + FB_W / 2) * 4 + 2]
+    if (row0 == 25 && row50 == 25) {
+        print("pitch horizon shift ok\n")
+    } else {
+        print("pitch horizon shift BAD\n")
+    }
+    set_cam_pitch(0.0)
+    mesh_set_enabled(1)
+    mesh_set_spin(0.35)
+    mesh_set_pos(3.6, 2.5)
+    render_frame_parallel()
+    parallel_blit_to(App.pixels)
+    mesh_draw(App.pixels, FB_W, FB_H)
+    val n0 = mesh_count_color(App.pixels, FB_W, FB_H, MESH_C0)
+    val n1 = mesh_count_color(App.pixels, FB_W, FB_H, MESH_C1)
+    if (n0 > 20 && n1 > 20) {
+        print("mesh cube multi-color ok\n")
+    } else {
+        print("mesh cube multi-color BAD\n")
+    }
+    // dump_fb_ppm can abort under emcc MEMFS/fopen edge; skip in Wasm smoke.
+    print("skip dump_fb_ppm under wasm smoke\n")
+    mesh_set_pos(10.0, 2.5)
+    mesh_set_spin(0.0)
+    mesh_half = 0.2
+    render_frame_parallel()
+    parallel_blit_to(App.pixels)
+    mesh_draw(App.pixels, FB_W, FB_H)
+    var occluded = 1
+    val mid_x = FB_W / 2
+    var yy: i64 = 30
+    while (yy < 70) {
+        val off = (yy * FB_W + mid_x) * 4
+        val b0 = App.pixels[off] & 255
+        val b1 = App.pixels[off + 1] & 255
+        val b2 = App.pixels[off + 2] & 255
+        val b3 = App.pixels[off + 3] & 255
+        val got = b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
+        if (got == MESH_C0 || got == MESH_C1) {
+            occluded = 0
+        }
+        yy = yy + 1
+    }
+    if (occluded != 0) {
+        print("mesh cube occluded ok\n")
+    } else {
+        print("mesh cube occluded BAD\n")
+    }
+    mesh_half = 0.28
+    mesh_set_pos(9.0, 6.0)
+    mesh_set_spin(0.0)
+    App.smoke_done = 1
 }
 
 @export
@@ -48,30 +133,44 @@ fn tick(): i32 {
             if (sc == SCANCODE_ESCAPE) {
                 App.running = 0
             }
-            if (sc == SCANCODE_W) { App.key_w = down }
-            if (sc == SCANCODE_S) { App.key_s = down }
-            if (sc == SCANCODE_A) { App.key_a = down }
-            if (sc == SCANCODE_D) { App.key_d = down }
-            if (sc == SCANCODE_LEFT) { App.key_left = down }
-            if (sc == SCANCODE_RIGHT) { App.key_right = down }
-            if (sc == SCANCODE_E || sc == SCANCODE_SPACE) { App.key_use = down }
+            if (sc == SCANCODE_E || sc == SCANCODE_SPACE) {
+                App.key_use = down
+            }
         }
     }
     if (App.running == 0) {
         return 0
     }
-
-    val dt: f64 = 0.016
-    var yaw = 0.0
-    if (App.key_left != 0) {
-        yaw = yaw * 1.0 + dt * 2.5
+    if (App.smoke != 0 && App.frames >= SMOKE_FRAMES) {
+        App.running = 0
+        return 0
     }
-    if (App.key_right != 0) {
-        yaw = yaw * 1.0 - dt * 2.5
+
+    val dt = timing_begin_frame()
+
+    val key_w = KeyboardIsDown(SCANCODE_W)
+    val key_s = KeyboardIsDown(SCANCODE_S)
+    val key_a = KeyboardIsDown(SCANCODE_A)
+    val key_d = KeyboardIsDown(SCANCODE_D)
+    val key_left = KeyboardIsDown(SCANCODE_LEFT)
+    val key_right = KeyboardIsDown(SCANCODE_RIGHT)
+    if (key_w + key_s + key_a + key_d + key_left + key_right != 0) {
+        App.input_keys_seen = 1
+    }
+
+    var yaw = 0.0
+    if (key_left != 0) {
+        yaw = yaw + dt * 2.5
+    }
+    if (key_right != 0) {
+        yaw = yaw - dt * 2.5
     }
     ReadRelativeMouse(App.mouse_f32, App.mouse_f32 + 4)
     val mx = f32_slot_to_f64(App.mouse_f32)
     val my = f32_slot_to_f64(App.mouse_f32 + 4)
+    if (mx != 0.0 || my != 0.0) {
+        App.input_mouse_seen = 1
+    }
     yaw = yaw - mx * 0.003
     if (yaw != 0.0) {
         rotate_cam_yaw(yaw)
@@ -81,40 +180,59 @@ fn tick(): i32 {
     }
 
     val move = dt * 3.0
-    if (App.key_w != 0) {
-        try_move(App.map, cam_dir_x * 1.0 * move, cam_dir_y * 1.0 * move)
+    if (key_w != 0) {
+        parallel_try_move(cam_dir_x * move, cam_dir_y * move)
     }
-    if (App.key_s != 0) {
-        try_move(App.map, cam_dir_x * 1.0 * (0.0 - move), cam_dir_y * 1.0 * (0.0 - move))
+    if (key_s != 0) {
+        parallel_try_move(cam_dir_x * (0.0 - move), cam_dir_y * (0.0 - move))
     }
-    if (App.key_a != 0) {
-        try_move(App.map, cam_plane_x * 1.0 * (0.0 - move), cam_plane_y * 1.0 * (0.0 - move))
+    if (key_a != 0) {
+        parallel_try_move(cam_plane_x * (0.0 - move), cam_plane_y * (0.0 - move))
     }
-    if (App.key_d != 0) {
-        try_move(App.map, cam_plane_x * 1.0 * move, cam_plane_y * 1.0 * move)
+    if (key_d != 0) {
+        parallel_try_move(cam_plane_x * move, cam_plane_y * move)
     }
     if (App.key_use != 0 && App.key_use_prev == 0) {
-        try_use_door(App.map)
+        parallel_try_use_door()
     }
     App.key_use_prev = App.key_use
 
-    render_frame(App.pixels, App.map, FB_W, FB_H)
+    if (App.smoke != 0 && App.frames == 0) {
+        smoke_frame0()
+    } else {
+        if (App.smoke == 0) {
+            mesh_update(dt)
+        }
+        render_frame_parallel()
+        parallel_blit_to(App.pixels)
+        mesh_draw(App.pixels, FB_W, FB_H)
+    }
 
     UpdateTextureRaw(App.tex_ptr, App.pixels, FB_W32 * 4)
     SetDrawColorRaw(App.ren_ptr, 0, 0, 0, 255)
     ClearRaw(App.ren_ptr)
     DrawTextureRaw(App.ren_ptr, App.tex_ptr)
     PresentRaw(App.ren_ptr)
+    timing_end_frame()
     App.frames = App.frames + 1
     return 1
 }
 
 fn main() {
+    App.smoke = wants_smoke()
+    // Pool before SDL — RTC go under emscripten (serial bands; same API).
+    if (parallel_wants_serial() == 0) {
+        dispatcher_pool(4)
+        print("wasm go bands RTC (Dispatcher handle; serial workers)\n")
+    } else {
+        print("parallel serial mode (JOGSDL_RAYCASTER_SERIAL)\n")
+    }
+
     if (Init(INIT_VIDEO) == 0) {
         panic("SDL Init failed\n")
     }
 
-    var win = CreateWindow(c"JogSDL raycaster wasm proto-3D", WIN_W, WIN_H, WINDOW_RESIZABLE)
+    var win = CreateWindow(c"JogSDL raycaster wasm CPU-3D", WIN_W, WIN_H, WINDOW_RESIZABLE)
     if (win.ptr == null) {
         panic("CreateWindow failed\n")
     }
@@ -137,21 +255,42 @@ fn main() {
     if (App.pixels == null) {
         panic("alloc framebuffer failed\n")
     }
-    App.map = demo_map()
+    if (parallel_init(FB_BYTES as i64, FB_W, FB_H) == 0) {
+        panic("parallel_init failed\n")
+    }
+    if (depth_init(FB_W) == 0) {
+        panic("depth_init failed\n")
+    }
+    mesh_init_checker()
+    set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
     App.evbuf = alloc(128)
     App.mouse_f32 = alloc(8)
-    set_camera(2.5, 2.5, 1.0, 0.0, 0.0, PLANE_LEN)
     App.running = 1
     App.frames = 0
+    App.smoke_done = 0
     App.key_use = 0
     App.key_use_prev = 0
+    App.input_keys_seen = 0
+    App.input_mouse_seen = 0
+    timing_init()
 
     jog_host_run_loop(tick)
 
+    timing_flush()
     win.set_relative_mouse(0)
     tex.destroy()
     ren.destroy()
     win.destroy()
     Quit()
-    print("raycaster emscripten exit\n")
+    if (App.smoke != 0) {
+        print("raycaster emscripten exit\n")
+    } else {
+        if (App.input_keys_seen != 0) {
+            print("input keys seen\n")
+        }
+        if (App.input_mouse_seen != 0) {
+            print("input mouse seen\n")
+        }
+        print("raycaster emscripten exit\n")
+    }
 }

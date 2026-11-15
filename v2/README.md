@@ -18,7 +18,8 @@ v2/
   examples/raycaster/parallel.jog # go/Dispatcher column bands (native; JogSDL #23)
   examples/texture_selftest/    # no-window smoke for texture.jog
   examples/window-emscripten/   # browser window via jog_host_run_loop (JOG-90)
-  examples/raycaster-emscripten/# browser proto-3D raycaster (object App state)
+  examples/raycaster-emscripten/# browser full CPU-3D (pitch/mesh/timing/RTC go)
+  examples/raycaster-wasm-smoke/# headless emcc/node smoke: pitch/mesh/occlusion + RTC go
 ```
 
 ## Prerequisites
@@ -78,12 +79,19 @@ python3 -m http.server -d out 8000
 # open http://127.0.0.1:8000/window.html
 
 cd ../raycaster-emscripten
+# Needs a jog with emscripten RTC go (JogCompiler cursor/wasm-go-rtc-7f9f or later).
 "$JOG" build . --target wasm32-emscripten -o out/raycaster.html
+# Optional smoke (ENV works under emcc/browser Module):
+# JOGSDL_RAYCASTER_SMOKE=1 → first-frame pitch/mesh/occlusion prints; soft exit ~180 frames.
 python3 -m http.server -d out 8000
 # open http://127.0.0.1:8000/raycaster.html
+
+# Headless CPU smoke (no SDL; proves pitch/mesh/occlusion + RTC go under node):
+cd ../raycaster-wasm-smoke
+"$JOG" build . --target wasm32-emscripten -o out/smoke.html && node out/smoke.js
 ```
 
-`jog-build build --target wasm32-emscripten` also works once `JOG` points at a JOG-90 compiler (JogBuild already forwards the target).
+`jog-build build --target wasm32-emscripten` also works once `JOG` points at a JOG-90+ compiler with RTC `go` (JogBuild already forwards the target).
 
 ## JOG-89 / JOG-90 / JOG-105 surfaces
 
@@ -118,29 +126,29 @@ python3 -m http.server -d out 8000
 - Animates on real `dt` from timing helpers (orbit + spin); scalar package temps only (no struct returns on the hot path).
 - Smoke (`JOGSDL_RAYCASTER_SMOKE=1`): `mesh cube multi-color ok` + `mesh cube occluded ok`; PPM `/tmp/jogsdl_raycaster_fb.ppm` shows checker red/blue; center-column occlusion behind the door.
 
-## Parallel column bands (JogSDL #23)
+## Parallel column bands (JogSDL #23 + JOG-121 Wasm)
 
-- Native only: `parallel.jog` partitions wall columns across four `go` workers on a V2 `Dispatcher` pool (`dispatcher_pool(4)` before SDL Init).
+- `parallel.jog` partitions wall columns across four `go` workers on a V2 `Dispatcher` pool (`dispatcher_pool(4)` before SDL Init).
 - Disjoint ranges `[0,40)`, `[40,80)`, `[80,120)`, `[120,160)`; join via `coro_drain` before mesh/present. Mesh stays on the main thread after join.
-- **PARALLEL** (default): smoke prints `parallel bands via go/Dispatcher (4 workers)`.
+- **PARALLEL** (default native): smoke prints `parallel bands via go/Dispatcher (4 workers)`.
 - **SERIAL**: `JOGSDL_RAYCASTER_SERIAL=1` → one-thread `render_columns_range` (no pool).
-- **Wasm / emscripten:** stays serial — `raycaster-emscripten` does not use `parallel.jog` / `go` (`go` aborts under emcc).
-- Requires [JogCompiler #33](https://github.com/Jog-lang/JogCompiler/pull/33): package `var x: *byte` stride-1 indexing + coro TLS on **GS** (FS clobbered glibc → SDL malloc SIGSEGV).
+- **Wasm / emscripten:** same `go` band API via **run-to-completion** (JogCompiler RTC) — workers run serially on the tick stack; print `wasm go bands RTC…`. `yield` / stackful M:N still unsupported (Friction).
+- Native requires [JogCompiler #33](https://github.com/Jog-lang/JogCompiler/pull/33): package `var x: *byte` stride-1 indexing + coro TLS on **GS**. Wasm RTC `go` needs the emscripten RTC compiler fix (JOG-121).
 
 ## CPU 3D wave (pitch / texture / mesh / threads)
 
 | Piece | Status | Notes |
 |-------|--------|-------|
-| Pitch (mouse Y / horizon) | JogSDL #18 | Classic horizon shift only — not 6DOF |
-| Frame timing / FPS harness | JogSDL #19 | Real dt + Delay-to-cap; ~60 FPS @ 160×100 |
-| CPU texture load/`sample(u,v)` | JogSDL #20 | Shared walls/mesh substrate; wall sampling in frame path still optional |
-| Soft-raster textured mesh + depth | JogSDL #22 | Moving cube + per-column wall depth; see above |
-| Column/band `go` Dispatcher | JogSDL #23 | PARALLEL default / SERIAL env; needs JogCompiler #33; wasm serial |
+| Pitch (mouse Y / horizon) | JogSDL #18 | Classic horizon shift only — not 6DOF; Wasm shares `world.jog` |
+| Frame timing / FPS harness | JogSDL #19 | Real dt + Delay-to-cap; Wasm tick uses same `timing.jog` (rAF also vsyncs) |
+| CPU texture load/`sample(u,v)` | JogSDL #20 | Shared walls/mesh substrate; mesh bakes procedural checker (no FS) |
+| Soft-raster textured mesh + depth | JogSDL #22 | Moving cube + per-column wall depth; Wasm shares `mesh.jog` |
+| Column/band `go` Dispatcher | JogSDL #23 / JOG-121 | Native M:N; Wasm RTC serial bands (same API) |
 
 ## Limits
 
 - Freestanding `wasm32` (no emcc) is not on v2; browser+SDL is `wasm32-emscripten` only.
 - FRect layout vs `SDL_FRect` packing is still coarse (8-byte field slots); demos still smoke-present (F18).
-- Coroutines/`go` abort under emscripten (no stack switch) — wasm raycaster keeps the serial `render_frame` path.
-- Still a 2.5D column caster + soft-raster cube (not a full 3D engine). Pitch is horizon shift only; mesh uses yaw/pitch projection and per-column wall depth. Native wall columns may run PARALLEL via `go`/`Dispatcher`.
-- **Raycaster / jog develop:** numeric `as` is convert (JogCompiler #30). Do not revive the old IEEE 2^52 `i_to_f` bitcast helper — after #30 it sitofps `F52+n` and paints a solid door-colored frame. Struct returns still bump-alloc with no free (keep camera/DDA/mesh as package scalars). Parallel bands also need JogCompiler #33 (package `*byte` + GS coro TLS). See JogDocs Friction ([JogDocs #20](https://github.com/Jog-lang/JogDocs/pull/20) marks raw_ptr extern meta fixed; struct-return OOM remains open).
+- Wasm `go` is run-to-completion only — no `yield` / steal; bands are correct but serial.
+- Still a 2.5D column caster + soft-raster cube (not a full 3D engine). Pitch is horizon shift only; mesh uses yaw/pitch projection and per-column wall depth.
+- **Raycaster / jog develop:** numeric `as` is convert (JogCompiler #30). Do not revive the old IEEE 2^52 `i_to_f` bitcast helper — after #30 it sitofps `F52+n` and paints a solid door-colored frame. Struct returns still bump-alloc with no free (keep camera/DDA/mesh as package scalars). Parallel bands also need JogCompiler #33 (package `*byte` + GS coro TLS). See JogDocs Friction ([JogDocs #20](https://github.com/Jog-lang/JogDocs/pull/20) marks raw_ptr extern meta fixed; struct-return OOM remains open; Wasm RTC `go` partial).
