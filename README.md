@@ -1,6 +1,6 @@
 # JogSDL
 
-Hand-written [SDL3](https://www.libsdl.org/) bindings for the [Jog](https://github.com/Jog-lang) language, plus a window smoke app and a Wolfenstein-style software raycaster.
+Hand-written [SDL3](https://www.libsdl.org/) bindings for the [Jog](https://github.com/Jog-lang) language, plus a window smoke app. The software raycaster lives in [JogEngine](https://github.com/Jog-lang/JogEngine).
 
 Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are listed in `jog.mod` for later.
 
@@ -39,7 +39,6 @@ JogSDL/
   sdl/<category>/         # idiomatic packages (window, render, audio, …)
   sdl3/<category>/        # raw @link("SDL3") per SDL header category
   examples/window/        # window_demo executable
-  examples/raycaster/     # software raycaster (float camera / doors / mouse look)
   scripts/fetch-sdl3.sh
   scripts/build-sdl3.sh
   scripts/build-sdl3-emscripten.sh
@@ -112,18 +111,7 @@ cd "$ROOT/examples/window"
 
 Close the window or press Escape to exit.
 
-### Raycaster
-
-Proto-3D float camera (`Vec2` + view basis), doors, mouse look; optional parallel column bands via `go`/Dispatcher.
-
-```bash
-export JOG=~/.local/bin/jog-v2
-cd "$ROOT/examples/raycaster"
-"$JOG" build . -o out/raycaster
-JOGSDL_RAYCASTER_SMOKE=1 ./out/raycaster
-```
-
-Controls: **W/A/S/D** move, **arrows / mouse** look, **E/Space** door, **Escape** quit.
+Raycaster demos moved to **[JogEngine](https://github.com/Jog-lang/JogEngine)** (`examples/raycaster`, pack sibling JogSDL as `.jogz`).
 
 ## Browser (Emscripten)
 
@@ -141,21 +129,19 @@ export JOG_BUILD=~/.local/bin/jog-build
 ./scripts/build-sdl3-emscripten.sh   # → prefix-emscripten/lib/libSDL3.a
 
 ./examples/window-emscripten/start.sh          # http://127.0.0.1:8000/window.html
-./examples/raycaster-emscripten/start.sh       # http://127.0.0.1:8000/raycaster.html
-./examples/raycaster-wasm-smoke/start.sh       # headless node (no SDL)
 ```
 
 Flags: `--rebuild`, `--serve-only` / `--build-only`, `--port N` (browser demos). Helpers live in `scripts/emscripten-example-env.sh`.
 
-Manual build (same as the starters):
+Manual build (same as the starter):
 
 ```bash
-cd examples/raycaster-emscripten
-"$JOG_BUILD" build --target wasm32-emscripten -o out/raycaster.html
+cd examples/window-emscripten
+"$JOG_BUILD" build --target wasm32-emscripten -o out/window.html
 python3 -m http.server -d out 8000
 ```
 
-`jog.mod` carries `link.emscripten SDL3` and `libdir.emscripten ../../prefix-emscripten/lib`.
+`jog.mod` carries `link.emscripten SDL3` and `libdir.emscripten ./prefix-emscripten/lib`.
 
 ## Out of scope
 
