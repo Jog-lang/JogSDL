@@ -1,3 +1,5 @@
+import jog_sdl.sdl
+
 // Window smoke for Jog v2 + local SDL3 prefix (libdir → -L + rpath).
 // Package vals for SDL constants (JOG-89). Platform while-loop keeps the
 // demo robust; jog_host_run_loop works for scalar tick state (see compiler
