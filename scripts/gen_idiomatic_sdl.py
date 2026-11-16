@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 # Do not overwrite these hand-written packages.
-KEEP = {"window", "render", "events", "input", "timer", "opengl"}
+KEEP = {"window", "render", "events", "input", "timer", "opengl", "surface"}
 
 # SDL header macros — not exported from libSDL3 (only *Runtime symbols exist).
 SKIP_SYMBOLS = {

@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-KEEP_DIRS = {"window", "render", "events", "input", "timer"}  # hand-written
+KEEP_DIRS = {"window", "render", "events", "input", "timer", "surface"}  # hand-written
 
 # JogCompiler-v2 IR call arity hard limit (args.len + context arity > 8 → TooManyArgs).
 V2_MAX_ARGS = 8

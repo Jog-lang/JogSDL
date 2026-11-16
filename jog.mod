@@ -14,6 +14,7 @@ export sdl.events
 export sdl.input
 export sdl.timer
 export sdl.init
+export sdl.surface
 
 link.linux SDL3
 link.emscripten SDL3

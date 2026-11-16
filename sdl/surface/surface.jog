@@ -1,251 +1,96 @@
-// Idiomatic v2 wrappers for SDL surface (flat merge; calls SDL_* directly).
-// Variadics / by-value structs omitted — see JogDocs Friction.
+// Hand-written KEEP surface (typed handles). Thin *byte pass-throughs retired here.
+// Generators must not overwrite this package (KEEP_DIRS / check-idiomatic-sdl.sh).
 
-fn CreateSurface(width: i32, height: i32, format: u32): *byte {
-    return SDL_CreateSurface(width, height, format)
+/// Opaque CPU surface handle with logical size (from create/load).
+struct Surface {
+    private ptr: *byte
+    w: i32
+    h: i32
 }
 
-fn CreateSurfaceFrom(width: i32, height: i32, format: u32, pixels: *byte, pitch: i32): *byte {
-    return SDL_CreateSurfaceFrom(width, height, format, pixels, pitch)
+/// True when the underlying SDL surface pointer is non-null.
+fn Surface.ok(): bool {
+    return self.ptr != null
 }
 
-fn DestroySurface(surface: *byte) {
-    SDL_DestroySurface(surface)
+/// Escape hatch for Friction paths that must stash an opaque pointer.
+fn Surface.raw_ptr(): *byte {
+    return self.ptr
 }
 
-fn GetSurfaceProperties(surface: *byte): u32 {
-    return SDL_GetSurfaceProperties(surface)
+/**
+ * Destroy this surface.
+ * Safe to call when the handle is empty (null ptr).
+ * @see https://wiki.libsdl.org/SDL3/SDL_DestroySurface
+ */
+fn Surface.destroy() {
+    if (self.ptr != null) {
+        SDL_DestroySurface(self.ptr)
+    }
 }
 
-fn SetSurfaceColorspace(surface: *byte, colorspace: u32): i32 {
-    return SDL_SetSurfaceColorspace(surface, colorspace)
+/// Read SDL_Surface.w / .h (public layout: flags u32, format u32, w i32, h i32).
+fn surface_wh_from_ptr(p: *byte): (i32, i32) {
+    if (p == null) {
+        return (0, 0)
+    }
+    val w0 = p[8] & 255
+    val w1 = p[9] & 255
+    val w2 = p[10] & 255
+    val w3 = p[11] & 255
+    val h0 = p[12] & 255
+    val h1 = p[13] & 255
+    val h2 = p[14] & 255
+    val h3 = p[15] & 255
+    val w = (w0 + (w1 << 8) + (w2 << 16) + (w3 << 24)) as i32
+    val h = (h0 + (h1 << 8) + (h2 << 16) + (h3 << 24)) as i32
+    return (w, h)
 }
 
-fn GetSurfaceColorspace(surface: *byte): u32 {
-    return SDL_GetSurfaceColorspace(surface)
+/**
+ * Allocate a new surface with a specific pixel format (pixels zeroed).
+ * @param w width in pixels
+ * @param h height in pixels
+ * @param format SDL_PixelFormat value (e.g. PIXELFORMAT_ARGB8888)
+ * @return (Surface, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_CreateSurface
+ */
+fn CreateSurface(w: i32, h: i32, format: u32): (Surface, SDLError?) {
+    val p = SDL_CreateSurface(w, h, format)
+    if (p == null) {
+        return (Surface(ptr: null, w: 0, h: 0), last_error("CreateSurface failed"))
+    }
+    return (Surface(ptr: p, w: w, h: h), null)
 }
 
-fn CreateSurfacePalette(surface: *byte): *byte {
-    return SDL_CreateSurfacePalette(surface)
+/**
+ * Load a BMP file into a new surface.
+ * Path must be a NUL-terminated C string (`c"…"`).
+ * @param file filesystem path
+ * @return (Surface, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_LoadBMP
+ */
+fn LoadBMP(file: *byte): (Surface, SDLError?) {
+    val p = SDL_LoadBMP(file)
+    if (p == null) {
+        return (Surface(ptr: null, w: 0, h: 0), last_error("LoadBMP failed"))
+    }
+    val (w, h) = surface_wh_from_ptr(p)
+    return (Surface(ptr: p, w: w, h: h), null)
 }
 
-fn SetSurfacePalette(surface: *byte, palette: *byte): i32 {
-    return SDL_SetSurfacePalette(surface, palette)
+/**
+ * Load a PNG file into a new surface (SDL 3.2+ built-in PNG).
+ * Path must be a NUL-terminated C string (`c"…"`).
+ * @param file filesystem path
+ * @return (Surface, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_LoadPNG
+ */
+fn LoadPNG(file: *byte): (Surface, SDLError?) {
+    val p = SDL_LoadPNG(file)
+    if (p == null) {
+        return (Surface(ptr: null, w: 0, h: 0), last_error("LoadPNG failed"))
+    }
+    val (w, h) = surface_wh_from_ptr(p)
+    return (Surface(ptr: p, w: w, h: h), null)
 }
-
-fn GetSurfacePalette(surface: *byte): *byte {
-    return SDL_GetSurfacePalette(surface)
-}
-
-fn AddSurfaceAlternateImage(surface: *byte, image: *byte): i32 {
-    return SDL_AddSurfaceAlternateImage(surface, image)
-}
-
-fn SurfaceHasAlternateImages(surface: *byte): i32 {
-    return SDL_SurfaceHasAlternateImages(surface)
-}
-
-fn GetSurfaceImages(surface: *byte, count: *byte): **byte {
-    return SDL_GetSurfaceImages(surface, count)
-}
-
-fn RemoveSurfaceAlternateImages(surface: *byte) {
-    SDL_RemoveSurfaceAlternateImages(surface)
-}
-
-fn LockSurface(surface: *byte): i32 {
-    return SDL_LockSurface(surface)
-}
-
-fn UnlockSurface(surface: *byte) {
-    SDL_UnlockSurface(surface)
-}
-
-fn LoadSurface_IO(src: *byte, closeio: i32): *byte {
-    return SDL_LoadSurface_IO(src, closeio)
-}
-
-fn LoadSurface(file: *byte): *byte {
-    return SDL_LoadSurface(file)
-}
-
-fn LoadBMP_IO(src: *byte, closeio: i32): *byte {
-    return SDL_LoadBMP_IO(src, closeio)
-}
-
-fn LoadBMP(file: *byte): *byte {
-    return SDL_LoadBMP(file)
-}
-
-fn SaveBMP_IO(surface: *byte, dst: *byte, closeio: i32): i32 {
-    return SDL_SaveBMP_IO(surface, dst, closeio)
-}
-
-fn SaveBMP(surface: *byte, file: *byte): i32 {
-    return SDL_SaveBMP(surface, file)
-}
-
-fn LoadPNG_IO(src: *byte, closeio: i32): *byte {
-    return SDL_LoadPNG_IO(src, closeio)
-}
-
-fn LoadPNG(file: *byte): *byte {
-    return SDL_LoadPNG(file)
-}
-
-fn SavePNG_IO(surface: *byte, dst: *byte, closeio: i32): i32 {
-    return SDL_SavePNG_IO(surface, dst, closeio)
-}
-
-fn SavePNG(surface: *byte, file: *byte): i32 {
-    return SDL_SavePNG(surface, file)
-}
-
-fn SetSurfaceRLE(surface: *byte, enabled: i32): i32 {
-    return SDL_SetSurfaceRLE(surface, enabled)
-}
-
-fn SurfaceHasRLE(surface: *byte): i32 {
-    return SDL_SurfaceHasRLE(surface)
-}
-
-fn SetSurfaceColorKey(surface: *byte, enabled: i32, key: u32): i32 {
-    return SDL_SetSurfaceColorKey(surface, enabled, key)
-}
-
-fn SurfaceHasColorKey(surface: *byte): i32 {
-    return SDL_SurfaceHasColorKey(surface)
-}
-
-fn GetSurfaceColorKey(surface: *byte, key: *byte): i32 {
-    return SDL_GetSurfaceColorKey(surface, key)
-}
-
-fn SetSurfaceColorMod(surface: *byte, r: u8, g: u8, b: u8): i32 {
-    return SDL_SetSurfaceColorMod(surface, r, g, b)
-}
-
-fn GetSurfaceColorMod(surface: *byte, r: *byte, g: *byte, b: *byte): i32 {
-    return SDL_GetSurfaceColorMod(surface, r, g, b)
-}
-
-fn SetSurfaceAlphaMod(surface: *byte, alpha: u8): i32 {
-    return SDL_SetSurfaceAlphaMod(surface, alpha)
-}
-
-fn GetSurfaceAlphaMod(surface: *byte, alpha: *byte): i32 {
-    return SDL_GetSurfaceAlphaMod(surface, alpha)
-}
-
-fn SetSurfaceBlendMode(surface: *byte, blendMode: u32): i32 {
-    return SDL_SetSurfaceBlendMode(surface, blendMode)
-}
-
-fn GetSurfaceBlendMode(surface: *byte, blendMode: *byte): i32 {
-    return SDL_GetSurfaceBlendMode(surface, blendMode)
-}
-
-fn SetSurfaceClipRect(surface: *byte, rect: *byte): i32 {
-    return SDL_SetSurfaceClipRect(surface, rect)
-}
-
-fn GetSurfaceClipRect(surface: *byte, rect: *byte): i32 {
-    return SDL_GetSurfaceClipRect(surface, rect)
-}
-
-fn RotateSurface(surface: *byte, angle: f32): *byte {
-    return SDL_RotateSurface(surface, angle)
-}
-
-fn DuplicateSurface(surface: *byte): *byte {
-    return SDL_DuplicateSurface(surface)
-}
-
-fn ConvertSurface(surface: *byte, format: u32): *byte {
-    return SDL_ConvertSurface(surface, format)
-}
-
-fn ConvertSurfaceAndColorspace(surface: *byte, format: u32, palette: *byte, colorspace: u32, props: u32): *byte {
-    return SDL_ConvertSurfaceAndColorspace(surface, format, palette, colorspace, props)
-}
-
-fn ConvertPixels(width: i32, height: i32, src_format: u32, src: *byte, src_pitch: i32, dst_format: u32, dst: *byte, dst_pitch: i32): i32 {
-    return SDL_ConvertPixels(width, height, src_format, src, src_pitch, dst_format, dst, dst_pitch)
-}
-
-fn PremultiplySurfaceAlpha(surface: *byte, linear: i32): i32 {
-    return SDL_PremultiplySurfaceAlpha(surface, linear)
-}
-
-fn ClearSurface(surface: *byte, r: f32, g: f32, b: f32, a: f32): i32 {
-    return SDL_ClearSurface(surface, r, g, b, a)
-}
-
-fn FillSurfaceRect(dst: *byte, rect: *byte, color: u32): i32 {
-    return SDL_FillSurfaceRect(dst, rect, color)
-}
-
-fn FillSurfaceRects(dst: *byte, rects: *byte, count: i32, color: u32): i32 {
-    return SDL_FillSurfaceRects(dst, rects, count, color)
-}
-
-fn BlitSurface(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte): i32 {
-    return SDL_BlitSurface(src, srcrect, dst, dstrect)
-}
-
-fn BlitSurfaceUnchecked(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte): i32 {
-    return SDL_BlitSurfaceUnchecked(src, srcrect, dst, dstrect)
-}
-
-fn BlitSurfaceTiled(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte): i32 {
-    return SDL_BlitSurfaceTiled(src, srcrect, dst, dstrect)
-}
-
-fn MapSurfaceRGB(surface: *byte, r: u8, g: u8, b: u8): u32 {
-    return SDL_MapSurfaceRGB(surface, r, g, b)
-}
-
-fn MapSurfaceRGBA(surface: *byte, r: u8, g: u8, b: u8, a: u8): u32 {
-    return SDL_MapSurfaceRGBA(surface, r, g, b, a)
-}
-
-fn ReadSurfacePixel(surface: *byte, x: i32, y: i32, r: *byte, g: *byte, b: *byte, a: *byte): i32 {
-    return SDL_ReadSurfacePixel(surface, x, y, r, g, b, a)
-}
-
-fn ReadSurfacePixelFloat(surface: *byte, x: i32, y: i32, r: *byte, g: *byte, b: *byte, a: *byte): i32 {
-    return SDL_ReadSurfacePixelFloat(surface, x, y, r, g, b, a)
-}
-
-fn WriteSurfacePixel(surface: *byte, x: i32, y: i32, r: u8, g: u8, b: u8, a: u8): i32 {
-    return SDL_WriteSurfacePixel(surface, x, y, r, g, b, a)
-}
-
-fn WriteSurfacePixelFloat(surface: *byte, x: i32, y: i32, r: f32, g: f32, b: f32, a: f32): i32 {
-    return SDL_WriteSurfacePixelFloat(surface, x, y, r, g, b, a)
-}
-
-fn BlitSurfaceScaled(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte, scaleMode: u32): i32 {
-    return SDL_BlitSurfaceScaled(src, srcrect, dst, dstrect, scaleMode)
-}
-
-fn BlitSurfaceTiledWithScale(src: *byte, srcrect: *byte, scale: f32, scaleMode: u32, dst: *byte, dstrect: *byte): i32 {
-    return SDL_BlitSurfaceTiledWithScale(src, srcrect, scale, scaleMode, dst, dstrect)
-}
-
-fn BlitSurfaceUncheckedScaled(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte, scaleMode: u32): i32 {
-    return SDL_BlitSurfaceUncheckedScaled(src, srcrect, dst, dstrect, scaleMode)
-}
-
-fn FlipSurface(surface: *byte, flip: u32): i32 {
-    return SDL_FlipSurface(surface, flip)
-}
-
-fn ScaleSurface(surface: *byte, width: i32, height: i32, scaleMode: u32): i32 {
-    return SDL_ScaleSurface(surface, width, height, scaleMode)
-}
-
-fn StretchSurface(src: *byte, srcrect: *byte, dst: *byte, dstrect: *byte, scaleMode: u32): i32 {
-    return SDL_StretchSurface(src, srcrect, dst, dstrect, scaleMode)
-}
-
