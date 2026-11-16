@@ -1,3 +1,5 @@
+import jog_sdl.sdl
+
 // Controlled input plumbing test (no human typing required).
 // 1) *byte keyboard index stride (the #16 KeyboardIsDown bug)
 // 2) EventBuf type/scancode masks vs qword loads

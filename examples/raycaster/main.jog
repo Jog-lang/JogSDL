@@ -1,3 +1,5 @@
+import jog_sdl.sdl
+
 // Proto-3D software raycaster on Jog v2 (float camera basis).
 // WASD move/strafe, arrows or mouse-x yaw, mouse-y pitch (horizon), E/Space door.
 // Soft-raster textured cube depth-tested against DDA walls (track C).
