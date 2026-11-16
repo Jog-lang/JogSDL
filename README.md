@@ -6,6 +6,8 @@ Linux x86-64 is the first supported target. Windows and macOS `link.*` lines are
 
 **Toolchain:** **jog-v2 only** (`JOG=~/.local/bin/jog-v2`). Seed C `jog` and develop/`jogc` are historical — not live targets for this repo. Prefer `jog-build` + `libdir` (rpath); avoid leaving `$JOG` pointed at seed.
 
+Browser / `--target wasm32-emscripten` needs tip **v2** with JogCompiler [#39](https://github.com/Jog-lang/JogCompiler/pull/39) (Jog fn libc mangle) and [#40](https://github.com/Jog-lang/JogCompiler/pull/40) (extern call / prototype emit — fixes `RuntimeError: unreachable` in the MainLoop).
+
 | | |
 |---|---|
 | Repo | https://github.com/Jog-lang/JogSDL |
