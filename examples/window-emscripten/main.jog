@@ -1,7 +1,10 @@
+import jog_sdl.sdl
+
 // Emscripten window smoke (JOG-90). Must return each frame via
 // jog_host_run_loop(tick); a blocking while does not present under emcc.
 // Auto-exits after LIMIT_MS so headless/browser smoke can finish.
 // Stashes opaque pointers via raw_ptr() (Friction: no handle globals in tick).
+// Needs tip jog-v2 with JogCompiler #39 + #40 for browser MainLoop.
 
 val LIMIT_MS: u64 = 1500
 
