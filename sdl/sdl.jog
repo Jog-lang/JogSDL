@@ -72,8 +72,14 @@ enum Scancode {
 /// Pixel format for streaming textures (SDL_PIXELFORMAT_ARGB8888).
 val PIXELFORMAT_ARGB8888: u32 = 0x16362004
 
+/// Texture access mode: static (SDL_TEXTUREACCESS_STATIC) — rare updates, not lockable.
+val TEXTUREACCESS_STATIC: i32 = 0
+
 /// Texture access mode: streaming (SDL_TEXTUREACCESS_STREAMING).
 val TEXTUREACCESS_STREAMING: i32 = 1
+
+/// Texture access mode: render target (SDL_TEXTUREACCESS_TARGET).
+val TEXTUREACCESS_TARGET: i32 = 2
 
 // Compatibility aliases (prefer enums above).
 val INIT_VIDEO: u32 = 32

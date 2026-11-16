@@ -17,3 +17,4 @@ vendor/SDL3-*/
 vendor/*.tar.gz
 vendor/*.tar.gz.sha256
 scripts/gen_friction.txt
+.vscode/

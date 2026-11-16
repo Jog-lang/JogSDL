@@ -1,0 +1,112 @@
+// KEEP texture/surface smoke (Phase 1). Hidden window; no interactive loop.
+//   JOG=~/.local/bin/jog-v2 jog-build build . -o out/render_rect_selftest && ./out/render_rect_selftest
+import jog_sdl.sdl
+
+val FB_W: i32 = 64
+val FB_H: i32 = 64
+
+fn fill_argb(pixels: *byte, n: i64, b0: i64, b1: i64, b2: i64, b3: i64) {
+    var i: i64 = 0
+    while (i < n) {
+        pixels[i] = b0
+        pixels[i + 1] = b1
+        pixels[i + 2] = b2
+        pixels[i + 3] = b3
+        i = i + 4
+    }
+}
+
+fn main() {
+    print("step init\n")
+    if Init(InitFlag.Video) != null {
+        panic("Init failed\n")
+    }
+    print("step window\n")
+    val (win, win_err) = CreateWindow(c"JogSDL render_rect_selftest", 128, 128, WindowFlag.Hidden)
+    if (win_err != null || !win.ok()) {
+        panic("CreateWindow failed\n")
+    }
+    print("step renderer\n")
+    val (ren, ren_err) = win.create_renderer()
+    if (ren_err != null || !ren.ok()) {
+        panic("CreateRenderer failed\n")
+    }
+
+    print("step streaming\n")
+    val (stream, stream_err) = ren.create_streaming_texture(FB_W, FB_H)
+    if (stream_err != null || !stream.ok()) {
+        panic("create_streaming_texture failed\n")
+    }
+    print("step static\n")
+    val (stat, stat_err) = ren.create_static_texture(FB_W, FB_H)
+    if (stat_err != null || !stat.ok()) {
+        panic("create_static_texture failed\n")
+    }
+
+    val bytes: i64 = 16384
+    val buf = alloc(bytes)
+    if (buf == null) {
+        panic("alloc failed\n")
+    }
+    // Opaque red ARGB8888 LE: B,G,R,A
+    fill_argb(buf, bytes, 0, 0, 255, 255)
+    var pix: []u8
+    pix.ptr = buf
+    pix.len = 16384
+    print("step update\n")
+    if stream.update(pix) != null {
+        panic("Texture.update failed\n")
+    }
+    val r = rect(0, 0, 32, 32)
+    fill_argb(buf, 4096, 255, 0, 0, 255)
+    pix.len = 4096
+    print("step update_rect\n")
+    if stream.update_rect(r, pix) != null {
+        panic("Texture.update_rect failed\n")
+    }
+    print("step static update\n")
+    pix.len = 16384
+    fill_argb(buf, bytes, 0, 0, 255, 255)
+    if stat.update(pix) != null {
+        panic("static Texture.update failed\n")
+    }
+
+    // Texture.lock deferred — JogDocs Friction (void** out / &package *byte lower).
+
+    val src = frect(0.0, 0.0, 32.0, 32.0)
+    val dst = frect(10.0, 10.0, 48.0, 48.0)
+    print("step draw\n")
+    if ren.set_draw_color(color(20, 20, 40, 255)) != null {
+        panic("set_draw_color failed\n")
+    }
+    if ren.clear() != null {
+        panic("clear failed\n")
+    }
+    if ren.draw_texture_rect(stream, src, dst) != null {
+        panic("draw_texture_rect failed\n")
+    }
+    if ren.present() != null {
+        panic("present failed\n")
+    }
+
+    print("step surface\n")
+    val (surf, surf_err) = CreateSurface(16, 16, PIXELFORMAT_ARGB8888)
+    if (surf_err != null || !surf.ok()) {
+        panic("CreateSurface failed\n")
+    }
+    val (from_surf, from_err) = ren.create_texture_from_surface(surf)
+    if (from_err != null || !from_surf.ok()) {
+        panic("create_texture_from_surface failed\n")
+    }
+    if (from_surf.w != 16 || from_surf.h != 16) {
+        panic("create_texture_from_surface size mismatch\n")
+    }
+    surf.destroy()
+    from_surf.destroy()
+    stream.destroy()
+    stat.destroy()
+    ren.destroy()
+    win.destroy()
+    Quit()
+    print("render_rect_selftest ok\n")
+}

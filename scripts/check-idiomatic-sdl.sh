@@ -2,7 +2,7 @@
 # Non-empty sdl/* when sdl3 has SDL_* (KEEP/const cats exempt from emptiness).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-KEEP='window|render|events|input|timer|opengl'
+KEEP='window|render|events|input|timer|opengl|surface'
 CONST='bits|endian|pen|keycode|scancode|stdinc'
 fail=0
 for raw in "$ROOT"/sdl3/*/*.jog; do

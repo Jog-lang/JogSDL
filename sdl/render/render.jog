@@ -12,6 +12,14 @@ struct Texture {
     h: i32
 }
 
+/// Integer rectangle for texture update/lock (matches SDL_Rect layout: x,y,w,h).
+struct Rect {
+    x: i32
+    y: i32
+    w: i32
+    h: i32
+}
+
 /// Float rectangle for fill/draw calls (matches SDL_FRect layout: x,y,w,h).
 struct FRect {
     x: f32
@@ -26,6 +34,11 @@ struct Color {
     g: u8
     b: u8
     a: u8
+}
+
+/// Build an integer Rect.
+fn rect(x: i32, y: i32, w: i32, h: i32): Rect {
+    return Rect(x: x, y: y, w: w, h: h)
 }
 
 /// Build an FRect.
@@ -111,18 +124,55 @@ fn Renderer.fill_rect(rect: FRect): SDLError? {
 }
 
 /**
- * Create a streaming ARGB8888 texture for CPU uploads (`Texture.update`).
+ * Create an ARGB8888 texture with the given SDL_TextureAccess mode.
+ * @param w width in pixels
+ * @param h height in pixels
+ * @param access TEXTUREACCESS_STATIC / STREAMING / TARGET
+ * @return (Texture, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_CreateTexture
+ */
+fn Renderer.create_texture(w: i32, h: i32, access: i32): (Texture, SDLError?) {
+    val p = SDL_CreateTexture(self.ptr, PIXELFORMAT_ARGB8888, access, w, h)
+    if (p == null) {
+        return (Texture(ptr: null, w: 0, h: 0), last_error("CreateTexture failed"))
+    }
+    return (Texture(ptr: p, w: w, h: h), null)
+}
+
+/**
+ * Create a static ARGB8888 texture (rare updates; use `Texture.update` / `update_rect`).
+ * @param w width in pixels
+ * @param h height in pixels
+ * @return (Texture, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_CreateTexture
+ */
+fn Renderer.create_static_texture(w: i32, h: i32): (Texture, SDLError?) {
+    return self.create_texture(w, h, TEXTUREACCESS_STATIC)
+}
+
+/**
+ * Create a streaming ARGB8888 texture for CPU uploads (`Texture.update` / lock).
  * @param w width in pixels
  * @param h height in pixels
  * @return (Texture, null) on success
  * @see https://wiki.libsdl.org/SDL3/SDL_CreateTexture
  */
 fn Renderer.create_streaming_texture(w: i32, h: i32): (Texture, SDLError?) {
-    val p = SDL_CreateTexture(self.ptr, PIXELFORMAT_ARGB8888, TEXTUREACCESS_STREAMING, w, h)
+    return self.create_texture(w, h, TEXTUREACCESS_STREAMING)
+}
+
+/**
+ * Create a texture from an existing CPU surface (copies pixels; surface may be destroyed after).
+ * @param surf loaded or created surface
+ * @return (Texture, null) on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_CreateTextureFromSurface
+ */
+fn Renderer.create_texture_from_surface(surf: Surface): (Texture, SDLError?) {
+    val p = SDL_CreateTextureFromSurface(self.ptr, surf.raw_ptr())
     if (p == null) {
-        return (Texture(ptr: null, w: 0, h: 0), last_error("CreateTexture failed"))
+        return (Texture(ptr: null, w: 0, h: 0), last_error("CreateTextureFromSurface failed"))
     }
-    return (Texture(ptr: p, w: w, h: h), null)
+    return (Texture(ptr: p, w: surf.w, h: surf.h), null)
 }
 
 /**
@@ -134,6 +184,22 @@ fn Renderer.create_streaming_texture(w: i32, h: i32): (Texture, SDLError?) {
 fn Renderer.draw_texture(tex: Texture): SDLError? {
     if (SDL_RenderTexture(self.ptr, tex.raw_ptr(), null, null) == 0) {
         return last_error("RenderTexture failed")
+    }
+    return null
+}
+
+/**
+ * Copy a source rectangle of the texture into a destination rectangle on the target.
+ * Both rects are taken by value; addresses are passed to SDL for the call duration.
+ * @param tex texture to sample
+ * @param src region in texture pixels (subpixel FRect)
+ * @param dst region on the render target (subpixel FRect)
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_RenderTexture
+ */
+fn Renderer.draw_texture_rect(tex: Texture, src: FRect, dst: FRect): SDLError? {
+    if (SDL_RenderTexture(self.ptr, tex.raw_ptr(), &src, &dst) == 0) {
+        return last_error("RenderTexture rect failed")
     }
     return null
 }
@@ -172,6 +238,55 @@ fn Texture.update(pixels: []u8): SDLError? {
         return last_error("UpdateTexture failed")
     }
     return null
+}
+
+/**
+ * Upload pixel bytes for a sub-rectangle (pitch = rect.w × 4 for ARGB8888).
+ * Caller retains ownership of `pixels`; buffer must stay live for the call.
+ * @param r destination rectangle in texture pixels
+ * @param pixels contiguous rows for `r` (at least r.w×r.h×4)
+ * @return null on success
+ * @see https://wiki.libsdl.org/SDL3/SDL_UpdateTexture
+ */
+fn Texture.update_rect(r: Rect, pixels: []u8): SDLError? {
+    val pitch = r.w * 4
+    if (SDL_UpdateTexture(self.ptr, &r, pixels.ptr, pitch) == 0) {
+        return last_error("UpdateTexture rect failed")
+    }
+    return null
+}
+
+/**
+ * Multiply RGB when drawing this texture (0–255 per channel).
+ * @see https://wiki.libsdl.org/SDL3/SDL_SetTextureColorMod
+ */
+fn Texture.set_color_mod(r: u8, g: u8, b: u8): SDLError? {
+    if (SDL_SetTextureColorMod(self.ptr, r, g, b) == 0) {
+        return last_error("SetTextureColorMod failed")
+    }
+    return null
+}
+
+/**
+ * Set per-texture alpha mod (0–255).
+ * @see https://wiki.libsdl.org/SDL3/SDL_SetTextureAlphaMod
+ */
+fn Texture.set_alpha_mod(a: u8): SDLError? {
+    if (SDL_SetTextureAlphaMod(self.ptr, a) == 0) {
+        return last_error("SetTextureAlphaMod failed")
+    }
+    return null
+}
+
+/**
+ * Unlock a previously locked streaming texture (applies writes).
+ * Prefer `Texture.update` / `update_rect` until LockTexture KEEP lands (Friction: void** out).
+ * @see https://wiki.libsdl.org/SDL3/SDL_UnlockTexture
+ */
+fn Texture.unlock() {
+    if (self.ptr != null) {
+        SDL_UnlockTexture(self.ptr)
+    }
 }
 
 // --- Friction escape hatches (wasm tick / no per-frame handle returns) ---

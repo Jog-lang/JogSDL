@@ -54,7 +54,7 @@ extern {
     fn SDL_GetAudioFormatName(format: u32): *byte
     fn SDL_GetSilenceValueForFormat(format: u32): *byte
     fn SDL_MixAudio(dst: *byte, src: *byte, format: u32, len: u32, volume: f32): i32
-    fn SDL_OpenAudioDeviceStream(devid: u32, spec: *byte, callback: *byte, userdata: *byte): i32
+    fn SDL_OpenAudioDeviceStream(devid: u32, spec: *byte, callback: *byte, userdata: *byte): *byte
     fn SDL_PutAudioStreamDataNoCopy(stream: *byte, buf: *byte, len: i32, callback: *byte, userdata: *byte): i32
     fn SDL_SetAudioPostmixCallback(devid: u32, callback: *byte, userdata: *byte): i32
     fn SDL_SetAudioStreamGetCallback(stream: *byte, callback: *byte, userdata: *byte): i32

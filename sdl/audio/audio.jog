@@ -213,8 +213,60 @@ fn MixAudio(dst: *byte, src: *byte, format: u32, len: u32, volume: f32): i32 {
     return SDL_MixAudio(dst, src, format, len, volume)
 }
 
-fn OpenAudioDeviceStream(devid: u32, spec: *byte, callback: *byte, userdata: *byte): i32 {
+fn OpenAudioDeviceStream(devid: u32, spec: *byte, callback: *byte, userdata: *byte): *byte {
     return SDL_OpenAudioDeviceStream(devid, spec, callback, userdata)
+}
+
+// --- KEEP helpers (Phase 4): AudioSpec poke + default playback stream ---
+// SDL_AudioSpec layout (x86_64): format u16 @0, channels i32 @4, freq i32 @8 (size 12).
+
+val AUDIO_DEVICE_DEFAULT_PLAYBACK: u32 = 4294967295
+val AUDIO_S16LE: u32 = 32784
+val AUDIO_F32LE: u32 = 33056
+
+fn AudioSpecWrite(spec: *byte, format: u32, channels: i32, freq: i32) {
+    if (spec == null) {
+        return
+    }
+    val fmt = format as i64
+    val ch = channels as i64
+    val fr = freq as i64
+    spec[0] = fmt & 255
+    spec[1] = (fmt >> 8) & 255
+    spec[2] = 0
+    spec[3] = 0
+    spec[4] = ch & 255
+    spec[5] = (ch >> 8) & 255
+    spec[6] = (ch >> 16) & 255
+    spec[7] = (ch >> 24) & 255
+    spec[8] = fr & 255
+    spec[9] = (fr >> 8) & 255
+    spec[10] = (fr >> 16) & 255
+    spec[11] = (fr >> 24) & 255
+}
+
+// Open default playback with an AudioStream (no C callback — main-thread PutAudioStreamData).
+// Returns stream pointer; null on failure. Writes device id into out_devid[0..3] as u32 LE when non-null.
+fn OpenDefaultPlaybackStream(freq: i32, channels: i32, out_devid: *byte): *byte {
+    val spec = alloc(16)
+    if (spec == null) {
+        return null
+    }
+    AudioSpecWrite(spec, AUDIO_S16LE, channels, freq)
+    // null callback → app pushes PCM via PutAudioStreamData.
+    val stream = OpenAudioDeviceStream(AUDIO_DEVICE_DEFAULT_PLAYBACK, spec, null, null)
+    if (stream == null) {
+        return null
+    }
+    if (out_devid != null) {
+        val devid = GetAudioStreamDevice(stream) as i64
+        out_devid[0] = devid & 255
+        out_devid[1] = (devid >> 8) & 255
+        out_devid[2] = (devid >> 16) & 255
+        out_devid[3] = (devid >> 24) & 255
+    }
+    ResumeAudioStreamDevice(stream)
+    return stream
 }
 
 fn PutAudioStreamDataNoCopy(stream: *byte, buf: *byte, len: i32, callback: *byte, userdata: *byte): i32 {
