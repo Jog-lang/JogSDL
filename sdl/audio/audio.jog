@@ -228,18 +228,21 @@ fn AudioSpecWrite(spec: *byte, format: u32, channels: i32, freq: i32) {
     if (spec == null) {
         return
     }
-    spec[0] = format & 255
-    spec[1] = (format >> 8) & 255
+    val fmt = format as i64
+    val ch = channels as i64
+    val fr = freq as i64
+    spec[0] = fmt & 255
+    spec[1] = (fmt >> 8) & 255
     spec[2] = 0
     spec[3] = 0
-    spec[4] = channels & 255
-    spec[5] = (channels >> 8) & 255
-    spec[6] = (channels >> 16) & 255
-    spec[7] = (channels >> 24) & 255
-    spec[8] = freq & 255
-    spec[9] = (freq >> 8) & 255
-    spec[10] = (freq >> 16) & 255
-    spec[11] = (freq >> 24) & 255
+    spec[4] = ch & 255
+    spec[5] = (ch >> 8) & 255
+    spec[6] = (ch >> 16) & 255
+    spec[7] = (ch >> 24) & 255
+    spec[8] = fr & 255
+    spec[9] = (fr >> 8) & 255
+    spec[10] = (fr >> 16) & 255
+    spec[11] = (fr >> 24) & 255
 }
 
 // Open default playback with an AudioStream (no C callback — main-thread PutAudioStreamData).
@@ -256,7 +259,7 @@ fn OpenDefaultPlaybackStream(freq: i32, channels: i32, out_devid: *byte): *byte 
         return null
     }
     if (out_devid != null) {
-        val devid = GetAudioStreamDevice(stream)
+        val devid = GetAudioStreamDevice(stream) as i64
         out_devid[0] = devid & 255
         out_devid[1] = (devid >> 8) & 255
         out_devid[2] = (devid >> 16) & 255
