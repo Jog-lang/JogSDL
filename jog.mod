@@ -15,6 +15,8 @@ export sdl.input
 export sdl.timer
 export sdl.init
 export sdl.surface
+export sdl.audio
+export sdl.gpu
 
 link.linux SDL3
 link.emscripten SDL3

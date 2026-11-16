@@ -329,9 +329,19 @@ fn CalculateGPUTextureFormatSize(format: u32, width: u32, height: u32, depth_or_
     return SDL_CalculateGPUTextureFormatSize(format, width, height, depth_or_layer_count)
 }
 
-fn CreateGPUDevice(format_flags: u32, debug_mode: i32, name: *byte): i32 {
+fn CreateGPUDevice(format_flags: u32, debug_mode: i32, name: *byte): *byte {
     return SDL_CreateGPUDevice(format_flags, debug_mode, name)
 }
+
+// SDL_GPU_SHADERFORMAT_* bitflags (KEEP for PresentBackend selection).
+val GPU_SHADERFORMAT_INVALID: u32 = 0
+val GPU_SHADERFORMAT_PRIVATE: u32 = 1
+val GPU_SHADERFORMAT_SPIRV: u32 = 2
+val GPU_SHADERFORMAT_DXBC: u32 = 4
+val GPU_SHADERFORMAT_DXIL: u32 = 8
+val GPU_SHADERFORMAT_MSL: u32 = 16
+val GPU_SHADERFORMAT_METALLIB: u32 = 32
+
 
 fn GPUSupportsShaderFormats(format_flags: u32, name: *byte): i32 {
     return SDL_GPUSupportsShaderFormats(format_flags, name)
