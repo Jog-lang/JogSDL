@@ -1,0 +1,481 @@
+// GPU layout types + essential constants (flat-merged into package sdl.gpu).
+// Layouts match SDL_gpu.h from SDL 3.4.18 (x86_64 SysV): explicit pad fields so
+// sizeof/offsets match C. C `bool`/`Uint8` fields are `u8` (Jog `bool` may not
+// be 1 byte). Enums are `u32`. GPU_SHADERFORMAT_* lives in gpu.jog — not repeated.
+
+// --- Shader stage (SDL_GPUShaderStage) ---
+val GPU_SHADERSTAGE_VERTEX: u32 = 0
+val GPU_SHADERSTAGE_FRAGMENT: u32 = 1
+
+// --- Texture format (SDL_GPUTextureFormat; verified via C against SDL_gpu.h) ---
+// Order: INVALID, A8, R8, R8G8, R8G8B8A8=4, … B8G8R8A8=12, … depth at 58+.
+val GPU_TEXTUREFORMAT_INVALID: u32 = 0
+val GPU_TEXTUREFORMAT_R8G8B8A8_UNORM: u32 = 4
+val GPU_TEXTUREFORMAT_B8G8R8A8_UNORM: u32 = 12
+val GPU_TEXTUREFORMAT_D16_UNORM: u32 = 58
+val GPU_TEXTUREFORMAT_D24_UNORM: u32 = 59
+val GPU_TEXTUREFORMAT_D32_FLOAT: u32 = 60
+val GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT: u32 = 61
+val GPU_TEXTUREFORMAT_D32_FLOAT_S8_UINT: u32 = 62
+
+// --- Texture type / usage / sample count ---
+val GPU_TEXTURETYPE_2D: u32 = 0
+val GPU_TEXTUREUSAGE_SAMPLER: u32 = 1
+val GPU_TEXTUREUSAGE_COLOR_TARGET: u32 = 2
+val GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET: u32 = 4
+val GPU_SAMPLECOUNT_1: u32 = 0
+
+// --- Buffer / transfer usage ---
+val GPU_BUFFERUSAGE_VERTEX: u32 = 1
+val GPU_BUFFERUSAGE_INDEX: u32 = 2
+val GPU_TRANSFERBUFFERUSAGE_UPLOAD: u32 = 0
+val GPU_TRANSFERBUFFERUSAGE_DOWNLOAD: u32 = 1
+
+// --- Vertex element / input rate (SDL_GPUVertexElementFormat) ---
+val GPU_VERTEXELEMENTFORMAT_FLOAT2: u32 = 10
+val GPU_VERTEXELEMENTFORMAT_FLOAT3: u32 = 11
+val GPU_VERTEXELEMENTFORMAT_FLOAT4: u32 = 12
+val GPU_VERTEXINPUTRATE_VERTEX: u32 = 0
+
+// --- Pipeline topology / raster ---
+val GPU_PRIMITIVETYPE_TRIANGLELIST: u32 = 0
+val GPU_FILLMODE_FILL: u32 = 0
+val GPU_CULLMODE_NONE: u32 = 0
+val GPU_CULLMODE_BACK: u32 = 2
+val GPU_FRONTFACE_COUNTER_CLOCKWISE: u32 = 0
+
+// --- Compare / load / store / index ---
+val GPU_COMPAREOP_LESS: u32 = 2
+val GPU_COMPAREOP_LESS_OR_EQUAL: u32 = 4
+val GPU_COMPAREOP_ALWAYS: u32 = 8
+val GPU_LOADOP_LOAD: u32 = 0
+val GPU_LOADOP_CLEAR: u32 = 1
+val GPU_LOADOP_DONT_CARE: u32 = 2
+val GPU_STOREOP_STORE: u32 = 0
+val GPU_STOREOP_DONT_CARE: u32 = 1
+val GPU_INDEXELEMENTSIZE_16BIT: u32 = 0
+val GPU_INDEXELEMENTSIZE_32BIT: u32 = 1
+
+// --- Sampler / present ---
+val GPU_FILTER_NEAREST: u32 = 0
+val GPU_FILTER_LINEAR: u32 = 1
+val GPU_SAMPLERMIPMAPMODE_NEAREST: u32 = 0
+val GPU_SAMPLERMIPMAPMODE_LINEAR: u32 = 1
+val GPU_SAMPLERADDRESSMODE_REPEAT: u32 = 0
+val GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE: u32 = 2
+val GPU_PRESENTMODE_VSYNC: u32 = 0
+val GPU_PRESENTMODE_IMMEDIATE: u32 = 1
+val GPU_SWAPCHAINCOMPOSITION_SDR: u32 = 0
+
+/// Float RGBA clear color (SDL_FColor / clear_color); sizeof 16.
+struct GPUFColor {
+    r: f32
+    g: f32
+    b: f32
+    a: f32
+}
+
+/// SDL_GPUBufferCreateInfo; sizeof 12.
+struct GPUBufferCreateInfo {
+    usage: u32
+    size: u32
+    props: u32
+}
+
+/// SDL_GPUTransferBufferCreateInfo; sizeof 12.
+struct GPUTransferBufferCreateInfo {
+    usage: u32
+    size: u32
+    props: u32
+}
+
+/// SDL_GPUTextureCreateInfo; sizeof 36.
+/// Field `type_` is C's `type` (Jog keyword).
+struct GPUTextureCreateInfo {
+    type_: u32
+    format: u32
+    usage: u32
+    width: u32
+    height: u32
+    layer_count_or_depth: u32
+    num_levels: u32
+    sample_count: u32
+    props: u32
+}
+
+/// SDL_GPUShaderCreateInfo; sizeof 56 (trailing pad after props for 8-byte align).
+struct GPUShaderCreateInfo {
+    code_size: u64
+    code: *byte
+    entrypoint: *byte
+    format: u32
+    stage: u32
+    num_samplers: u32
+    num_storage_textures: u32
+    num_storage_buffers: u32
+    num_uniform_buffers: u32
+    props: u32
+    pad_end: u32
+}
+
+/// SDL_GPUBufferBinding; sizeof 16 (pad after offset).
+struct GPUBufferBinding {
+    buffer: *byte
+    offset: u32
+    pad: u32
+}
+
+/// SDL_GPUTextureSamplerBinding; sizeof 16.
+struct GPUTextureSamplerBinding {
+    texture: *byte
+    sampler: *byte
+}
+
+/// SDL_GPUTransferBufferLocation; sizeof 16 (pad after offset).
+struct GPUTransferBufferLocation {
+    transfer_buffer: *byte
+    offset: u32
+    pad: u32
+}
+
+/// SDL_GPUBufferRegion; sizeof 16.
+struct GPUBufferRegion {
+    buffer: *byte
+    offset: u32
+    size: u32
+}
+
+/// SDL_GPUTextureTransferInfo; sizeof 24 (offset@8, pixels@12, rows@16, pad@20).
+struct GPUTextureTransferInfo {
+    transfer_buffer: *byte
+    offset: u32
+    pixels_per_row: u32
+    rows_per_layer: u32
+    pad: u32
+}
+
+/// SDL_GPUTextureRegion; sizeof 40.
+struct GPUTextureRegion {
+    texture: *byte
+    mip_level: u32
+    layer: u32
+    x: u32
+    y: u32
+    z: u32
+    w: u32
+    h: u32
+    d: u32
+}
+
+/// SDL_GPUColorTargetInfo; sizeof 64 (4-byte trailing pad after pad2).
+struct GPUColorTargetInfo {
+    texture: *byte
+    mip_level: u32
+    layer: u32
+    clear_color: GPUFColor
+    load_op: u32
+    store_op: u32
+    resolve_texture: *byte
+    resolve_mip: u32
+    resolve_layer: u32
+    cycle: u8
+    cycle_resolve: u8
+    pad1: u8
+    pad2: u8
+    pad_end: u32
+}
+
+/// SDL_GPUDepthStencilTargetInfo; sizeof 32.
+struct GPUDepthStencilTargetInfo {
+    texture: *byte
+    clear_depth: f32
+    load_op: u32
+    store_op: u32
+    stencil_load_op: u32
+    stencil_store_op: u32
+    cycle: u8
+    clear_stencil: u8
+    mip_level: u8
+    layer: u8
+}
+
+/// SDL_GPUVertexBufferDescription; sizeof 16.
+struct GPUVertexBufferDescription {
+    slot: u32
+    pitch: u32
+    input_rate: u32
+    instance_step_rate: u32
+}
+
+/// SDL_GPUVertexAttribute; sizeof 16.
+struct GPUVertexAttribute {
+    location: u32
+    buffer_slot: u32
+    format: u32
+    offset: u32
+}
+
+/// SDL_GPUVertexInputState; sizeof 32 (pads for pointer alignment).
+struct GPUVertexInputState {
+    vertex_buffer_descriptions: *byte
+    num_vertex_buffers: u32
+    pad_mid: u32
+    vertex_attributes: *byte
+    num_vertex_attributes: u32
+    pad_end: u32
+}
+
+/// SDL_GPUStencilOpState; sizeof 16.
+struct GPUStencilOpState {
+    fail_op: u32
+    pass_op: u32
+    depth_fail_op: u32
+    compare_op: u32
+}
+
+/// SDL_GPUColorTargetBlendState; sizeof 32 (C bools as u8 + trailing pad).
+struct GPUColorTargetBlendState {
+    src_color_blendfactor: u32
+    dst_color_blendfactor: u32
+    color_blend_op: u32
+    src_alpha_blendfactor: u32
+    dst_alpha_blendfactor: u32
+    alpha_blend_op: u32
+    color_write_mask: u8
+    enable_blend: u8
+    enable_color_write_mask: u8
+    padding1: u8
+    padding2: u8
+    pad3: u8
+    pad4: u8
+    pad5: u8
+}
+
+/// SDL_GPUColorTargetDescription; sizeof 36 (format + blend_state).
+struct GPUColorTargetDescription {
+    format: u32
+    blend_state: GPUColorTargetBlendState
+}
+
+/// SDL_GPURasterizerState; sizeof 28.
+struct GPURasterizerState {
+    fill_mode: u32
+    cull_mode: u32
+    front_face: u32
+    depth_bias_constant_factor: f32
+    depth_bias_clamp: f32
+    depth_bias_slope_factor: f32
+    enable_depth_bias: u8
+    enable_depth_clip: u8
+    padding1: u8
+    padding2: u8
+}
+
+/// SDL_GPUMultisampleState; sizeof 12.
+struct GPUMultisampleState {
+    sample_count: u32
+    sample_mask: u32
+    enable_mask: u8
+    enable_alpha_to_coverage: u8
+    padding2: u8
+    padding3: u8
+}
+
+/// SDL_GPUDepthStencilState; sizeof 44.
+struct GPUDepthStencilState {
+    compare_op: u32
+    back_stencil_state: GPUStencilOpState
+    front_stencil_state: GPUStencilOpState
+    compare_mask: u8
+    write_mask: u8
+    enable_depth_test: u8
+    enable_depth_write: u8
+    enable_stencil_test: u8
+    padding1: u8
+    padding2: u8
+    padding3: u8
+}
+
+/// SDL_GPUGraphicsPipelineTargetInfo; sizeof 24 (pad after bool+3 bytes).
+struct GPUGraphicsPipelineTargetInfo {
+    color_target_descriptions: *byte
+    num_color_targets: u32
+    depth_stencil_format: u32
+    has_depth_stencil_target: u8
+    padding1: u8
+    padding2: u8
+    padding3: u8
+    pad_end: u32
+}
+
+/// SDL_GPUGraphicsPipelineCreateInfo; sizeof 168 (nested by-value states).
+struct GPUGraphicsPipelineCreateInfo {
+    vertex_shader: *byte
+    fragment_shader: *byte
+    vertex_input_state: GPUVertexInputState
+    primitive_type: u32
+    rasterizer_state: GPURasterizerState
+    multisample_state: GPUMultisampleState
+    depth_stencil_state: GPUDepthStencilState
+    target_info: GPUGraphicsPipelineTargetInfo
+    props: u32
+    pad_end: u32
+}
+
+/// SDL_GPUSamplerCreateInfo; sizeof 52.
+struct GPUSamplerCreateInfo {
+    min_filter: u32
+    mag_filter: u32
+    mipmap_mode: u32
+    address_mode_u: u32
+    address_mode_v: u32
+    address_mode_w: u32
+    mip_lod_bias: f32
+    max_anisotropy: f32
+    compare_op: u32
+    min_lod: f32
+    max_lod: f32
+    enable_anisotropy: u8
+    enable_compare: u8
+    padding1: u8
+    padding2: u8
+    props: u32
+}
+
+/// Buffer create info with props=0.
+fn gpu_buffer_info(usage: u32, size: u32): GPUBufferCreateInfo {
+    return GPUBufferCreateInfo(usage: usage, size: size, props: 0)
+}
+
+/// Transfer-buffer create info with props=0.
+fn gpu_transfer_info(usage: u32, size: u32): GPUTransferBufferCreateInfo {
+    return GPUTransferBufferCreateInfo(usage: usage, size: size, props: 0)
+}
+
+/// 2D texture: one mip, one layer, sample count 1, props=0.
+fn gpu_texture_2d(format: u32, usage: u32, w: u32, h: u32): GPUTextureCreateInfo {
+    return GPUTextureCreateInfo(
+        type_: GPU_TEXTURETYPE_2D,
+        format: format,
+        usage: usage,
+        width: w,
+        height: h,
+        layer_count_or_depth: 1,
+        num_levels: 1,
+        sample_count: GPU_SAMPLECOUNT_1,
+        props: 0
+    )
+}
+
+/// Shader create info; storage counts zeroed, props/pad zero.
+fn gpu_shader_info(
+    code: *byte,
+    code_size: u64,
+    entrypoint: *byte,
+    format: u32,
+    stage: u32,
+    num_samplers: u32,
+    num_uniform_buffers: u32
+): GPUShaderCreateInfo {
+    return GPUShaderCreateInfo(
+        code_size: code_size,
+        code: code,
+        entrypoint: entrypoint,
+        format: format,
+        stage: stage,
+        num_samplers: num_samplers,
+        num_storage_textures: 0,
+        num_storage_buffers: 0,
+        num_uniform_buffers: num_uniform_buffers,
+        props: 0,
+        pad_end: 0
+    )
+}
+
+/// Color target cleared each pass (LOADOP_CLEAR / STOREOP_STORE).
+fn gpu_color_target_clear(texture: *byte, r: f32, g: f32, b: f32, a: f32): GPUColorTargetInfo {
+    return GPUColorTargetInfo(
+        texture: texture,
+        mip_level: 0,
+        layer: 0,
+        clear_color: GPUFColor(r: r, g: g, b: b, a: a),
+        load_op: GPU_LOADOP_CLEAR,
+        store_op: GPU_STOREOP_STORE,
+        resolve_texture: null,
+        resolve_mip: 0,
+        resolve_layer: 0,
+        cycle: 0,
+        cycle_resolve: 0,
+        pad1: 0,
+        pad2: 0,
+        pad_end: 0
+    )
+}
+
+/// Depth target cleared each pass (stencil load/store DONT_CARE).
+fn gpu_depth_target_clear(texture: *byte, clear_depth: f32): GPUDepthStencilTargetInfo {
+    return GPUDepthStencilTargetInfo(
+        texture: texture,
+        clear_depth: clear_depth,
+        load_op: GPU_LOADOP_CLEAR,
+        store_op: GPU_STOREOP_DONT_CARE,
+        stencil_load_op: GPU_LOADOP_DONT_CARE,
+        stencil_store_op: GPU_STOREOP_DONT_CARE,
+        cycle: 0,
+        clear_stencil: 0,
+        mip_level: 0,
+        layer: 0
+    )
+}
+
+/// Vertex/index buffer binding.
+fn gpu_buffer_binding(buffer: *byte, offset: u32): GPUBufferBinding {
+    return GPUBufferBinding(buffer: buffer, offset: offset, pad: 0)
+}
+
+/// Texture + sampler binding pair.
+fn gpu_sampler_binding(texture: *byte, sampler: *byte): GPUTextureSamplerBinding {
+    return GPUTextureSamplerBinding(texture: texture, sampler: sampler)
+}
+
+/// Nearest min/mag/mip sampler, clamp-to-edge, no anisotropy/compare.
+fn gpu_nearest_sampler_info(): GPUSamplerCreateInfo {
+    return GPUSamplerCreateInfo(
+        min_filter: GPU_FILTER_NEAREST,
+        mag_filter: GPU_FILTER_NEAREST,
+        mipmap_mode: GPU_SAMPLERMIPMAPMODE_NEAREST,
+        address_mode_u: GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        address_mode_v: GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        address_mode_w: GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        mip_lod_bias: 0.0,
+        max_anisotropy: 1.0,
+        compare_op: GPU_COMPAREOP_ALWAYS,
+        min_lod: 0.0,
+        max_lod: 1000.0,
+        enable_anisotropy: 0,
+        enable_compare: 0,
+        padding1: 0,
+        padding2: 0,
+        props: 0
+    )
+}
+
+/// Per-vertex buffer description (instance_step_rate reserved 0).
+fn gpu_vertex_buffer_desc(slot: u32, pitch: u32): GPUVertexBufferDescription {
+    return GPUVertexBufferDescription(
+        slot: slot,
+        pitch: pitch,
+        input_rate: GPU_VERTEXINPUTRATE_VERTEX,
+        instance_step_rate: 0
+    )
+}
+
+/// Vertex attribute linked to a buffer slot.
+fn gpu_vertex_attr(location: u32, buffer_slot: u32, format: u32, offset: u32): GPUVertexAttribute {
+    return GPUVertexAttribute(
+        location: location,
+        buffer_slot: buffer_slot,
+        format: format,
+        offset: offset
+    )
+}
