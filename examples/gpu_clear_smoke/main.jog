@@ -1,0 +1,85 @@
+// SDL_GPU clear-color smoke (Vulkan via SPIR-V device).
+// CreateGPUDevice → ClaimWindow → WaitAndAcquire → clear → submit.
+import jog_sdl.sdl
+
+var swap_tex: *byte = null
+var swap_w: u32 = 0
+var swap_h: u32 = 0
+
+fn main() {
+    print("gpu_clear: init\n")
+    if Init(InitFlag.Video) != null {
+        panic("Init failed\n")
+    }
+    val (win, win_err) = CreateWindow(c"JogSDL gpu_clear_smoke", 320, 200)
+    if (win_err != null || !win.ok()) {
+        panic("CreateWindow failed\n")
+    }
+
+    print("gpu_clear: CreateGPUDevice\n")
+    val device = CreateGPUDevice(GPU_SHADERFORMAT_SPIRV, 1 as i32, null)
+    if (device == null) {
+        print("gpu_clear: CreateGPUDevice unavailable (skip ok)\n")
+        win.destroy()
+        Quit()
+        return
+    }
+
+    print("gpu_clear: ClaimWindow\n")
+    if (GPUClaimWindow(device, win.raw_ptr()) == 0) {
+        DestroyGPUDevice(device)
+        win.destroy()
+        Quit()
+        panic("ClaimWindow failed\n")
+    }
+    GPUSetSwapchainSDRVsync(device, win.raw_ptr())
+
+    print("gpu_clear: present frames\n")
+    var frames: i64 = 0
+    var i: i64 = 0
+    while (i < 8) {
+        val cmd = AcquireGPUCommandBuffer(device)
+        if (cmd == null) {
+            panic("AcquireGPUCommandBuffer failed\n")
+        }
+        swap_tex = null
+        swap_w = 0
+        swap_h = 0
+        if (WaitAndAcquireGPUSwapchainTexture(cmd, win.raw_ptr(), &swap_tex, &swap_w, &swap_h) == 0) {
+            CancelGPUCommandBuffer(cmd)
+            panic("WaitAndAcquireGPUSwapchainTexture failed\n")
+        }
+        if (swap_tex == null) {
+            if (SubmitGPUCommandBuffer(cmd) == 0) {
+                panic("Submit empty failed\n")
+            }
+            i = i + 1
+            continue
+        }
+        val target = gpu_pack_color_target_clear(swap_tex, GPU_F32_0_1, GPU_F32_0_2, GPU_F32_0_35, GPU_F32_1)
+        val pass = BeginGPURenderPass(cmd, target, 1 as u32, null)
+        if (pass == null) {
+            CancelGPUCommandBuffer(cmd)
+            panic("BeginGPURenderPass failed\n")
+        }
+        EndGPURenderPass(pass)
+        if (SubmitGPUCommandBuffer(cmd) == 0) {
+            panic("SubmitGPUCommandBuffer failed\n")
+        }
+        frames = frames + 1
+        if (frames >= 2) {
+            break
+        }
+        i = i + 1
+    }
+
+    if (frames < 1) {
+        panic("gpu_clear: no frames presented\n")
+    }
+    print("gpu_clear: ok\n")
+
+    GPUReleaseWindow(device, win.raw_ptr())
+    DestroyGPUDevice(device)
+    win.destroy()
+    Quit()
+}

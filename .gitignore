@@ -18,3 +18,4 @@ vendor/*.tar.gz
 vendor/*.tar.gz.sha256
 scripts/gen_friction.txt
 .vscode/
+prefix
