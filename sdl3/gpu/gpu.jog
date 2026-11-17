@@ -71,9 +71,9 @@ extern {
     fn SDL_ClaimWindowForGPUDevice(device: *byte, window: *byte): i32
     fn SDL_ReleaseWindowFromGPUDevice(device: *byte, window: *byte)
     fn SDL_SetGPUAllowedFramesInFlight(device: *byte, allowed_frames_in_flight: u32): i32
-    fn SDL_AcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32
+    fn SDL_AcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *u32, swapchain_texture_height: *u32): i32
     fn SDL_WaitForGPUSwapchain(device: *byte, window: *byte): i32
-    fn SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32
+    fn SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *u32, swapchain_texture_height: *u32): i32
     fn SDL_SubmitGPUCommandBuffer(command_buffer: *byte): i32
     fn SDL_SubmitGPUCommandBufferAndAcquireFence(command_buffer: *byte): *byte
     fn SDL_CancelGPUCommandBuffer(command_buffer: *byte): i32
@@ -88,10 +88,10 @@ extern {
     fn SDL_GPUTextureFormatTexelBlockSize(format: u32): i32
     fn SDL_GPUTextureSupportsFormat(device: *byte, format: u32, type_: u32, usage: u32): i32
     fn SDL_GPUTextureSupportsSampleCount(device: *byte, format: u32, sample_count: u32): i32
-    fn SDL_GetGPUShaderFormats(device: *byte): *byte
-    fn SDL_GetGPUSwapchainTextureFormat(device: *byte, window: *byte): *byte
-    fn SDL_GetGPUTextureFormatFromPixelFormat(format: u32): *byte
-    fn SDL_GetPixelFormatFromGPUTextureFormat(format: u32): *byte
+    fn SDL_GetGPUShaderFormats(device: *byte): u32
+    fn SDL_GetGPUSwapchainTextureFormat(device: *byte, window: *byte): u32
+    fn SDL_GetGPUTextureFormatFromPixelFormat(format: u32): u32
+    fn SDL_GetPixelFormatFromGPUTextureFormat(format: u32): u32
     fn SDL_SetGPUBlendConstants(render_pass: *byte, blend_constants: i32): i32
     fn SDL_SetGPUSwapchainParameters(device: *byte, window: *byte, swapchain_composition: u32, present_mode: u32): i32
     fn SDL_WindowSupportsGPUPresentMode(device: *byte, window: *byte, present_mode: u32): i32

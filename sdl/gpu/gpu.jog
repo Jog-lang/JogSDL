@@ -281,7 +281,7 @@ fn SetGPUAllowedFramesInFlight(device: *byte, allowed_frames_in_flight: u32): i3
     return SDL_SetGPUAllowedFramesInFlight(device, allowed_frames_in_flight)
 }
 
-fn AcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32 {
+fn AcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *u32, swapchain_texture_height: *u32): i32 {
     return SDL_AcquireGPUSwapchainTexture(command_buffer, window, swapchain_texture, swapchain_texture_width, swapchain_texture_height)
 }
 
@@ -289,7 +289,7 @@ fn WaitForGPUSwapchain(device: *byte, window: *byte): i32 {
     return SDL_WaitForGPUSwapchain(device, window)
 }
 
-fn WaitAndAcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *byte, swapchain_texture_height: *byte): i32 {
+fn WaitAndAcquireGPUSwapchainTexture(command_buffer: *byte, window: *byte, swapchain_texture: **byte, swapchain_texture_width: *u32, swapchain_texture_height: *u32): i32 {
     return SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window, swapchain_texture, swapchain_texture_width, swapchain_texture_height)
 }
 
@@ -359,20 +359,39 @@ fn GPUTextureSupportsSampleCount(device: *byte, format: u32, sample_count: u32):
     return SDL_GPUTextureSupportsSampleCount(device, format, sample_count)
 }
 
-fn GetGPUShaderFormats(device: *byte): *byte {
+fn GetGPUShaderFormats(device: *byte): u32 {
     return SDL_GetGPUShaderFormats(device)
 }
 
-fn GetGPUSwapchainTextureFormat(device: *byte, window: *byte): *byte {
+fn GetGPUSwapchainTextureFormat(device: *byte, window: *byte): u32 {
     return SDL_GetGPUSwapchainTextureFormat(device, window)
 }
 
-fn GetGPUTextureFormatFromPixelFormat(format: u32): *byte {
+fn GetGPUTextureFormatFromPixelFormat(format: u32): u32 {
     return SDL_GetGPUTextureFormatFromPixelFormat(format)
 }
 
-fn GetPixelFormatFromGPUTextureFormat(format: u32): *byte {
+fn GetPixelFormatFromGPUTextureFormat(format: u32): u32 {
     return SDL_GetPixelFormatFromGPUTextureFormat(format)
+}
+
+/// Claim a window for on-screen GPU present (SDL_ClaimWindowForGPUDevice).
+/// Returns 1 on success, 0 on failure.
+fn GPUClaimWindow(device: *byte, window: *byte): i32 {
+    if (ClaimWindowForGPUDevice(device, window) != 0) {
+        return 1
+    }
+    return 0
+}
+
+/// Release a previously claimed window from the GPU device.
+fn GPUReleaseWindow(device: *byte, window: *byte) {
+    ReleaseWindowFromGPUDevice(device, window)
+}
+
+/// Set SDR + VSYNC swapchain parameters after claim (best-effort).
+fn GPUSetSwapchainSDRVsync(device: *byte, window: *byte): i32 {
+    return SetGPUSwapchainParameters(device, window, GPU_SWAPCHAINCOMPOSITION_SDR, GPU_PRESENTMODE_VSYNC)
 }
 
 fn SetGPUBlendConstants(render_pass: *byte, blend_constants: i32): i32 {

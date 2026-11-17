@@ -1,14 +1,13 @@
-// GPU layout types + essential constants (flat-merged into package sdl.gpu).
-// Layouts match SDL_gpu.h from SDL 3.4.18 (x86_64 SysV): explicit pad fields so
-// sizeof/offsets match C. C `bool`/`Uint8` fields are `u8` (Jog `bool` may not
-// be 1 byte). Enums are `u32`. GPU_SHADERFORMAT_* lives in gpu.jog — not repeated.
+// GPU constants + C ABI pack helpers (flat-merged into package sdl.gpu).
+// Jog struct fields are 8-byte slots — they do NOT match SDL_gpu.h layouts.
+// Pass createinfo/bind blobs as *byte from these pack helpers (SDL 3.4.18 pin).
+// GPU_SHADERFORMAT_* lives in gpu.jog — not repeated.
 
-// --- Shader stage (SDL_GPUShaderStage) ---
+// --- Shader stage ---
 val GPU_SHADERSTAGE_VERTEX: u32 = 0
 val GPU_SHADERSTAGE_FRAGMENT: u32 = 1
 
-// --- Texture format (SDL_GPUTextureFormat; verified via C against SDL_gpu.h) ---
-// Order: INVALID, A8, R8, R8G8, R8G8B8A8=4, … B8G8R8A8=12, … depth at 58+.
+// --- Texture format (verified via C against SDL_gpu.h) ---
 val GPU_TEXTUREFORMAT_INVALID: u32 = 0
 val GPU_TEXTUREFORMAT_R8G8B8A8_UNORM: u32 = 4
 val GPU_TEXTUREFORMAT_B8G8R8A8_UNORM: u32 = 12
@@ -31,7 +30,7 @@ val GPU_BUFFERUSAGE_INDEX: u32 = 2
 val GPU_TRANSFERBUFFERUSAGE_UPLOAD: u32 = 0
 val GPU_TRANSFERBUFFERUSAGE_DOWNLOAD: u32 = 1
 
-// --- Vertex element / input rate (SDL_GPUVertexElementFormat) ---
+// --- Vertex element / input rate ---
 val GPU_VERTEXELEMENTFORMAT_FLOAT2: u32 = 10
 val GPU_VERTEXELEMENTFORMAT_FLOAT3: u32 = 11
 val GPU_VERTEXELEMENTFORMAT_FLOAT4: u32 = 12
@@ -67,308 +66,119 @@ val GPU_PRESENTMODE_VSYNC: u32 = 0
 val GPU_PRESENTMODE_IMMEDIATE: u32 = 1
 val GPU_SWAPCHAINCOMPOSITION_SDR: u32 = 0
 
-/// Float RGBA clear color (SDL_FColor / clear_color); sizeof 16.
-struct GPUFColor {
-    r: f32
-    g: f32
-    b: f32
-    a: f32
+// IEEE-754 f32 bit patterns for clear colors / depth (Jog f32 fields are not C-sized).
+val GPU_F32_0: u32 = 0
+val GPU_F32_1: u32 = 1065353216
+val GPU_F32_0_1: u32 = 1036831949
+val GPU_F32_0_2: u32 = 1045220557
+val GPU_F32_0_35: u32 = 1050253722
+
+// C blob sizes (x86_64 SysV, SDL 3.4.18).
+val GPU_SIZE_BUFFER_INFO: i64 = 12
+val GPU_SIZE_TRANSFER_INFO: i64 = 12
+val GPU_SIZE_TEXTURE_INFO: i64 = 36
+val GPU_SIZE_SHADER_INFO: i64 = 56
+val GPU_SIZE_BUFFER_BINDING: i64 = 16
+val GPU_SIZE_SAMPLER_BINDING: i64 = 16
+val GPU_SIZE_TRANSFER_LOC: i64 = 16
+val GPU_SIZE_BUFFER_REGION: i64 = 16
+val GPU_SIZE_TEXTURE_TRANSFER: i64 = 24
+val GPU_SIZE_TEXTURE_REGION: i64 = 40
+val GPU_SIZE_COLOR_TARGET: i64 = 64
+val GPU_SIZE_DEPTH_TARGET: i64 = 32
+val GPU_SIZE_VERTEX_BUFFER_DESC: i64 = 16
+val GPU_SIZE_VERTEX_ATTR: i64 = 16
+val GPU_SIZE_VERTEX_INPUT: i64 = 32
+val GPU_SIZE_SAMPLER_INFO: i64 = 52
+val GPU_SIZE_COLOR_TARGET_DESC: i64 = 36
+val GPU_SIZE_PIPELINE_TARGET: i64 = 24
+val GPU_SIZE_PIPELINE_INFO: i64 = 168
+val GPU_SIZE_RASTERIZER: i64 = 28
+val GPU_SIZE_MULTISAMPLE: i64 = 12
+val GPU_SIZE_DEPTH_STENCIL_STATE: i64 = 44
+
+struct GpuPtrWord {
+    v: *byte
 }
 
-/// SDL_GPUBufferCreateInfo; sizeof 12.
-struct GPUBufferCreateInfo {
-    usage: u32
-    size: u32
-    props: u32
+fn gpu_zero(buf: *byte, n: i64) {
+    var i: i64 = 0
+    while (i < n) {
+        buf[i] = 0
+        i = i + 1
+    }
 }
 
-/// SDL_GPUTransferBufferCreateInfo; sizeof 12.
-struct GPUTransferBufferCreateInfo {
-    usage: u32
-    size: u32
-    props: u32
+fn gpu_store_u32(buf: *byte, off: i64, v: u32) {
+    buf[off] = (v & 255) as i64
+    buf[off + 1] = ((v >> 8) & 255) as i64
+    buf[off + 2] = ((v >> 16) & 255) as i64
+    buf[off + 3] = ((v >> 24) & 255) as i64
 }
 
-/// SDL_GPUTextureCreateInfo; sizeof 36.
-/// Field `type_` is C's `type` (Jog keyword).
-struct GPUTextureCreateInfo {
-    type_: u32
-    format: u32
-    usage: u32
-    width: u32
-    height: u32
-    layer_count_or_depth: u32
-    num_levels: u32
-    sample_count: u32
-    props: u32
+fn gpu_store_u64(buf: *byte, off: i64, v: u64) {
+    buf[off] = (v & 255) as i64
+    buf[off + 1] = ((v >> 8) & 255) as i64
+    buf[off + 2] = ((v >> 16) & 255) as i64
+    buf[off + 3] = ((v >> 24) & 255) as i64
+    buf[off + 4] = ((v >> 32) & 255) as i64
+    buf[off + 5] = ((v >> 40) & 255) as i64
+    buf[off + 6] = ((v >> 48) & 255) as i64
+    buf[off + 7] = ((v >> 56) & 255) as i64
 }
 
-/// SDL_GPUShaderCreateInfo; sizeof 56 (trailing pad after props for 8-byte align).
-struct GPUShaderCreateInfo {
-    code_size: u64
-    code: *byte
-    entrypoint: *byte
-    format: u32
-    stage: u32
-    num_samplers: u32
-    num_storage_textures: u32
-    num_storage_buffers: u32
-    num_uniform_buffers: u32
-    props: u32
-    pad_end: u32
+fn gpu_store_ptr(buf: *byte, off: i64, p: *byte) {
+    var word: GpuPtrWord = GpuPtrWord(v: p)
+    val src: *byte = &word
+    var i: i64 = 0
+    while (i < 8) {
+        buf[off + i] = src[i]
+        i = i + 1
+    }
 }
 
-/// SDL_GPUBufferBinding; sizeof 16 (pad after offset).
-struct GPUBufferBinding {
-    buffer: *byte
-    offset: u32
-    pad: u32
+fn gpu_store_u8(buf: *byte, off: i64, v: i64) {
+    buf[off] = v & 255
 }
 
-/// SDL_GPUTextureSamplerBinding; sizeof 16.
-struct GPUTextureSamplerBinding {
-    texture: *byte
-    sampler: *byte
+/// Alloc + pack SDL_GPUBufferCreateInfo (usage, size, props=0).
+fn gpu_pack_buffer_info(usage: u32, size: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_BUFFER_INFO)
+    gpu_zero(buf, GPU_SIZE_BUFFER_INFO)
+    gpu_store_u32(buf, 0, usage)
+    gpu_store_u32(buf, 4, size)
+    gpu_store_u32(buf, 8, 0)
+    return buf
 }
 
-/// SDL_GPUTransferBufferLocation; sizeof 16 (pad after offset).
-struct GPUTransferBufferLocation {
-    transfer_buffer: *byte
-    offset: u32
-    pad: u32
+/// Alloc + pack SDL_GPUTransferBufferCreateInfo.
+fn gpu_pack_transfer_info(usage: u32, size: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_TRANSFER_INFO)
+    gpu_zero(buf, GPU_SIZE_TRANSFER_INFO)
+    gpu_store_u32(buf, 0, usage)
+    gpu_store_u32(buf, 4, size)
+    gpu_store_u32(buf, 8, 0)
+    return buf
 }
 
-/// SDL_GPUBufferRegion; sizeof 16.
-struct GPUBufferRegion {
-    buffer: *byte
-    offset: u32
-    size: u32
+/// Alloc + pack SDL_GPUTextureCreateInfo for a 2D texture (1 mip, 1 layer, sample 1).
+fn gpu_pack_texture_2d(format: u32, usage: u32, w: u32, h: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_TEXTURE_INFO)
+    gpu_zero(buf, GPU_SIZE_TEXTURE_INFO)
+    gpu_store_u32(buf, 0, GPU_TEXTURETYPE_2D)
+    gpu_store_u32(buf, 4, format)
+    gpu_store_u32(buf, 8, usage)
+    gpu_store_u32(buf, 12, w)
+    gpu_store_u32(buf, 16, h)
+    gpu_store_u32(buf, 20, 1)
+    gpu_store_u32(buf, 24, 1)
+    gpu_store_u32(buf, 28, GPU_SAMPLECOUNT_1)
+    gpu_store_u32(buf, 32, 0)
+    return buf
 }
 
-/// SDL_GPUTextureTransferInfo; sizeof 24 (offset@8, pixels@12, rows@16, pad@20).
-struct GPUTextureTransferInfo {
-    transfer_buffer: *byte
-    offset: u32
-    pixels_per_row: u32
-    rows_per_layer: u32
-    pad: u32
-}
-
-/// SDL_GPUTextureRegion; sizeof 40.
-struct GPUTextureRegion {
-    texture: *byte
-    mip_level: u32
-    layer: u32
-    x: u32
-    y: u32
-    z: u32
-    w: u32
-    h: u32
-    d: u32
-}
-
-/// SDL_GPUColorTargetInfo; sizeof 64 (4-byte trailing pad after pad2).
-struct GPUColorTargetInfo {
-    texture: *byte
-    mip_level: u32
-    layer: u32
-    clear_color: GPUFColor
-    load_op: u32
-    store_op: u32
-    resolve_texture: *byte
-    resolve_mip: u32
-    resolve_layer: u32
-    cycle: u8
-    cycle_resolve: u8
-    pad1: u8
-    pad2: u8
-    pad_end: u32
-}
-
-/// SDL_GPUDepthStencilTargetInfo; sizeof 32.
-struct GPUDepthStencilTargetInfo {
-    texture: *byte
-    clear_depth: f32
-    load_op: u32
-    store_op: u32
-    stencil_load_op: u32
-    stencil_store_op: u32
-    cycle: u8
-    clear_stencil: u8
-    mip_level: u8
-    layer: u8
-}
-
-/// SDL_GPUVertexBufferDescription; sizeof 16.
-struct GPUVertexBufferDescription {
-    slot: u32
-    pitch: u32
-    input_rate: u32
-    instance_step_rate: u32
-}
-
-/// SDL_GPUVertexAttribute; sizeof 16.
-struct GPUVertexAttribute {
-    location: u32
-    buffer_slot: u32
-    format: u32
-    offset: u32
-}
-
-/// SDL_GPUVertexInputState; sizeof 32 (pads for pointer alignment).
-struct GPUVertexInputState {
-    vertex_buffer_descriptions: *byte
-    num_vertex_buffers: u32
-    pad_mid: u32
-    vertex_attributes: *byte
-    num_vertex_attributes: u32
-    pad_end: u32
-}
-
-/// SDL_GPUStencilOpState; sizeof 16.
-struct GPUStencilOpState {
-    fail_op: u32
-    pass_op: u32
-    depth_fail_op: u32
-    compare_op: u32
-}
-
-/// SDL_GPUColorTargetBlendState; sizeof 32 (C bools as u8 + trailing pad).
-struct GPUColorTargetBlendState {
-    src_color_blendfactor: u32
-    dst_color_blendfactor: u32
-    color_blend_op: u32
-    src_alpha_blendfactor: u32
-    dst_alpha_blendfactor: u32
-    alpha_blend_op: u32
-    color_write_mask: u8
-    enable_blend: u8
-    enable_color_write_mask: u8
-    padding1: u8
-    padding2: u8
-    pad3: u8
-    pad4: u8
-    pad5: u8
-}
-
-/// SDL_GPUColorTargetDescription; sizeof 36 (format + blend_state).
-struct GPUColorTargetDescription {
-    format: u32
-    blend_state: GPUColorTargetBlendState
-}
-
-/// SDL_GPURasterizerState; sizeof 28.
-struct GPURasterizerState {
-    fill_mode: u32
-    cull_mode: u32
-    front_face: u32
-    depth_bias_constant_factor: f32
-    depth_bias_clamp: f32
-    depth_bias_slope_factor: f32
-    enable_depth_bias: u8
-    enable_depth_clip: u8
-    padding1: u8
-    padding2: u8
-}
-
-/// SDL_GPUMultisampleState; sizeof 12.
-struct GPUMultisampleState {
-    sample_count: u32
-    sample_mask: u32
-    enable_mask: u8
-    enable_alpha_to_coverage: u8
-    padding2: u8
-    padding3: u8
-}
-
-/// SDL_GPUDepthStencilState; sizeof 44.
-struct GPUDepthStencilState {
-    compare_op: u32
-    back_stencil_state: GPUStencilOpState
-    front_stencil_state: GPUStencilOpState
-    compare_mask: u8
-    write_mask: u8
-    enable_depth_test: u8
-    enable_depth_write: u8
-    enable_stencil_test: u8
-    padding1: u8
-    padding2: u8
-    padding3: u8
-}
-
-/// SDL_GPUGraphicsPipelineTargetInfo; sizeof 24 (pad after bool+3 bytes).
-struct GPUGraphicsPipelineTargetInfo {
-    color_target_descriptions: *byte
-    num_color_targets: u32
-    depth_stencil_format: u32
-    has_depth_stencil_target: u8
-    padding1: u8
-    padding2: u8
-    padding3: u8
-    pad_end: u32
-}
-
-/// SDL_GPUGraphicsPipelineCreateInfo; sizeof 168 (nested by-value states).
-struct GPUGraphicsPipelineCreateInfo {
-    vertex_shader: *byte
-    fragment_shader: *byte
-    vertex_input_state: GPUVertexInputState
-    primitive_type: u32
-    rasterizer_state: GPURasterizerState
-    multisample_state: GPUMultisampleState
-    depth_stencil_state: GPUDepthStencilState
-    target_info: GPUGraphicsPipelineTargetInfo
-    props: u32
-    pad_end: u32
-}
-
-/// SDL_GPUSamplerCreateInfo; sizeof 52.
-struct GPUSamplerCreateInfo {
-    min_filter: u32
-    mag_filter: u32
-    mipmap_mode: u32
-    address_mode_u: u32
-    address_mode_v: u32
-    address_mode_w: u32
-    mip_lod_bias: f32
-    max_anisotropy: f32
-    compare_op: u32
-    min_lod: f32
-    max_lod: f32
-    enable_anisotropy: u8
-    enable_compare: u8
-    padding1: u8
-    padding2: u8
-    props: u32
-}
-
-/// Buffer create info with props=0.
-fn gpu_buffer_info(usage: u32, size: u32): GPUBufferCreateInfo {
-    return GPUBufferCreateInfo(usage: usage, size: size, props: 0)
-}
-
-/// Transfer-buffer create info with props=0.
-fn gpu_transfer_info(usage: u32, size: u32): GPUTransferBufferCreateInfo {
-    return GPUTransferBufferCreateInfo(usage: usage, size: size, props: 0)
-}
-
-/// 2D texture: one mip, one layer, sample count 1, props=0.
-fn gpu_texture_2d(format: u32, usage: u32, w: u32, h: u32): GPUTextureCreateInfo {
-    return GPUTextureCreateInfo(
-        type_: GPU_TEXTURETYPE_2D,
-        format: format,
-        usage: usage,
-        width: w,
-        height: h,
-        layer_count_or_depth: 1,
-        num_levels: 1,
-        sample_count: GPU_SAMPLECOUNT_1,
-        props: 0
-    )
-}
-
-/// Shader create info; storage counts zeroed, props/pad zero.
-fn gpu_shader_info(
+/// Alloc + pack SDL_GPUShaderCreateInfo.
+fn gpu_pack_shader_info(
     code: *byte,
     code_size: u64,
     entrypoint: *byte,
@@ -376,106 +186,221 @@ fn gpu_shader_info(
     stage: u32,
     num_samplers: u32,
     num_uniform_buffers: u32
-): GPUShaderCreateInfo {
-    return GPUShaderCreateInfo(
-        code_size: code_size,
-        code: code,
-        entrypoint: entrypoint,
-        format: format,
-        stage: stage,
-        num_samplers: num_samplers,
-        num_storage_textures: 0,
-        num_storage_buffers: 0,
-        num_uniform_buffers: num_uniform_buffers,
-        props: 0,
-        pad_end: 0
-    )
+): *byte {
+    val buf: *byte = alloc(GPU_SIZE_SHADER_INFO)
+    gpu_zero(buf, GPU_SIZE_SHADER_INFO)
+    gpu_store_u64(buf, 0, code_size)
+    gpu_store_ptr(buf, 8, code)
+    gpu_store_ptr(buf, 16, entrypoint)
+    gpu_store_u32(buf, 24, format)
+    gpu_store_u32(buf, 28, stage)
+    gpu_store_u32(buf, 32, num_samplers)
+    gpu_store_u32(buf, 36, 0)
+    gpu_store_u32(buf, 40, 0)
+    gpu_store_u32(buf, 44, num_uniform_buffers)
+    gpu_store_u32(buf, 48, 0)
+    return buf
 }
 
-/// Color target cleared each pass (LOADOP_CLEAR / STOREOP_STORE).
-fn gpu_color_target_clear(texture: *byte, r: f32, g: f32, b: f32, a: f32): GPUColorTargetInfo {
-    return GPUColorTargetInfo(
-        texture: texture,
-        mip_level: 0,
-        layer: 0,
-        clear_color: GPUFColor(r: r, g: g, b: b, a: a),
-        load_op: GPU_LOADOP_CLEAR,
-        store_op: GPU_STOREOP_STORE,
-        resolve_texture: null,
-        resolve_mip: 0,
-        resolve_layer: 0,
-        cycle: 0,
-        cycle_resolve: 0,
-        pad1: 0,
-        pad2: 0,
-        pad_end: 0
-    )
+/// Alloc + pack SDL_GPUBufferBinding.
+fn gpu_pack_buffer_binding(buffer: *byte, offset: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_BUFFER_BINDING)
+    gpu_zero(buf, GPU_SIZE_BUFFER_BINDING)
+    gpu_store_ptr(buf, 0, buffer)
+    gpu_store_u32(buf, 8, offset)
+    return buf
 }
 
-/// Depth target cleared each pass (stencil load/store DONT_CARE).
-fn gpu_depth_target_clear(texture: *byte, clear_depth: f32): GPUDepthStencilTargetInfo {
-    return GPUDepthStencilTargetInfo(
-        texture: texture,
-        clear_depth: clear_depth,
-        load_op: GPU_LOADOP_CLEAR,
-        store_op: GPU_STOREOP_DONT_CARE,
-        stencil_load_op: GPU_LOADOP_DONT_CARE,
-        stencil_store_op: GPU_STOREOP_DONT_CARE,
-        cycle: 0,
-        clear_stencil: 0,
-        mip_level: 0,
-        layer: 0
-    )
+/// Alloc + pack SDL_GPUTextureSamplerBinding.
+fn gpu_pack_sampler_binding(texture: *byte, sampler: *byte): *byte {
+    val buf: *byte = alloc(GPU_SIZE_SAMPLER_BINDING)
+    gpu_zero(buf, GPU_SIZE_SAMPLER_BINDING)
+    gpu_store_ptr(buf, 0, texture)
+    gpu_store_ptr(buf, 8, sampler)
+    return buf
 }
 
-/// Vertex/index buffer binding.
-fn gpu_buffer_binding(buffer: *byte, offset: u32): GPUBufferBinding {
-    return GPUBufferBinding(buffer: buffer, offset: offset, pad: 0)
+/// Alloc + pack SDL_GPUTransferBufferLocation.
+fn gpu_pack_transfer_loc(transfer_buffer: *byte, offset: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_TRANSFER_LOC)
+    gpu_zero(buf, GPU_SIZE_TRANSFER_LOC)
+    gpu_store_ptr(buf, 0, transfer_buffer)
+    gpu_store_u32(buf, 8, offset)
+    return buf
 }
 
-/// Texture + sampler binding pair.
-fn gpu_sampler_binding(texture: *byte, sampler: *byte): GPUTextureSamplerBinding {
-    return GPUTextureSamplerBinding(texture: texture, sampler: sampler)
+/// Alloc + pack SDL_GPUBufferRegion.
+fn gpu_pack_buffer_region(buffer: *byte, offset: u32, size: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_BUFFER_REGION)
+    gpu_zero(buf, GPU_SIZE_BUFFER_REGION)
+    gpu_store_ptr(buf, 0, buffer)
+    gpu_store_u32(buf, 8, offset)
+    gpu_store_u32(buf, 12, size)
+    return buf
 }
 
-/// Nearest min/mag/mip sampler, clamp-to-edge, no anisotropy/compare.
-fn gpu_nearest_sampler_info(): GPUSamplerCreateInfo {
-    return GPUSamplerCreateInfo(
-        min_filter: GPU_FILTER_NEAREST,
-        mag_filter: GPU_FILTER_NEAREST,
-        mipmap_mode: GPU_SAMPLERMIPMAPMODE_NEAREST,
-        address_mode_u: GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-        address_mode_v: GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-        address_mode_w: GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-        mip_lod_bias: 0.0,
-        max_anisotropy: 1.0,
-        compare_op: GPU_COMPAREOP_ALWAYS,
-        min_lod: 0.0,
-        max_lod: 1000.0,
-        enable_anisotropy: 0,
-        enable_compare: 0,
-        padding1: 0,
-        padding2: 0,
-        props: 0
-    )
+/// Alloc + pack SDL_GPUTextureTransferInfo.
+fn gpu_pack_texture_transfer(transfer_buffer: *byte, offset: u32, pixels_per_row: u32, rows_per_layer: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_TEXTURE_TRANSFER)
+    gpu_zero(buf, GPU_SIZE_TEXTURE_TRANSFER)
+    gpu_store_ptr(buf, 0, transfer_buffer)
+    gpu_store_u32(buf, 8, offset)
+    gpu_store_u32(buf, 12, pixels_per_row)
+    gpu_store_u32(buf, 16, rows_per_layer)
+    return buf
 }
 
-/// Per-vertex buffer description (instance_step_rate reserved 0).
-fn gpu_vertex_buffer_desc(slot: u32, pitch: u32): GPUVertexBufferDescription {
-    return GPUVertexBufferDescription(
-        slot: slot,
-        pitch: pitch,
-        input_rate: GPU_VERTEXINPUTRATE_VERTEX,
-        instance_step_rate: 0
-    )
+/// Alloc + pack SDL_GPUTextureRegion for a full 2D level.
+fn gpu_pack_texture_region_2d(texture: *byte, w: u32, h: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_TEXTURE_REGION)
+    gpu_zero(buf, GPU_SIZE_TEXTURE_REGION)
+    gpu_store_ptr(buf, 0, texture)
+    gpu_store_u32(buf, 8, 0)
+    gpu_store_u32(buf, 12, 0)
+    gpu_store_u32(buf, 16, 0)
+    gpu_store_u32(buf, 20, 0)
+    gpu_store_u32(buf, 24, 0)
+    gpu_store_u32(buf, 28, w)
+    gpu_store_u32(buf, 32, h)
+    gpu_store_u32(buf, 36, 1)
+    return buf
 }
 
-/// Vertex attribute linked to a buffer slot.
-fn gpu_vertex_attr(location: u32, buffer_slot: u32, format: u32, offset: u32): GPUVertexAttribute {
-    return GPUVertexAttribute(
-        location: location,
-        buffer_slot: buffer_slot,
-        format: format,
-        offset: offset
-    )
+/// Alloc + pack SDL_GPUColorTargetInfo with CLEAR/STORE (r/g/b/a are f32 bit patterns).
+fn gpu_pack_color_target_clear(texture: *byte, r_bits: u32, g_bits: u32, b_bits: u32, a_bits: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_COLOR_TARGET)
+    gpu_zero(buf, GPU_SIZE_COLOR_TARGET)
+    gpu_store_ptr(buf, 0, texture)
+    gpu_store_u32(buf, 8, 0)
+    gpu_store_u32(buf, 12, 0)
+    gpu_store_u32(buf, 16, r_bits)
+    gpu_store_u32(buf, 20, g_bits)
+    gpu_store_u32(buf, 24, b_bits)
+    gpu_store_u32(buf, 28, a_bits)
+    gpu_store_u32(buf, 32, GPU_LOADOP_CLEAR)
+    gpu_store_u32(buf, 36, GPU_STOREOP_STORE)
+    return buf
+}
+
+/// Alloc + pack SDL_GPUDepthStencilTargetInfo CLEAR depth / DONT_CARE stencil.
+fn gpu_pack_depth_target_clear(texture: *byte, depth_bits: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_DEPTH_TARGET)
+    gpu_zero(buf, GPU_SIZE_DEPTH_TARGET)
+    gpu_store_ptr(buf, 0, texture)
+    gpu_store_u32(buf, 8, depth_bits)
+    gpu_store_u32(buf, 12, GPU_LOADOP_CLEAR)
+    gpu_store_u32(buf, 16, GPU_STOREOP_DONT_CARE)
+    gpu_store_u32(buf, 20, GPU_LOADOP_DONT_CARE)
+    gpu_store_u32(buf, 24, GPU_STOREOP_DONT_CARE)
+    return buf
+}
+
+/// Alloc + pack nearest clamp-to-edge sampler createinfo.
+fn gpu_pack_nearest_sampler_info(): *byte {
+    val buf: *byte = alloc(GPU_SIZE_SAMPLER_INFO)
+    gpu_zero(buf, GPU_SIZE_SAMPLER_INFO)
+    gpu_store_u32(buf, 0, GPU_FILTER_NEAREST)
+    gpu_store_u32(buf, 4, GPU_FILTER_NEAREST)
+    gpu_store_u32(buf, 8, GPU_SAMPLERMIPMAPMODE_NEAREST)
+    gpu_store_u32(buf, 12, GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE)
+    gpu_store_u32(buf, 16, GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE)
+    gpu_store_u32(buf, 20, GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE)
+    gpu_store_u32(buf, 24, GPU_F32_0)
+    gpu_store_u32(buf, 28, GPU_F32_1)
+    gpu_store_u32(buf, 32, GPU_COMPAREOP_ALWAYS)
+    gpu_store_u32(buf, 36, GPU_F32_0)
+    // max_lod = 1000.f ≈ 0x447a0000
+    gpu_store_u32(buf, 40, 1148846080)
+    return buf
+}
+
+/// Alloc + pack SDL_GPUVertexBufferDescription.
+fn gpu_pack_vertex_buffer_desc(slot: u32, pitch: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_VERTEX_BUFFER_DESC)
+    gpu_zero(buf, GPU_SIZE_VERTEX_BUFFER_DESC)
+    gpu_store_u32(buf, 0, slot)
+    gpu_store_u32(buf, 4, pitch)
+    gpu_store_u32(buf, 8, GPU_VERTEXINPUTRATE_VERTEX)
+    gpu_store_u32(buf, 12, 0)
+    return buf
+}
+
+/// Alloc + pack SDL_GPUVertexAttribute.
+fn gpu_pack_vertex_attr(location: u32, buffer_slot: u32, format: u32, offset: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_VERTEX_ATTR)
+    gpu_zero(buf, GPU_SIZE_VERTEX_ATTR)
+    gpu_store_u32(buf, 0, location)
+    gpu_store_u32(buf, 4, buffer_slot)
+    gpu_store_u32(buf, 8, format)
+    gpu_store_u32(buf, 12, offset)
+    return buf
+}
+
+/// Alloc + pack SDL_GPUVertexInputState pointing at desc/attr arrays.
+fn gpu_pack_vertex_input(vbuf_descs: *byte, num_vbufs: u32, attrs: *byte, num_attrs: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_VERTEX_INPUT)
+    gpu_zero(buf, GPU_SIZE_VERTEX_INPUT)
+    gpu_store_ptr(buf, 0, vbuf_descs)
+    gpu_store_u32(buf, 8, num_vbufs)
+    gpu_store_ptr(buf, 16, attrs)
+    gpu_store_u32(buf, 24, num_attrs)
+    return buf
+}
+
+/// Alloc + pack a minimal triangle-list graphics pipeline (pos+uv+normal = FLOAT3+FLOAT2+FLOAT3).
+/// depth_format: 0 and has_depth=0 means color-only; otherwise enable depth test/write.
+fn gpu_pack_graphics_pipeline(
+    vert_shader: *byte,
+    frag_shader: *byte,
+    color_format: u32,
+    depth_format: u32,
+    has_depth: u32,
+    vbuf_descs: *byte,
+    num_vbufs: u32,
+    attrs: *byte,
+    num_attrs: u32
+): *byte {
+    val buf: *byte = alloc(GPU_SIZE_PIPELINE_INFO)
+    gpu_zero(buf, GPU_SIZE_PIPELINE_INFO)
+    gpu_store_ptr(buf, 0, vert_shader)
+    gpu_store_ptr(buf, 8, frag_shader)
+    // vertex_input_state @ 16
+    gpu_store_ptr(buf, 16, vbuf_descs)
+    gpu_store_u32(buf, 24, num_vbufs)
+    gpu_store_ptr(buf, 32, attrs)
+    gpu_store_u32(buf, 40, num_attrs)
+    gpu_store_u32(buf, 48, GPU_PRIMITIVETYPE_TRIANGLELIST)
+    // rasterizer_state @ 52
+    gpu_store_u32(buf, 52, GPU_FILLMODE_FILL)
+    gpu_store_u32(buf, 56, GPU_CULLMODE_BACK)
+    gpu_store_u32(buf, 60, GPU_FRONTFACE_COUNTER_CLOCKWISE)
+    gpu_store_u8(buf, 77, 1)
+    // multisample_state @ 80 — sample_count 1 already zeroed
+    // depth_stencil_state @ 92
+    if (has_depth != 0) {
+        gpu_store_u32(buf, 92, GPU_COMPAREOP_LESS)
+        gpu_store_u8(buf, 130, 1)
+        gpu_store_u8(buf, 131, 1)
+    }
+    // target_info @ 136 — color_target_descriptions pointer filled by caller via out blob
+    // We embed one ColorTargetDescription inline after the pipeline blob? Caller passes
+    // a separate color-target-desc buffer; store its pointer here.
+    return buf
+}
+
+/// Alloc + pack SDL_GPUColorTargetDescription (no blend) for pipeline target_info.
+fn gpu_pack_color_target_desc(format: u32): *byte {
+    val buf: *byte = alloc(GPU_SIZE_COLOR_TARGET_DESC)
+    gpu_zero(buf, GPU_SIZE_COLOR_TARGET_DESC)
+    gpu_store_u32(buf, 0, format)
+    // blend_state @ 4 remains zero (blend disabled)
+    return buf
+}
+
+/// Fill pipeline target_info (@136) given an already-packed pipeline blob + color desc.
+fn gpu_pipeline_set_targets(pipeline: *byte, color_descs: *byte, num_colors: u32, depth_format: u32, has_depth: u32) {
+    gpu_store_ptr(pipeline, 136, color_descs)
+    gpu_store_u32(pipeline, 144, num_colors)
+    gpu_store_u32(pipeline, 148, depth_format)
+    gpu_store_u8(pipeline, 152, has_depth as i64)
 }

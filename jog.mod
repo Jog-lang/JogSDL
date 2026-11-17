@@ -1,6 +1,6 @@
 # JogSDL — kind library with directory source trees (shareable .jogz).
 module jog_sdl
-version 0.1.1
+version 0.1.2
 kind library
 
 source sdl
