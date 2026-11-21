@@ -1,5 +1,6 @@
-v2/surface: skip SDL_ConvertPixelsAndColorspace — 12 args > jog-v2 IR limit 8
-v2/surface: skip SDL_PremultiplyAlpha — 9 args > jog-v2 IR limit 8
-v2/surface: skip SDL_BlitSurface9Grid — 10 args > jog-v2 IR limit 8
+# Intentional idiomatic omissions (V1). See docs/friction-v1.md.
+# jog-v2 IR arity is 16 — former “>8 args” surface skips are no longer arity-blocked;
+# regenerate wrappers when next expanding the idiomatic surface.
 v2/thread: skip macro-only SDL_CreateThreadWithProperties (use *Runtime)
 v2/thread: skip macro-only SDL_CreateThread (use *Runtime)
+# Variadics (Log*/SetError/IOprintf): won't-fix V1 — call raw extern or wait for CInterop.

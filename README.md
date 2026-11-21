@@ -27,7 +27,8 @@ app  →  sdl / sdl.* (Jog names, errors, handles, enum+pack flags)  →  sdl3.*
 |---|---|
 | `sdl` | Facade: `Init(...InitFlag)` / `Quit`, `SDLError`, shared enums/constants. |
 | `sdl.window` / `sdl.render` / `sdl.events` / `sdl.input` / `sdl.timer` / `sdl.surface` | Hand-written KEEP idiomatic API (textures: static+streaming, `update_rect`/lock, `draw_texture_rect`, typed `Surface` + LoadBMP/PNG + `create_texture_from_surface`). |
-| `sdl.<category>` | Idiomatic wrappers over `sdl3.<category>`. Variadics / macro-only entry points omitted — see JogDocs Friction. |
+| `sdl.<category>` | Idiomatic wrappers over `sdl3.<category>`. Variadics / macro-only entry points omitted — see [`docs/friction-v1.md`](docs/friction-v1.md). |
+| `sdl.gpu` | SDL_GPU KEEP (createinfo pack plane, swapchain `*u32`) — dust2 PresentBackend smoke. |
 | `sdl3.<category>` | Internal raw externs (~1100 `SDL_*` symbols, pin 3.4.18). |
 
 API docs live in **comments on Jog declarations** (plus links to the [SDL3 wiki](https://wiki.libsdl.org/SDL3)).
