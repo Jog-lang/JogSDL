@@ -43,54 +43,18 @@ fn f32_slot_to_f64(p: *byte): f64 {
 }
 
 /**
- * Soft-float promote of IEEE f32 bit pattern to f64 (Jog `as` is bitcast).
+ * Promote IEEE f32 bit pattern to f64 via compiler builtin (JogCompiler #43).
  * @param bits_in low 32 bits = IEEE f32 pattern
- * @return f64 value (denormals/NaN/Inf → 0.0 for now)
+ * @return f64 value
  */
 fn f32bits_to_f64(bits_in: i64): f64 {
-    val bits = bits_in & 4294967295
-    val sign = (bits >> 31) & 1
-    val exp = (bits >> 23) & 255
-    val mant = bits & 8388607
-    if (exp == 0) {
-        if (mant == 0) {
-            if (sign != 0) {
-                return 0.0 - 0.0
-            }
-            return 0.0
-        }
-        return 0.0
-    }
-    if (exp == 255) {
-        return 0.0
-    }
-    val frac = (8388608.0 + (mant as f64)) / 8388608.0
-    var e = exp - 127
-    var p2 = 1.0
-    if (e >= 0) {
-        var i = 0
-        while (i < e) {
-            p2 = p2 * 2.0
-            i = i + 1
-        }
-    } else {
-        var i = 0
-        while (i < (0 - e)) {
-            p2 = p2 / 2.0
-            i = i + 1
-        }
-    }
-    val v = frac * p2
-    if (sign != 0) {
-        return 0.0 - v
-    }
-    return v
+    return f32_from_bits((bits_in & 4294967295) as u32)
 }
 
 /**
  * Relative mouse motion since the last call, as Jog f64 deltas.
- * Reads SDL f32 out-params into a scratch buffer and soft-promotes
- * (Jog cannot store SDL f32 bits into f32 struct fields via `as`).
+ * Reads SDL f32 out-params into a scratch buffer and promotes via f32_from_bits
+ * (JogCompiler #43 f32_from_bits).
  * @return MouseDelta with x/y in logical pixels (may be zero if unchanged)
  * @see https://wiki.libsdl.org/SDL3/SDL_GetRelativeMouseState
  */
