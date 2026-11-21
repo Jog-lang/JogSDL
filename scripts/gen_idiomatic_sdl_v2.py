@@ -12,8 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 KEEP_DIRS = {"window", "render", "events", "input", "timer", "surface"}  # hand-written
 
-# JogCompiler-v2 IR call arity hard limit (args.len + context arity > 8 → TooManyArgs).
-V2_MAX_ARGS = 8
+# JogCompiler-v2 IR call arity hard limit (max_call_args = 16; stack + SysV pad).
+V2_MAX_ARGS = 16
 
 # SDL header macros — not exported from libSDL3 (only *Runtime symbols exist).
 SKIP_SYMBOLS = {

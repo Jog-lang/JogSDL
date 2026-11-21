@@ -1,3 +1,5 @@
+# Intentional idiomatic omissions (V1). See docs/friction-v1.md.
+# Variadics: won't-fix V1 wrappers — Jog cannot wrap `...` outside extern (CInterop After V1).
 error: skip variadic SDL_SetError
 iostream: skip variadic SDL_IOprintf
 log: skip variadic SDL_Log
@@ -9,5 +11,6 @@ log: skip variadic SDL_LogWarn
 log: skip variadic SDL_LogError
 log: skip variadic SDL_LogCritical
 log: skip variadic SDL_LogMessage
+# Macro-only: libSDL3 exports *Runtime only.
 thread: skip macro-only SDL_CreateThread (use *Runtime)
 thread: skip macro-only SDL_CreateThreadWithProperties (use *Runtime)
